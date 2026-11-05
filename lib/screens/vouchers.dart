@@ -243,8 +243,10 @@ class _VoucherEditorState extends State<VoucherEditor> {
                       ? !validPositiveDecimal(amount.text.trim(), 4)
                       : !validNonNegativeDecimal(debit.text.trim(), 4) ||
                         !validNonNegativeDecimal(credit.text.trim(), 4) ||
-                        (debit.text.trim() == '0' && credit.text.trim() == '0') ||
-                        (debit.text.trim() != '0' && credit.text.trim() != '0')) ||
+                        (!validPositiveDecimal(debit.text.trim(), 4) &&
+                          !validPositiveDecimal(credit.text.trim(), 4)) ||
+                        (validPositiveDecimal(debit.text.trim(), 4) &&
+                          validPositiveDecimal(credit.text.trim(), 4))) ||
                     (kind.hasHeader &&
                       field(account['ulid']) == field(headerAccount?['ulid']))) {
                   update(() => formError =
