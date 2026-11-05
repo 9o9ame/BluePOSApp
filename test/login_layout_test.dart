@@ -54,7 +54,7 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.text('Fingerprint / Face Unlock'));
     await tester.pumpAndSettle();
-    expect(find.text('Sign in first, then enable biometrics in Settings.'),
+    expect(find.text('Sign in first to enable biometrics.'),
       findsOneWidget);
   });
 
