@@ -6,6 +6,7 @@ import '../widgets/common.dart';
 import 'catalog_master.dart';
 import 'parties.dart';
 import 'stock_status.dart';
+import 'trial_balance.dart';
 import 'history.dart';
 import 'settings.dart';
 
@@ -184,6 +185,9 @@ class _ModulesScreenState extends State<ModulesScreen> {
         permissions: const ['sales.view'], entitlement: 'sales'),
     ],
     'Reports': [
+      ModuleAction('Trial Balance', 'Server-calculated debit and credit',
+        Icons.balance_outlined, () => _open(TrialBalanceScreen(app: widget.app)),
+        permissions: const ['reports.accounting']),
       ModuleAction('Stock Status', 'Live warehouse inventory balances',
         Icons.warehouse_outlined, () => _open(StockStatusReport(app: widget.app)),
         permissions: const ['reports.inventory'], entitlement: 'inventory'),
