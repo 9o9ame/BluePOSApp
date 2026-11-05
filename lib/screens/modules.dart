@@ -20,6 +20,7 @@ import 'purchase_orders.dart';
 import 'purchase_invoices.dart';
 import 'inventory_documents.dart';
 import 'vouchers.dart';
+import 'returns.dart';
 import 'trial_balance.dart';
 import 'product_ledger.dart';
 import 'history.dart';
@@ -150,11 +151,10 @@ class _ModulesScreenState extends State<ModulesScreen> {
         Icons.request_quote_outlined,
         () => _open(QuotationDirectoryScreen(app: widget.app)),
         permissions: const ['sales.view'], entitlement: 'sales'),
-      ModuleAction('Sales Returns', 'Return document history',
-        Icons.assignment_return_outlined, () => _data('Sales Returns',
-          '/api/sales-returns?per_page=25', nameKey: 'document_number',
-          subtitleKey: 'return_date', amountKey: 'grand_total',
-          detailPrefix: '/api/sales-returns'),
+      ModuleAction('Sales Returns', 'Source-linked sales returns and posting',
+        Icons.assignment_return_outlined,
+        () => _open(ReturnDocumentsScreen(
+          app: widget.app, kind: ReturnDocumentKind.sale)),
         permissions: const ['sales.return'], entitlement: 'sales'),
       ModuleAction('Purchases', 'Purchase drafts, lines and server posting',
         Icons.shopping_bag_outlined,
@@ -164,10 +164,10 @@ class _ModulesScreenState extends State<ModulesScreen> {
         Icons.assignment_outlined,
         () => _open(PurchaseOrdersScreen(app: widget.app)),
         permissions: const ['purchases.view'], entitlement: 'purchases'),
-      ModuleAction('Purchase Returns', 'Return history',
-        Icons.assignment_return_rounded, () => _data('Purchase Returns',
-          '/api/purchase-returns?per_page=25', nameKey: 'document_number',
-          subtitleKey: 'return_date', detailPrefix: '/api/purchase-returns'),
+      ModuleAction('Purchase Returns', 'Source-linked purchase returns and posting',
+        Icons.assignment_return_rounded,
+        () => _open(ReturnDocumentsScreen(
+          app: widget.app, kind: ReturnDocumentKind.purchase)),
         permissions: const ['purchase_returns.view'], entitlement: 'purchase_returns'),
       ModuleAction('Stock Adjustments', 'Draft, edit and post stock adjustments',
         Icons.tune_outlined,
