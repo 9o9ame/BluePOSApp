@@ -1,0 +1,46 @@
+name: BluePOS Mobile — Analyze & Test (No APK)
+
+on:
+  push:
+    branches: [feature/daily-entries]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  analyze-and-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Generate Android project (no compilation)
+        run: flutter create --platforms=android --org pk.com.bluemarketing --project-name bluepos_app .
+
+      - name: Remove generated Flutter starter test
+        run: rm -f test/widget_test.dart
+
+      - name: Apply BluePOS Android configuration
+        run: python3 tool/patch_android.py
+
+      - name: Resolve Flutter dependencies
+        run: flutter pub get
+
+      - name: Static analyzer
+        run: flutter analyze --no-fatal-infos
+
+      - name: Focused Flutter unit and widget tests
+        run: flutter test
+
+      - name: Confirm no APK compiled
+        run: |
+          if [ -d build/app/outputs/flutter-apk ]; then
+            echo "Unexpected APK output from analysis-only workflow"
+            exit 1
+          fi

@@ -1,8 +1,6 @@
 name: Validate & Build BluePOS Mobile Android
 
 on:
-  push:
-    branches: [feature/daily-entries]
   workflow_dispatch:
 
 permissions:
