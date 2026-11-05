@@ -62,6 +62,7 @@ class SaleScreenState extends State<SaleScreen> {
   String priceMode = 'default';
   String paymentMethod = 'cash';
   Map<String, dynamic>? selectedCustomer;
+  Map<String, dynamic>? selectedBankAccount;
   bool paymentDue = false;
   bool saving = false;
   bool attempted = false;
@@ -147,6 +148,41 @@ class SaleScreenState extends State<SaleScreen> {
     }
   }
 
+  Future<void> pickBankAccount() async {
+    if (attempted) return;
+    try {
+      final response = await widget.app.api.get('/api/sales/payment-accounts');
+      final accounts = (response is List ? response : recordsOf(response))
+          .map(objectOf)
+          .where((account) => account['is_bank'] == true && field(account['ulid']).length == 26)
+          .toList();
+      if (!mounted) return;
+      if (accounts.isEmpty) {
+        await showApiError(context, 'No active bank account is available for card or bank payment.');
+        return;
+      }
+      final chosen = await showModalBottomSheet<Map<String, dynamic>>(
+        context: context,
+        showDragHandle: true,
+        useSafeArea: true,
+        builder: (ctx) => Column(mainAxisSize: MainAxisSize.min, children: [
+          Padding(padding: const EdgeInsets.all(16), child: Text('Receiving bank account',
+              style: Theme.of(ctx).textTheme.titleLarge)),
+          ...accounts.map((account) => ListTile(
+            leading: const Icon(Icons.account_balance_outlined),
+            title: Text(field(account['name'], 'Bank account')),
+            subtitle: Text(field(account['code'])),
+            onTap: () => Navigator.of(ctx).pop(account),
+          )),
+          const SizedBox(height: 12),
+        ]),
+      );
+      if (mounted && chosen != null) setState(() => selectedBankAccount = chosen);
+    } catch (e) {
+      if (mounted) await showApiError(context, e);
+    }
+  }
+
   Future<void> editLine(CartLine line) async {
     if (attempted) return;
     final qty = TextEditingController(text: line.qty);
@@ -198,6 +234,10 @@ class SaleScreenState extends State<SaleScreen> {
       if (paymentDue && selectedCustomer == null) {
         await showApiError(context, 'Select a customer before marking Payment Due.'); return;
       }
+      if (!paymentDue && paymentMethod != 'cash' && selectedBankAccount == null) {
+        await showApiError(context, 'Select a receiving bank account for card or bank payment.');
+        return;
+      }
       final amt = Decimal.tryParse(payment.text.trim());
       if (!paymentDue && (amt == null || amt <= Decimal.zero ||
           !RegExp(r'^\d+(\.\d{1,4})?$').hasMatch(payment.text.trim()))) {
@@ -211,6 +251,7 @@ class SaleScreenState extends State<SaleScreen> {
         if (!paymentDue) 'initial_payment': {
           'amount': Decimal.parse(payment.text.trim()).toStringAsFixed(4),
           'method': paymentMethod,
+          if (paymentMethod != 'cash') 'account_ulid': selectedBankAccount!['ulid'],
         },
       };
       attemptKey = AppController.newIdempotencyKey();
@@ -236,6 +277,7 @@ class SaleScreenState extends State<SaleScreen> {
       ));
       if (mounted) setState(() {
         lines.clear(); payment.clear(); selectedCustomer = null;
+        selectedBankAccount = null; paymentMethod = 'cash';
         paymentDue = false; attempted = false; attemptKey = null;
         attemptPayload = null; error = null;
       });
@@ -325,7 +367,23 @@ class SaleScreenState extends State<SaleScreen> {
               DropdownMenuItem(value:'cash', child:Text('Cash')),
               DropdownMenuItem(value:'card', child:Text('Card')),
               DropdownMenuItem(value:'bank', child:Text('Bank transfer')),
-            ], onChanged: attempted ? null : (value) => setState(() => paymentMethod = value ?? 'cash')),
+            ], onChanged: attempted ? null : (value) => setState(() {
+              paymentMethod = value ?? 'cash';
+              selectedBankAccount = null;
+            })),
+          if (paymentMethod != 'cash') ...[
+            const SizedBox(height: 12),
+            ListTile(
+              contentPadding: EdgeInsets.zero,
+              enabled: !attempted,
+              leading: const Icon(Icons.account_balance_outlined),
+              title: Text(selectedBankAccount == null ? 'Select receiving bank account'
+                  : field(selectedBankAccount!['name'], 'Bank account')),
+              subtitle: const Text('Required for card and bank transfer'),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: attempted ? null : pickBankAccount,
+            ),
+          ],
           const SizedBox(height: 12),
           TextField(controller: payment, enabled: !attempted,
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
