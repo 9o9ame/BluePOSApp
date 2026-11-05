@@ -16,6 +16,7 @@ import 'calculator.dart';
 import 'workplace_directory.dart';
 import 'quotations.dart';
 import 'cash_position.dart';
+import 'money_actions.dart';
 import 'purchase_orders.dart';
 import 'purchase_invoices.dart';
 import 'inventory_documents.dart';
@@ -193,11 +194,11 @@ class _ModulesScreenState extends State<ModulesScreen> {
         Icons.payments_outlined,
         () => _open(CashPositionScreen(app: widget.app)),
         permissions: const ['accounting.journal.view']),
-      ModuleAction('Expenses', 'Recorded expenses',
-        Icons.credit_card_outlined, () => _data('Expenses',
-          '/api/sales/expenses?per_page=25', nameKey: 'description',
-          subtitleKey: 'expense_date', amountKey: 'amount'),
-        permissions: const ['sales.view'], entitlement: 'sales'),
+      ModuleAction('Expenses', 'Create and browse posted expenses',
+        Icons.credit_card_outlined,
+        () => _open(ExpensesScreen(app: widget.app)),
+        permissions: const ['expenses.view', 'expenses.create'],
+        entitlement: 'sales'),
     ],
     'Reports': [
       ModuleAction('Product Ledger', 'Server-issued stock movements',
