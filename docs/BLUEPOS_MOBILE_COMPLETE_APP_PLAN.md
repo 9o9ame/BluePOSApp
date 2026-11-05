@@ -170,3 +170,12 @@
 - The biometric unenrolled guidance is the concise English **"Sign in first to enable biometrics."**
 - **Cash Book** screen added using verified `GET /api/reports/accounting/cash-book` and `GET /api/reports/accounting/cash-book/accounts` contracts. It exposes an account filter, bank toggle, date range and server-authoritative opening, received, paid and closing totals. Permissions are required and the backend rechecks tenant/branch. Its UI and request integration need focused validation.
 - APK compilation and release publishing remain prohibited; `.github/workflows/android-apk.yml` is manual-only. `mobile-checks.yml` performs analysis and tests without compiling an APK.
+
+
+### Accounting/report progress — 2026-11-05
+
+- [x] Permissioned navigation to the server-backed **Stock Status**, **Product Ledger**, **Trial Balance**, **Cash Book**, **Balance Sheet**, **Income Statement**, and **General Journal** report screens is implemented in Reports/Modules. This checkbox is navigation-only; per-report acceptance remains open.
+- [x] Cash Book widget tests verify server total rendering and explicit bank-filter query; focused analyzer/tests passed in GitHub Actions run `42028719416`.
+- [x] Income Statement and Balance Sheet widget tests verify server-side posted totals and no client-controlled tenant/branch financial fields; focused analyzer/tests passed in GitHub Actions run `42029095295`.
+- [ ] General Journal: API-backed preview created with authorized date range, unbalanced-voucher toggle, narration, server totals and 300-entry warning; analyzer/API contract verification and physical visual QA still required.
+- [ ] Reports must still cover remaining approved web capabilities, exports, document accuracy, live test tenant data, and permissions.
