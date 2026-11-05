@@ -7,6 +7,7 @@ import 'catalog_master.dart';
 import 'parties.dart';
 import 'stock_status.dart';
 import 'cash_book.dart';
+import 'financial_statements.dart';
 import 'trial_balance.dart';
 import 'product_ledger.dart';
 import 'history.dart';
@@ -196,6 +197,16 @@ class _ModulesScreenState extends State<ModulesScreen> {
       ModuleAction('Cash Book', 'Cash and bank transactions',
         Icons.account_balance_wallet_outlined,
         () => _open(CashBookReportScreen(app: widget.app)),
+        permissions: const ['reports.accounting']),
+      ModuleAction('Balance Sheet', 'Posted ledger statement',
+        Icons.account_balance_outlined,
+        () => _open(FinancialStatementScreen(app: widget.app,
+          kind: FinancialStatementKind.balanceSheet)),
+        permissions: const ['reports.accounting']),
+      ModuleAction('Income Statement', 'Posted income and expense entries',
+        Icons.show_chart_rounded,
+        () => _open(FinancialStatementScreen(app: widget.app,
+          kind: FinancialStatementKind.incomeStatement)),
         permissions: const ['reports.accounting']),
       ModuleAction('Stock Status', 'Live warehouse inventory balances',
         Icons.warehouse_outlined, () => _open(StockStatusReport(app: widget.app)),
