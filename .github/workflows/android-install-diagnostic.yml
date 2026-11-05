@@ -1,0 +1,62 @@
+name: Diagnose Android APK installation
+
+on:
+  push:
+    branches: [feature/daily-entries]
+    paths:
+      - '.github/workflows/android-install-diagnostic.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  install-smoke:
+    name: Android install / API ${{ matrix.api }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    strategy:
+      fail-fast: false
+      matrix:
+        api: [30, 35]
+    steps:
+      - name: Download exact APK that user could not install
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p apk
+          gh run download 41997531106 --repo "${{ github.repository }}" --name BluePOS-Mobile-v0.2.1-Android-APK --dir apk
+          test -s apk/app-release.apk
+          sha256sum apk/app-release.apk
+
+      - name: Verify APK signature, manifest and SDK/ABI
+        run: |
+          set -euo pipefail
+          APK_SIGNER="$(find "$ANDROID_HOME/build-tools" -name apksigner -type f | sort -V | tail -1)"
+          AAPT="$(find "$ANDROID_HOME/build-tools" -name aapt -type f | sort -V | tail -1)"
+          test -x "$APK_SIGNER"
+          test -x "$AAPT"
+          "$APK_SIGNER" verify --verbose --print-certs apk/app-release.apk
+          "$AAPT" dump badging apk/app-release.apk | head -35
+
+      - name: Enable hardware virtualization
+        run: |
+          ls -l /dev/kvm
+          sudo chmod 666 /dev/kvm
+
+      - name: Install APK on real Android emulator
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: ${{ matrix.api }}
+          target: google_apis
+          arch: x86_64
+          profile: pixel_6
+          disable-animations: true
+          emulator-options: -no-window -no-audio -no-boot-anim -gpu swiftshader_indirect
+          script: |
+            adb devices
+            adb shell getprop ro.build.version.release
+            adb install -r apk/app-release.apk
+            adb shell pm list packages | grep pk.com.bluemarketing.bluepos_app
+            adb shell monkey -p pk.com.bluemarketing.bluepos_app -c android.intent.category.LAUNCHER 1
