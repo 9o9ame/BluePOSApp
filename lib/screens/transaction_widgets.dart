@@ -276,7 +276,7 @@ class _TransactionDirectoryState extends State<TransactionDirectory> {
       floatingActionButton: allowCreate ? FloatingActionButton.extended(
         onPressed: () async {
           if (await widget.onCreate!(context) && mounted) await load();
-        }, icon: const Icon(Icons.add_rounded), label: const Text('New')),
+        }, icon: const Icon(Icons.add_rounded), label: const Text('New'))
         : null,
       body: RefreshIndicator(onRefresh: load,
         child: ListView(padding: const EdgeInsets.all(16), children: [
