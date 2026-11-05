@@ -5,6 +5,10 @@ import '../core/api.dart';
 import '../core/session.dart';
 import '../widgets/common.dart';
 import 'history.dart';
+import 'trial_balance.dart';
+import 'cash_book.dart';
+import 'stock_status.dart';
+import 'product_ledger.dart';
 
 class ReportsScreen extends StatefulWidget {
   const ReportsScreen({super.key, required this.app});
@@ -77,6 +81,38 @@ class _ReportsScreenState extends State<ReportsScreen> {
     return RefreshIndicator(onRefresh: load, child: ListView(
       padding: const EdgeInsets.all(16), children: [
         const SectionHeading('Reports & Insights'),
+        const SectionHeading('Available reports'),
+        Wrap(spacing: 8, runSpacing: 8, children: [
+          if (app.hasPermission('reports.accounting')) ...[
+            ActionChip(
+              avatar: const Icon(Icons.balance_outlined, size: 17),
+              label: const Text('Trial Balance'),
+              onPressed: () => Navigator.push(context, MaterialPageRoute(
+                builder: (_) => TrialBalanceScreen(app: app))),
+            ),
+            ActionChip(
+              avatar: const Icon(Icons.account_balance_wallet_outlined, size: 17),
+              label: const Text('Cash Book'),
+              onPressed: () => Navigator.push(context, MaterialPageRoute(
+                builder: (_) => CashBookReportScreen(app: app))),
+            ),
+          ],
+          if (app.hasPermission('reports.inventory')) ...[
+            ActionChip(
+              avatar: const Icon(Icons.warehouse_outlined, size: 17),
+              label: const Text('Stock Status'),
+              onPressed: () => Navigator.push(context, MaterialPageRoute(
+                builder: (_) => StockStatusReport(app: app))),
+            ),
+            ActionChip(
+              avatar: const Icon(Icons.receipt_long_outlined, size: 17),
+              label: const Text('Product Ledger'),
+              onPressed: () => Navigator.push(context, MaterialPageRoute(
+                builder: (_) => ProductLedgerScreen(app: app))),
+            ),
+          ],
+        ]),
+        const SizedBox(height: 14),
         GradientHero(appearance: app.appearance, child: Column(
           crossAxisAlignment: CrossAxisAlignment.start, children: [
             const Row(children: [Icon(Icons.analytics_outlined, color: Colors.white, size: 32),
