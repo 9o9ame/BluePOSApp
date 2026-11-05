@@ -192,8 +192,12 @@ class AppController extends ChangeNotifier {
     final pendingReturn = await const SaleReturnAttemptStore().read(
       userUlid: owner, tenantUlid: tenant, branchUlid: branch,
     );
+    final pendingMoney = await const MoneyActionAttemptStore().read(
+      userUlid: owner, tenantUlid: tenant, branchUlid: branch,
+    );
     if (pendingSale != null || pendingQuotation != null ||
-        pendingVoucher != null || pendingReturn != null) {
+        pendingVoucher != null || pendingReturn != null ||
+        pendingMoney != null) {
       throw const ApiFailure('UNCONFIRMED_DOCUMENT',
         'Resolve all unconfirmed financial requests before switching branches.', 409);
     }
