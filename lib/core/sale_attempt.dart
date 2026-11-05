@@ -103,3 +103,14 @@ class SaleReturnAttemptStore extends DocumentAttemptStore {
 
   static const key = 'bluepos_unconfirmed_sale_return_v1';
 }
+
+
+/// Shared pending slot for all idempotent financial settlements and expenses.
+/// The complete request URI and payload are stored in encrypted app storage.
+class MoneyActionAttemptStore extends DocumentAttemptStore {
+  const MoneyActionAttemptStore({
+    FlutterSecureStorage storage = const FlutterSecureStorage(),
+  }) : super(storageKey: key, storage: storage);
+
+  static const key = 'bluepos_unconfirmed_money_action_v1';
+}
