@@ -82,3 +82,14 @@ class QuotationAttemptStore extends DocumentAttemptStore {
 
   static const key = 'bluepos_unconfirmed_quotation_v1';
 }
+
+
+/// Manual voucher creation is server-idempotent and its pending request must
+/// not be confused with sale, quotation or other voucher attempts.
+class VoucherAttemptStore extends DocumentAttemptStore {
+  const VoucherAttemptStore({
+    FlutterSecureStorage storage = const FlutterSecureStorage(),
+  }) : super(storageKey: key, storage: storage);
+
+  static const key = 'bluepos_unconfirmed_voucher_v1';
+}
