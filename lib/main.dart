@@ -60,7 +60,7 @@ class _BluePOSMobileState extends State<BluePOSMobile> with WidgetsBindingObserv
                       ? ChangePasswordScreen(app: widget.app)
                       : widget.app.locked
                           ? BiometricUnlockScreen(app: widget.app)
-                          : AppShell(app: widget.app),
+                          : AppShell(key: ValueKey('mobile-${widget.app.currentUserUlid}-${field(objectOf(widget.app.session?['branch'])['ulid'])}'), app: widget.app),
         ),
       );
 }

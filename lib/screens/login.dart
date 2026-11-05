@@ -20,6 +20,28 @@ class _LoginScreenState extends State<LoginScreen> {
   String? hint;
   bool remember = true, trust = true, obscure = true, busy = false;
   String? error;
+  bool biometricLoginAvailable = false;
+
+  @override
+  void initState() { super.initState(); checkBiometricOption(); }
+
+  Future<void> checkBiometricOption() async {
+    final owner = await widget.app.biometric.savedOwner();
+    final available = await widget.app.biometric.available();
+    if (mounted) setState(() => biometricLoginAvailable = owner != null &&
+      widget.app.api.hasSavedSessionCookies && available);
+  }
+
+  Future<void> biometricLogin() async {
+    if (busy || !biometricLoginAvailable) return;
+    setState(() {busy = true; error = null;});
+    try {
+      final ok = await widget.app.biometricSignIn();
+      if (!ok && mounted) setState(() => error =
+        'Unlock unavailable. Sign in with your tenant code and password.');
+    } catch (e) { if (mounted) setState(() => error = e.toString()); }
+    finally { if (mounted) setState(() => busy = false); }
+  }
 
   @override
   void dispose() {
@@ -177,16 +199,16 @@ class _LoginScreenState extends State<LoginScreen> {
               challenge = null; code.clear(); error = null;
             }), child: const Text('Back to password login')),
             const SizedBox(height: 14),
-            Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-              Icon(Icons.fingerprint_rounded, color: accent, size: 23),
-              const SizedBox(width: 6), const Icon(Icons.face_unlock_outlined, size: 23),
-              const SizedBox(width: 8),
-              Text('Fingerprint / Face Unlock', style: TextStyle(fontWeight: FontWeight.bold,
-                color: scheme.onSurfaceVariant, fontSize: 13)),
-            ]),
+            OutlinedButton.icon(
+              onPressed: !biometricLoginAvailable || busy ? null : biometricLogin,
+              icon: const Icon(Icons.fingerprint_rounded),
+              label: const Text('Fingerprint / Face Unlock')),
             const SizedBox(height: 5),
-            Text('Enable after your first approved login in Settings.',
-              textAlign: TextAlign.center, style: TextStyle(color: scheme.onSurfaceVariant, fontSize: 11)),
+            Text(biometricLoginAvailable
+              ? 'Unlock the previously approved, still-valid session.'
+              : 'Enable biometrics in Settings after your first approved login.',
+              textAlign: TextAlign.center,
+              style: TextStyle(color: scheme.onSurfaceVariant, fontSize: 11)),
             const SizedBox(height: 15),
             const Text('Protected by BluePOS device approval, MFA and encrypted session storage.',
               textAlign: TextAlign.center, style: TextStyle(fontSize: 10)),

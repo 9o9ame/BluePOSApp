@@ -123,7 +123,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
             : Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
               SizedBox(height: 148, width: double.infinity,
                 child: CustomPaint(painter: _ReportLinePainter(
-                  values.map((row) => (Decimal.tryParse(field(row[isProduct ? 'net_amount' : 'grand_total']))
+                  values: values.map((row) => (Decimal.tryParse(field(row[isProduct ? 'net_amount' : 'grand_total']))
                     ?? Decimal.zero).toDouble()).toList(), color: scheme.primary))),
               const SizedBox(height: 14),
               ...records.take(5).map((row) => Padding(padding: const EdgeInsets.symmetric(vertical: 7),

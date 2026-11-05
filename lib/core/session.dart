@@ -6,6 +6,7 @@ import 'package:geolocator/geolocator.dart';
 import 'api.dart';
 import 'appearance.dart';
 import 'biometrics.dart';
+import 'sale_attempt.dart';
 
 class AppController extends ChangeNotifier {
   AppController(this.api, this.appearance, {BiometricAccess? biometric})
@@ -143,6 +144,28 @@ class AppController extends ChangeNotifier {
     session?['appearance'] = appearance.toJson();
   }
 
+  Future<void> switchBranch(String branchUlid) async {
+    if (session == null || branchUlid.length != 26) {
+      throw const ApiFailure('INVALID_BRANCH', 'Choose an authorized branch.', 422);
+    }
+    final pending = await const SaleAttemptStore().read(
+      userUlid: currentUserUlid,
+      tenantUlid: field(objectOf(session?['tenant'])['ulid']),
+      branchUlid: field(objectOf(session?['branch'])['ulid']),
+    );
+    if (pending != null) {
+      throw const ApiFailure('UNCONFIRMED_SALE',
+        'Resolve the earlier unconfirmed sale before switching branches.', 409);
+    }
+    // Backend verifies current device, active membership, branch and warehouse.
+    final response = await api.post('/api/branches/$branchUlid/switch', {});
+    _setSession(response);
+    if (field(objectOf(session?['branch'])['ulid']) != branchUlid) {
+      throw const ApiFailure('BRANCH_SWITCH_FAILED',
+        'The server did not confirm the requested branch.', 502);
+    }
+  }
+
   /// Engage local screen lock before backgrounding; no content is displayed
   /// until the operating system verifies an enrolled biometric.
   Future<void> lockForBackground() async {
@@ -183,6 +206,30 @@ class AppController extends ChangeNotifier {
     } finally {
       unlocking = false;
       notifyListeners();
+    }
+  }
+
+  /// Login screen option for resuming an already-issued session after
+  /// biometric opt-in. Cannot authenticate a first-time or expired account.
+  Future<bool> biometricSignIn() async {
+    if (!api.hasSavedSessionCookies) return false;
+    final owner = await biometric.savedOwner();
+    if (owner == null || owner.length != 26 || !await biometric.confirm()) return false;
+    try {
+      final response = await api.get('/api/auth/me');
+      final source = objectOf(response);
+      final actual = source.containsKey('user') ? source : objectOf(source['data']);
+      if (field(objectOf(actual['user'])['ulid']) != owner) {
+        throw const ApiFailure('SESSION_CHANGED',
+          'This saved session belongs to another account. Use password login.', 401);
+      }
+      _setSession(response);
+      locked = false;
+      notifyListeners();
+      return session != null;
+    } on ApiFailure catch (error) {
+      if (error.status == 401 || error.status == 403) await signInWithPassword();
+      rethrow;
     }
   }
 

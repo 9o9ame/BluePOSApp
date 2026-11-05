@@ -27,6 +27,7 @@ class BlueposApi {
   final Map<String, String> _cookies = {};
   bool _csrfReady = false;
   final Map<String, Uint8List> _productImageCache = {};
+  bool get hasSavedSessionCookies => _cookies.isNotEmpty;
   static const _cookieKey = 'bluepos_mobile_auth_cookies_v1';
 
   Future<void> restore() async {

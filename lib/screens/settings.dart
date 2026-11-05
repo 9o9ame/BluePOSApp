@@ -65,6 +65,39 @@ class _SettingsScreenState extends State<SettingsScreen> {
     finally { if (mounted) setState(() => biometricBusy = false); }
   }
 
+  Future<void> pickBranch() async {
+    try {
+      final response = await widget.app.api.get('/api/branches');
+      final branches = recordsOf(response);
+      if (!mounted) return;
+      final chosen = await showModalBottomSheet<Map<String, dynamic>>(
+        context: context, useSafeArea: true, showDragHandle: true,
+        builder: (ctx) => SafeArea(child: ListView(shrinkWrap: true, children: [
+          const Padding(padding: EdgeInsets.all(16), child: Text('Authorized branches',
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900))),
+          ...branches.map((branch) => ListTile(
+            leading: const Icon(Icons.storefront_outlined),
+            title: Text(field(branch['name'])),
+            subtitle: Text(field(branch['code'])),
+            onTap: () => Navigator.pop(ctx, branch),
+          )),
+        ])));
+      if (chosen == null || !mounted) return;
+      final target = field(chosen['ulid']);
+      final active = field(objectOf(widget.app.session?['branch'])['ulid']);
+      if (target == active) return;
+      final confirmed = await showDialog<bool>(context: context, builder: (ctx) => AlertDialog(
+        title: const Text('Switch branch?'),
+        content: const Text('This will discard any unsaved cart. A pending server sale must be resolved before switching.'),
+        actions: [TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
+          FilledButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Switch'))],
+      ));
+      if (confirmed != true || !mounted) return;
+      await widget.app.switchBranch(target);
+      if (mounted) Navigator.of(context).pop();
+    } catch (e) { if (mounted) await showApiError(context, e); }
+  }
+
   Widget option(String label, String name, List<String> values) => Padding(
     padding: const EdgeInsets.only(bottom: 12),
     child: DropdownButtonFormField<String>(
@@ -105,6 +138,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
         ])),
       ])),
       const SizedBox(height: 20),
+      Surface(child: ListTile(leading: const Icon(Icons.storefront_outlined),
+        title: const Text('Active branch'),
+        subtitle: Text(app.branchName),
+        trailing: const Icon(Icons.swap_horiz_rounded),
+        onTap: pickBranch)),
+      const SizedBox(height: 17),
       const SectionHeading('Appearance'),
       Surface(child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
         const Text('Choose your display', style: TextStyle(fontWeight: FontWeight.w800)),

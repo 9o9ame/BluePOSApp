@@ -62,7 +62,7 @@ class _AppShellState extends State<AppShell> {
           IconButton(tooltip: 'Settings', icon: const Icon(Icons.person_outline_rounded),
             onPressed: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) =>
               Scaffold(appBar: AppBar(title: const Text('Settings')),
-                body: SettingsScreen(app: app)))),
+                body: SettingsScreen(app: app))))),
           const SizedBox(width: 7),
         ],
       ),

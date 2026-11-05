@@ -19,7 +19,7 @@ class ProductThumb extends StatelessWidget {
       future: api.productImage(imageUrl),
       builder: (ctx, snapshot) => snapshot.hasData && snapshot.data != null
         ? Image.memory(snapshot.data!, width: size, height: size, fit: BoxFit.cover,
-            errorBuilder: (_, _, _) => fallback)
+            errorBuilder: (ctx, error, stack) => fallback)
         : fallback,
     ));
   }

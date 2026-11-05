@@ -29,6 +29,8 @@ class BiometricAccess {
     }
   }
 
+  Future<String?> savedOwner() => _storage.read(key: _ownerKey);
+
   Future<bool> enabledFor(String userUlid) async {
     if (userUlid.length != 26) return false;
     return (await _storage.read(key: _ownerKey)) == userUlid;
