@@ -6,7 +6,7 @@ import 'core/session.dart';
 import 'screens/login.dart';
 import 'screens/shell.dart';
 import 'screens/change_password.dart';
-import 'screens/biometric_unlock.dart';
+import 'screens/splash.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -53,14 +53,12 @@ class _BluePOSMobileState extends State<BluePOSMobile> with WidgetsBindingObserv
           darkTheme: widget.app.appearance.data(Brightness.dark),
           themeMode: widget.app.appearance.mode,
           home: widget.app.loading
-              ? const Scaffold(body: Center(child: CircularProgressIndicator()))
-              : !widget.app.authenticated
-                  ? LoginScreen(app: widget.app)
-                  : widget.app.needsPasswordChange
-                      ? ChangePasswordScreen(app: widget.app)
-                      : widget.app.locked
-                          ? BiometricUnlockScreen(app: widget.app)
-                          : AppShell(key: ValueKey('mobile-${widget.app.currentUserUlid}-${field(objectOf(widget.app.session?['branch'])['ulid'])}'), app: widget.app),
+              ? BlueposSplash(appearance: widget.app.appearance)
+              : widget.app.needsPasswordChange
+                  ? ChangePasswordScreen(app: widget.app)
+                  : !widget.app.authenticated || widget.app.locked
+                      ? LoginScreen(app: widget.app)
+                      : AppShell(key: ValueKey('mobile-${widget.app.currentUserUlid}-${field(objectOf(widget.app.session?['branch'])['ulid'])}'), app: widget.app),
         ),
       );
 }

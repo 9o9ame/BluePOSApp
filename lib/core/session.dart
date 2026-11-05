@@ -7,13 +7,18 @@ import 'api.dart';
 import 'appearance.dart';
 import 'biometrics.dart';
 import 'sale_attempt.dart';
+import 'saved_accounts.dart';
 
 class AppController extends ChangeNotifier {
-  AppController(this.api, this.appearance, {BiometricAccess? biometric})
-      : biometric = biometric ?? BiometricAccess();
+  AppController(this.api, this.appearance, {BiometricAccess? biometric, SavedAccountsStore? savedAccounts})
+      : biometric = biometric ?? BiometricAccess(),
+        savedAccounts = savedAccounts ?? SavedAccountsStore();
   final BlueposApi api;
   final AppAppearance appearance;
   final BiometricAccess biometric;
+  final SavedAccountsStore savedAccounts;
+  String? _pendingMartCode;
+  String? _pendingUsername;
   bool locked = false;
   bool unlocking = false;
   String? biometricMessage;
@@ -41,7 +46,9 @@ class AppController extends ChangeNotifier {
       final response = await api.get('/api/auth/me');
       _setSession(response);
       if (session != null && !needsPasswordChange) {
-        locked = await biometric.enabledFor(currentUserUlid);
+        // On a cold start show the login screen first, with an optional
+        // biometric prompt for an approved and recoverable server session.
+        locked = true;
       }
     } catch (_) {
       // An existing device cookie may expire; login remains available.
@@ -89,6 +96,8 @@ class AppController extends ChangeNotifier {
   }
 
   Future<void> login(String tenant, String username, String password, bool remember) async {
+    _pendingMartCode = tenant.trim();
+    _pendingUsername = username.trim();
     final coords = await _loginLocation();
     final response = await api.post('/api/auth/login', {
       'tenant_code': tenant.trim(),
@@ -100,6 +109,23 @@ class AppController extends ChangeNotifier {
     _setSession(response);
     if (session == null) {
       throw const ApiFailure('AUTH_RESPONSE', 'Invalid login session returned.', 502);
+    }
+    locked = false;
+    await _rememberSuccessfulLogin();
+    notifyListeners();
+  }
+
+  Future<void> _rememberSuccessfulLogin() async {
+    final mart = _pendingMartCode;
+    final username = _pendingUsername;
+    _pendingMartCode = null;
+    _pendingUsername = null;
+    if (mart == null || username == null || currentUserUlid.length != 26) return;
+    try {
+      await savedAccounts.remember(martCode: mart, username: username,
+        userUlid: currentUserUlid, displayName: userName);
+    } catch (_) {
+      // Optional local account picker failure must not block server authentication.
     }
   }
 
@@ -114,6 +140,9 @@ class AppController extends ChangeNotifier {
     });
     _setSession(response);
     if (session == null) throw const ApiFailure('MFA_RESPONSE', 'Verification did not establish a session.', 502);
+    locked = false;
+    await _rememberSuccessfulLogin();
+    notifyListeners();
   }
 
   Future<Map<String, dynamic>> resendMfa(String challenge) async {
