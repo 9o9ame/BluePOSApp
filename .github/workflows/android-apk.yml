@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   build-debug-apk:
@@ -48,3 +48,16 @@ jobs:
           path: build/app/outputs/flutter-apk/app-debug.apk
           if-no-files-found: error
           retention-days: 30
+
+      # One-off public pre-release, only when the explicit publish commit is pushed.
+      - name: Publish downloadable preview APK
+        if: ${{ github.event_name == 'push' && contains(github.event.head_commit.message, '[publish-apk]') }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create mobile-v0.1.0-preview \
+            "build/app/outputs/flutter-apk/app-debug.apk#BluePOS-Mobile-v0.1.0-preview.apk" \
+            --target "$GITHUB_SHA" \
+            --title "BluePOS Mobile v0.1.0 — Android preview APK" \
+            --notes "Development preview (debug-signed Android APK), not a production release. Connects to the configured live BluePOS API. Install and log in only with an authorized test account and approved device. Sale posting is a real financial/stock operation." \
+            --prerelease
