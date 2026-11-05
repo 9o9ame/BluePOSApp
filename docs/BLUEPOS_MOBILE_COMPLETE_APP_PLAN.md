@@ -96,7 +96,7 @@
 - [ ] **10.05–10.10** Trial Balance (including six-column variants), Balance Sheet, Income Statement (daily/monthly/yearly), General Journal, Cash Book.
 - [ ] **10.11–10.15** Daily Business Activity, Total Turnover, Top Products/Vendors/Customers, Stock Status, Product Ledger.
 - [ ] **10.16–10.17** Report preview/search/zoom/refresh and supported Print/PDF/CSV, native date-range/account/product/branch filters.
-- Web registry marks FBR registers, Dead Stock, Expiry, advanced P/L, detailed transactions and several party reports as **later**. Do not show unsupported reports as live; only add after contract is verified.
+- Current web APIs expose the six Next Report families, including FBR **internal tax review** registers; those are not filing-ready. Dead/expiry stock and other reports remain dependent on verified web contracts. Mobile screens must not claim regulatory certification.
 
 ## 11. Tools
 
@@ -179,3 +179,22 @@
 - [x] Income Statement and Balance Sheet widget tests verify server-side posted totals and no client-controlled tenant/branch financial fields; focused analyzer/tests passed in GitHub Actions run `42029095295`.
 - [ ] General Journal: API-backed preview created with authorized date range, unbalanced-voucher toggle, narration, server totals and 300-entry warning; analyzer/API contract verification and physical visual QA still required.
 - [ ] Reports must still cover remaining approved web capabilities, exports, document accuracy, live test tenant data, and permissions.
+
+
+### Development progress checkpoint — 2026-11-05 (implementation only)
+
+**Progress accounting:** The following entries record source features added on `feature/daily-entries`; no testing/build/device validation is counted as completed development. The main acceptance checkboxes above intentionally remain unmarked until their full workflow is implemented.
+
+| Source feature | Source implementation | Still pending |
+| --- | --- | --- |
+| Circular login layout | Removed whole-form scaling; responsive native-size fields; saved picker only on account identifiers; added separation for biometric button | Final approved mockup visual pass, complete onboarding/security edge cases |
+| Branded splash | Themed, animated POS device/receipt printer/scanner/store bag illustration | Final asset/animation similarity and accessibility adjustments |
+| Six Next Reports | `lib/screens/next_reports.dart` plus authorized Modules/Reports navigation: Advance Sales, Day Book + account ledger, Product Wise Transactions, Detailed Transactions (3 formats), FBR Sales and Purchase *internal review* | Full report viewer, exports, responsive data tables, feature-specific parity |
+| Four Daily Reports | `lib/screens/daily_reports.dart` plus authorized navigation: Activity, Detail Sale/Stock/Gross Profit, Business by Groups, Product Gross Profit | Print/CSV, polished table layouts, expanded options and full parity |
+| Report Headings | `lib/screens/report_headings.dart`: tenant-scoped list/create/edit metadata and layout, permissioned delete | Rich template HTML composer and copy-to-others workflow; existing HTML deliberately preserved |
+| Calculator | `lib/screens/calculator.dart`: offline theme-aware Decimal-based arithmetic and Copy | Additional optional utility behavior |
+| Branches/Warehouses | `lib/screens/workplace_directory.dart`: server-scoped list/search/create/update, status/default for allowed roles | Broader admin settings, warehouse switching and access management |
+
+**Not yet implemented as complete financial workflows:** Purchases/order/return posting, Sales Returns/quotations/hold workflows, Inventory Opening/Stock Taking/Adjustments posting, Accounting Vouchers/posting, full Users/Roles/Devices administration, and remaining general utility screens.
+
+**User instruction preserved:** Do not build or publish an APK. This checkpoint is not an installation/testing claim and does not modify the web repository.
