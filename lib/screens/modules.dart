@@ -4,6 +4,7 @@ import '../core/api.dart';
 import '../core/session.dart';
 import '../widgets/common.dart';
 import 'catalog_master.dart';
+import 'parties.dart';
 import 'history.dart';
 import 'settings.dart';
 
@@ -100,12 +101,18 @@ class _ModulesScreenState extends State<ModulesScreen> {
           '/api/sale-schemes', subtitleKey: 'code'),
         permissions: const ['sale_schemes.view', 'sale_schemes.manage'],
         entitlement: 'catalog'),
-      ModuleAction('Customers', 'Customer directory',
-        Icons.people_outline_rounded, () => _data('Customers',
-          '/api/parties?type=customer', detailPrefix: '/api/parties')),
-      ModuleAction('Suppliers', 'Vendor and supplier records',
-        Icons.local_shipping_outlined, () => _data('Suppliers',
-          '/api/parties?type=vendor', detailPrefix: '/api/parties')),
+      ModuleAction('Customers', 'Manage customer records',
+        Icons.people_outline_rounded, () => _open(PartyDirectory(
+          app: widget.app, type: 'customer')),
+        permissions: const ['customers.view', 'customers.manage']),
+      ModuleAction('Suppliers', 'Manage vendor records',
+        Icons.local_shipping_outlined, () => _open(PartyDirectory(
+          app: widget.app, type: 'vendor')),
+        permissions: const ['suppliers.view', 'suppliers.manage']),
+      ModuleAction('Accounts', 'Manage account entries',
+        Icons.account_balance_outlined, () => _open(PartyDirectory(
+          app: widget.app, type: 'account')),
+        permissions: const ['accounts.view', 'accounts.manage']),
     ],
     'Daily Entries': [
       ModuleAction('New Sale', 'New POS invoice',
