@@ -13,6 +13,7 @@ import 'next_reports.dart';
 import 'daily_reports.dart';
 import 'report_headings.dart';
 import 'calculator.dart';
+import 'workplace_directory.dart';
 import 'trial_balance.dart';
 import 'product_ledger.dart';
 import 'history.dart';
@@ -317,14 +318,17 @@ class _ModulesScreenState extends State<ModulesScreen> {
         permissions: const ['settings.view']),
     ],
     'Administration': [
-      ModuleAction('Branches', 'Business locations',
-        Icons.store_mall_directory_outlined, () => _data('Branches',
-          '/api/branches', nameKey: 'name', subtitleKey: 'code'),
+      ModuleAction('Branches', 'Manage business locations',
+        Icons.store_mall_directory_outlined,
+        () => _open(WorkplaceDirectoryScreen(
+          app: widget.app, kind: WorkplaceKind.branches)),
         permissions: const ['branches.view']),
-      ModuleAction('Warehouses', 'Stock locations',
-        Icons.warehouse_outlined, () => _data('Warehouses',
-          '/api/warehouses', nameKey: 'name', subtitleKey: 'code'),
-        permissions: const ['warehouses.manage']),
+      ModuleAction('Warehouses', 'Current branch warehouses',
+        Icons.warehouse_outlined,
+        () => _open(WorkplaceDirectoryScreen(
+          app: widget.app, kind: WorkplaceKind.warehouses)),
+        permissions: const ['warehouses.manage', 'inventory.view',
+          'branches.view', 'products.view']),
       ModuleAction('Security Sessions', 'Server-approved sessions',
         Icons.verified_user_outlined, () => _data('Sessions',
           '/api/security/sessions', nameKey: 'device_name',
