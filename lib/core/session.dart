@@ -177,14 +177,18 @@ class AppController extends ChangeNotifier {
     if (session == null || branchUlid.length != 26) {
       throw const ApiFailure('INVALID_BRANCH', 'Choose an authorized branch.', 422);
     }
-    final pending = await const SaleAttemptStore().read(
-      userUlid: currentUserUlid,
-      tenantUlid: field(objectOf(session?['tenant'])['ulid']),
-      branchUlid: field(objectOf(session?['branch'])['ulid']),
+    final owner = currentUserUlid;
+    final tenant = field(objectOf(session?['tenant'])['ulid']);
+    final branch = field(objectOf(session?['branch'])['ulid']);
+    final pendingSale = await const SaleAttemptStore().read(
+      userUlid: owner, tenantUlid: tenant, branchUlid: branch,
     );
-    if (pending != null) {
-      throw const ApiFailure('UNCONFIRMED_SALE',
-        'Resolve the earlier unconfirmed sale before switching branches.', 409);
+    final pendingQuotation = await const QuotationAttemptStore().read(
+      userUlid: owner, tenantUlid: tenant, branchUlid: branch,
+    );
+    if (pendingSale != null || pendingQuotation != null) {
+      throw const ApiFailure('UNCONFIRMED_DOCUMENT',
+        'Resolve the earlier unconfirmed sale or quotation before switching branches.', 409);
     }
     // Backend verifies current device, active membership, branch and warehouse.
     final response = await api.post('/api/branches/$branchUlid/switch', {});
