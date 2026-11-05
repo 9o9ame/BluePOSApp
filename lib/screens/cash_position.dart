@@ -99,7 +99,6 @@ class _CashPositionScreenState extends State<CashPositionScreen> {
             style: TextStyle(color: scheme.primary,
               fontWeight: FontWeight.w800)),
         ])),
-      ),
     );
   }
 
