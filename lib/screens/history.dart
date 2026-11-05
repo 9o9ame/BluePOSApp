@@ -3,6 +3,7 @@ import '../core/api.dart';
 import '../core/session.dart';
 import '../widgets/common.dart';
 import 'receipt.dart';
+import 'money_actions.dart';
 
 class DataListScreen extends StatefulWidget {
   const DataListScreen({super.key, required this.app, required this.title, required this.path,
@@ -118,6 +119,21 @@ class _DataListScreenState extends State<DataListScreen> {
                 onPressed: () { Navigator.of(ctx).pop(); Navigator.of(context).push(
                   MaterialPageRoute(builder: (_) => ReceiptScreen(app: widget.app, saleUlid: ulid))); },
                 icon: const Icon(Icons.receipt_long_outlined), label: const Text('View / Print Receipt')),
+              if (widget.detailPrefix == '/api/sales' &&
+                  widget.app.hasPermission('payments.create') &&
+                  field(details['status']) == 'posted')
+                Padding(padding: const EdgeInsets.only(top: 9),
+                  child: OutlinedButton.icon(
+                    onPressed: () async {
+                      Navigator.pop(ctx);
+                      final saved = await Navigator.push<bool>(context,
+                        MaterialPageRoute(builder: (_) => MoneyActionScreen(
+                          app: widget.app, kind: MoneyActionKind.salePayment,
+                          documentUlid: ulid)));
+                      if (saved == true && mounted) await reload();
+                    },
+                    icon: const Icon(Icons.payments_outlined),
+                    label: const Text('Receive Payment'))),
             ],
           )),
         )));
