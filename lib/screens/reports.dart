@@ -7,6 +7,7 @@ import '../widgets/common.dart';
 import 'history.dart';
 import 'trial_balance.dart';
 import 'cash_book.dart';
+import 'financial_statements.dart';
 import 'stock_status.dart';
 import 'product_ledger.dart';
 
@@ -95,6 +96,20 @@ class _ReportsScreenState extends State<ReportsScreen> {
               label: const Text('Cash Book'),
               onPressed: () => Navigator.push(context, MaterialPageRoute(
                 builder: (_) => CashBookReportScreen(app: app))),
+            ),
+            ActionChip(
+              avatar: const Icon(Icons.account_balance_outlined, size: 17),
+              label: const Text('Balance Sheet'),
+              onPressed: () => Navigator.push(context, MaterialPageRoute(
+                builder: (_) => FinancialStatementScreen(
+                  app: app, kind: FinancialStatementKind.balanceSheet))),
+            ),
+            ActionChip(
+              avatar: const Icon(Icons.show_chart_rounded, size: 17),
+              label: const Text('Income Statement'),
+              onPressed: () => Navigator.push(context, MaterialPageRoute(
+                builder: (_) => FinancialStatementScreen(
+                  app: app, kind: FinancialStatementKind.incomeStatement))),
             ),
           ],
           if (app.hasPermission('reports.inventory')) ...[
