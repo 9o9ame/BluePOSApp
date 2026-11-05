@@ -8,6 +8,7 @@ import 'parties.dart';
 import 'stock_status.dart';
 import 'cash_book.dart';
 import 'financial_statements.dart';
+import 'general_journal.dart';
 import 'trial_balance.dart';
 import 'product_ledger.dart';
 import 'history.dart';
@@ -207,6 +208,10 @@ class _ModulesScreenState extends State<ModulesScreen> {
         Icons.show_chart_rounded,
         () => _open(FinancialStatementScreen(app: widget.app,
           kind: FinancialStatementKind.incomeStatement)),
+        permissions: const ['reports.accounting']),
+      ModuleAction('General Journal', 'Posted journal report and balance checks',
+        Icons.menu_book_outlined,
+        () => _open(GeneralJournalReportScreen(app: widget.app)),
         permissions: const ['reports.accounting']),
       ModuleAction('Stock Status', 'Live warehouse inventory balances',
         Icons.warehouse_outlined, () => _open(StockStatusReport(app: widget.app)),
