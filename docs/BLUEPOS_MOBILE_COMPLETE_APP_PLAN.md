@@ -198,3 +198,13 @@
 **Not yet implemented as complete financial workflows:** Purchases/order/return posting, Sales Returns/quotations/hold workflows, Inventory Opening/Stock Taking/Adjustments posting, Accounting Vouchers/posting, full Users/Roles/Devices administration, and remaining general utility screens.
 
 **User instruction preserved:** Do not build or publish an APK. This checkpoint is not an installation/testing claim and does not modify the web repository.
+
+
+### Sales Quotations implementation checkpoint — 2026-11-05
+
+- New mobile `lib/screens/quotations.dart` provides a searchable, paginated quotation directory and server-fetched quotation detail; authorized users can compose a quotation by choosing products/customer, changing quantities/discounts, scanning barcodes and selecting an existing pricing mode.
+- It **reuses** the existing POS `CartLine` payload/decimal validation and calls the verified `POST /api/sales/quotations` contract. Prices, tax, final quote amount and document number remain server-calculated.
+- The shared encrypted `DocumentAttemptStore` now supports independent Sales Invoice and Quotation pending attempts with distinct storage keys. A timeout keeps the same payload and idempotency key for a safe retry. AppController blocks a branch switch while either document remains unconfirmed.
+- The module directory now opens the interactive quotation workflow instead of the earlier generic read-only listing.
+- **Still pending within Quotations:** editing an existing quotation, richer line/scheme controls, native quote print/export/convert actions and complete draft recovery UI. These are not marked implemented.
+- No APK build, user-device testing, backend change, web branch switch, or production database action took place.
