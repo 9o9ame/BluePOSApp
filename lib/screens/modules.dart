@@ -6,6 +6,7 @@ import '../widgets/common.dart';
 import 'catalog_master.dart';
 import 'parties.dart';
 import 'stock_status.dart';
+import 'cash_book.dart';
 import 'trial_balance.dart';
 import 'product_ledger.dart';
 import 'history.dart';
@@ -191,6 +192,10 @@ class _ModulesScreenState extends State<ModulesScreen> {
         permissions: const ['reports.inventory'], entitlement: 'inventory'),
       ModuleAction('Trial Balance', 'Server-calculated debit and credit',
         Icons.balance_outlined, () => _open(TrialBalanceScreen(app: widget.app)),
+        permissions: const ['reports.accounting']),
+      ModuleAction('Cash Book', 'Cash and bank transactions',
+        Icons.account_balance_wallet_outlined,
+        () => _open(CashBookReportScreen(app: widget.app)),
         permissions: const ['reports.accounting']),
       ModuleAction('Stock Status', 'Live warehouse inventory balances',
         Icons.warehouse_outlined, () => _open(StockStatusReport(app: widget.app)),
