@@ -384,7 +384,6 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                   )),
                 ),
-              ),
               if (error != null) Padding(
                 padding: const EdgeInsets.fromLTRB(24, 16, 24, 0),
                 child: Text(error!, textAlign: TextAlign.center,
