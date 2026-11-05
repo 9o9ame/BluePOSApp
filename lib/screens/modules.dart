@@ -14,6 +14,7 @@ import 'daily_reports.dart';
 import 'report_headings.dart';
 import 'calculator.dart';
 import 'workplace_directory.dart';
+import 'quotations.dart';
 import 'trial_balance.dart';
 import 'product_ledger.dart';
 import 'history.dart';
@@ -140,11 +141,9 @@ class _ModulesScreenState extends State<ModulesScreen> {
           subtitleKey: 'sale_date', amountKey: 'grand_total',
           detailPrefix: '/api/sales'),
         permissions: const ['sales.view'], entitlement: 'sales'),
-      ModuleAction('Quotations', 'Estimate history and details',
-        Icons.request_quote_outlined, () => _data('Quotations',
-          '/api/sales/quotations?per_page=25', nameKey: 'document_number',
-          subtitleKey: 'quotation_date', amountKey: 'grand_total',
-          detailPrefix: '/api/sales/quotations'),
+      ModuleAction('Quotations', 'Create and browse sales estimates',
+        Icons.request_quote_outlined,
+        () => _open(QuotationDirectoryScreen(app: widget.app)),
         permissions: const ['sales.view'], entitlement: 'sales'),
       ModuleAction('Sales Returns', 'Return document history',
         Icons.assignment_return_outlined, () => _data('Sales Returns',
