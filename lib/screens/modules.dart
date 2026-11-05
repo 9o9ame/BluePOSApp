@@ -11,6 +11,7 @@ import 'financial_statements.dart';
 import 'general_journal.dart';
 import 'next_reports.dart';
 import 'daily_reports.dart';
+import 'report_headings.dart';
 import 'trial_balance.dart';
 import 'product_ledger.dart';
 import 'history.dart';
@@ -306,9 +307,9 @@ class _ModulesScreenState extends State<ModulesScreen> {
         Icons.devices_outlined, () => _data('Devices', '/api/devices',
           nameKey: 'name', subtitleKey: 'status'),
         permissions: const ['devices.view']),
-      ModuleAction('Report Headings', 'Report heading presets',
-        Icons.article_outlined, () => _data('Report Headings',
-          '/api/report-headings', nameKey: 'title', subtitleKey: 'name'),
+      ModuleAction('Report Headings', 'Manage report heading presets',
+        Icons.article_outlined,
+        () => _open(ReportHeadingsScreen(app: widget.app)),
         permissions: const ['settings.view']),
     ],
     'Administration': [
