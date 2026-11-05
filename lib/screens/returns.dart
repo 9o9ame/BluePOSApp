@@ -5,6 +5,7 @@ import '../core/sale_attempt.dart';
 import '../core/session.dart';
 import '../widgets/common.dart';
 import 'transaction_widgets.dart';
+import 'money_actions.dart';
 
 enum ReturnDocumentKind { sale, purchase }
 
@@ -537,6 +538,20 @@ class _ReturnDocumentEditorState extends State<ReturnDocumentEditor> {
                 style: const TextStyle(fontWeight: FontWeight.w900)),
               Text('Status: ${field(document?['status'])}'),
             ])),
+            if (widget.kind == ReturnDocumentKind.sale &&
+                field(document?['status']) == 'posted' &&
+                widget.app.hasPermission('payments.create'))
+              Padding(padding: const EdgeInsets.only(top: 12),
+                child: OutlinedButton.icon(
+                  onPressed: saving ? null : () async {
+                    final saved = await Navigator.push<bool>(context,
+                      MaterialPageRoute(builder: (_) => MoneyActionScreen(
+                        app: widget.app, kind: MoneyActionKind.saleRefund,
+                        documentUlid: id)));
+                    if (saved == true && mounted) await refresh();
+                  },
+                  icon: const Icon(Icons.currency_exchange_outlined),
+                  label: const Text('Record Customer Refund'))),
             if (draft && canPost && lines.isNotEmpty)
               Padding(padding: const EdgeInsets.only(top: 12),
                 child: FilledButton.icon(
