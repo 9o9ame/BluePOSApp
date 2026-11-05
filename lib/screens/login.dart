@@ -287,7 +287,8 @@ class _LoginScreenState extends State<LoginScreen> {
       )),
       child: SafeArea(child: LayoutBuilder(builder: (context, constraints) {
         // Keep inputs readable on narrow Android phones; do not scale text.
-        final compact = constraints.maxHeight < 660;
+        final compact = constraints.maxHeight < 660 || constraints.maxWidth < 350;
+        final narrow = constraints.maxWidth < 350;
         final diameter = math.min(constraints.maxWidth - 16,
           math.min(440.0, math.max(320.0, constraints.maxHeight - 168)));
         final formWidth = math.min(252.0, diameter - 94);
@@ -326,7 +327,11 @@ class _LoginScreenState extends State<LoginScreen> {
                     border: Border.all(color: scheme.outlineVariant.withValues(alpha: .55)),
                   ),
                   child: Center(child: SizedBox(width: formWidth,
-                    child: AutofillGroup(child: Column(
+                    height: narrow ? diameter - 42 : null,
+                    child: SingleChildScrollView(
+                      physics: narrow ? const BouncingScrollPhysics()
+                        : const NeverScrollableScrollPhysics(),
+                      child: AutofillGroup(child: Column(
                         mainAxisSize: MainAxisSize.min, children: [
                           BlueposBrandMark(size: compact ? 36 : 40),
                           const SizedBox(height: 5),
@@ -381,7 +386,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             onPressed: busy ? null : resend,
                             child: const Text('Resend code')),
                         ],
-                      ))),
+                      )))),
                   )),
                 ),
               if (error != null) Padding(
