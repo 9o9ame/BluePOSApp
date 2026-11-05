@@ -213,7 +213,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       style: TextStyle(fontSize: 11,
                         color: scheme.onSurfaceVariant)),
                   ]),
-                )),
+                ),
                 Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
                   Text(money(item['grand_total'], app.currency),
                     style: const TextStyle(fontWeight: FontWeight.w900,
@@ -224,7 +224,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 ]),
               ]),
             )),
-          )),
+          ),
         const SizedBox(height: 16),
       ],
     ));
