@@ -99,7 +99,7 @@ class _MoneyActionScreenState extends State<MoneyActionScreen> {
 
   Future<void> chooseAccount({required bool expense}) async {
     final account = await pickApiRecord(
-      context: context, app: widget.app,
+      context, app: widget.app,
       title: expense ? 'Expense account' : 'Paying account',
       path: widget.kind == MoneyActionKind.expense
         ? '/api/sales/expenses/accounts'
