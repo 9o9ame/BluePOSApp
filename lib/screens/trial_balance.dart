@@ -158,7 +158,7 @@ class _TrialBalanceScreenState extends State<TrialBalanceScreen> {
                               style: TextStyle(fontSize: 10,
                                 color: scheme.onSurfaceVariant)),
                           ]),
-                        )),
+                        ),
                         SizedBox(width: 89,
                           child: Text(field(row['debit'], '0.0000'),
                             textAlign: TextAlign.end,
