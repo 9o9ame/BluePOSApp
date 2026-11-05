@@ -189,10 +189,13 @@ class AppController extends ChangeNotifier {
     final pendingVoucher = await const VoucherAttemptStore().read(
       userUlid: owner, tenantUlid: tenant, branchUlid: branch,
     );
+    final pendingReturn = await const SaleReturnAttemptStore().read(
+      userUlid: owner, tenantUlid: tenant, branchUlid: branch,
+    );
     if (pendingSale != null || pendingQuotation != null ||
-        pendingVoucher != null) {
+        pendingVoucher != null || pendingReturn != null) {
       throw const ApiFailure('UNCONFIRMED_DOCUMENT',
-        'Resolve the unconfirmed sale, quotation or voucher before switching branches.', 409);
+        'Resolve all unconfirmed financial requests before switching branches.', 409);
     }
     // Backend verifies current device, active membership, branch and warehouse.
     final response = await api.post('/api/branches/$branchUlid/switch', {});
