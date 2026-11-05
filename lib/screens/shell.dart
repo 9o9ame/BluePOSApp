@@ -4,6 +4,7 @@ import '../core/api.dart';
 import '../core/session.dart';
 import '../widgets/common.dart';
 import 'history.dart';
+import 'dashboard.dart';
 import 'modules.dart';
 import 'products.dart';
 import 'reports.dart';
@@ -95,127 +96,6 @@ class _AppShellState extends State<AppShell> {
         ),
       )),
     );
-  }
-}
-
-class DashboardScreen extends StatefulWidget {
-  const DashboardScreen({super.key, required this.app, required this.navigate});
-  final AppController app;
-  final ValueChanged<int> navigate;
-  @override
-  State<DashboardScreen> createState() => _DashboardScreenState();
-}
-
-class _DashboardScreenState extends State<DashboardScreen> {
-  bool loading = true;
-  String? error;
-  int? salesCount;
-  int? productCount;
-  List<Map<String, dynamic>> recent = [];
-  @override
-  void initState() { super.initState(); refresh(); }
-
-  Future<void> refresh() async {
-    setState(() { loading = true; error = null; });
-    try {
-      final results = await Future.wait([
-        widget.app.api.get('/api/sales?per_page=5'),
-        widget.app.api.get('/api/products?per_page=1'),
-      ]);
-      if (!mounted) return;
-      final sales = objectOf(results[0]);
-      final products = objectOf(results[1]);
-      setState(() {
-        salesCount = int.tryParse(field(objectOf(sales['meta'])['total']));
-        productCount = int.tryParse(field(objectOf(products['meta'])['total']));
-        recent = recordsOf(sales);
-      });
-    } catch (e) {
-      if (mounted) setState(() => error = e.toString());
-    } finally {
-      if (mounted) setState(() => loading = false);
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-    final app = widget.app;
-    return RefreshIndicator(onRefresh: refresh, child: ListView(
-      padding: EdgeInsets.all(app.appearance.spacing), children: [
-        Padding(padding: const EdgeInsets.only(top: 7, bottom: 15), child: Row(children: [
-          Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text('GOOD TO SEE YOU', style: TextStyle(fontSize: 10,
-              letterSpacing: 1.8, fontWeight: FontWeight.bold, color: scheme.primary)),
-            const SizedBox(height: 3),
-            Text(app.userName, maxLines: 1, overflow: TextOverflow.ellipsis,
-              style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 22)),
-            Text('${app.branchName}  •  ${app.warehouseName}',
-              style: TextStyle(fontSize: 12, color: scheme.onSurfaceVariant)),
-          ])),
-          CircleAvatar(backgroundColor: scheme.primaryContainer, radius: 25,
-            child: Text(app.userName.isEmpty ? 'BP' : app.userName.substring(0, 1).toUpperCase(),
-              style: TextStyle(fontWeight: FontWeight.w900, color: scheme.primary))),
-        ])),
-        GradientHero(appearance: app.appearance, child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Row(children: [const Icon(Icons.storefront_rounded, color: Colors.white70),
-              const Spacer(), const Icon(Icons.shield_outlined, color: Colors.white70, size: 21)]),
-            const SizedBox(height: 12),
-            Text(app.tenantName, style: const TextStyle(fontWeight: FontWeight.w900,
-              fontSize: 26, color: Colors.white)),
-            const Text('Secure, live business workspace', style: TextStyle(color: Colors.white70, fontSize: 12)),
-            const SizedBox(height: 16),
-            Row(children: [
-              Expanded(child: FilledButton.icon(onPressed: () => widget.navigate(1),
-                style: FilledButton.styleFrom(backgroundColor: Colors.white,
-                  foregroundColor: app.appearance.accent),
-                icon: const Icon(Icons.add_shopping_cart_rounded), label: const Text('New Sale'))),
-            ]),
-          ],
-        )),
-        const SizedBox(height: 19),
-        const SectionHeading('Business at a glance'),
-        if (loading) pageLoading()
-        else if (error != null) FailureState(message: error!, retry: refresh)
-        else Row(children: [
-          Expanded(child: BpStatCard(icon: Icons.receipt_long_outlined,
-            caption: 'Invoices', value: '${salesCount ?? '—'}', hint: 'Current branch')),
-          const SizedBox(width: 10),
-          Expanded(child: BpStatCard(icon: Icons.inventory_2_outlined,
-            caption: 'Products', value: '${productCount ?? '—'}', hint: 'Authorized catalog')),
-        ]),
-        const SizedBox(height: 19),
-        const SectionHeading('Quick actions'),
-        GridView.count(crossAxisCount: 4, childAspectRatio: .75, mainAxisSpacing: 8,
-          crossAxisSpacing: 8, shrinkWrap: true, physics: const NeverScrollableScrollPhysics(),
-          children: [
-            BpModuleTile(icon: Icons.point_of_sale_outlined, name: 'New Sale', onTap: () => widget.navigate(1)),
-            BpModuleTile(icon: Icons.inventory_2_outlined, name: 'Products', onTap: () => widget.navigate(2)),
-            BpModuleTile(icon: Icons.warehouse_outlined, name: 'Stock', onTap: () =>
-              Navigator.push(context, MaterialPageRoute(builder: (_) => InventoryScreen(app: app)))),
-            BpModuleTile(icon: Icons.bar_chart_rounded, name: 'Reports', onTap: () => widget.navigate(3)),
-          ]),
-        const SizedBox(height: 17),
-        SectionHeading('Recent invoices', trailing: TextButton(onPressed: () => openSales(context, app),
-          child: const Text('View all'))),
-        if (!loading && error == null) ...recent.take(4).map((row) => Padding(
-          padding: const EdgeInsets.only(bottom: 9), child: Surface(child: Row(children: [
-            CircleAvatar(backgroundColor: scheme.primaryContainer,
-              child: Icon(Icons.receipt_outlined, color: scheme.primary)),
-            const SizedBox(width: 12),
-            Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Text(field(row['document_number']), style: const TextStyle(fontWeight: FontWeight.bold)),
-              Text(field(row['sale_date']), style: TextStyle(fontSize: 11, color: scheme.onSurfaceVariant)),
-            ])),
-            Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
-              Text(money(row['grand_total'], app.currency), style: const TextStyle(fontWeight: FontWeight.bold)),
-              Text(field(row['status']), style: TextStyle(fontSize: 10, color: scheme.onSurfaceVariant)),
-            ]),
-          ])))),
-        const SizedBox(height: 12),
-      ],
-    ));
   }
 }
 
