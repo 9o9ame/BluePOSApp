@@ -246,7 +246,7 @@ class _LoginScreenState extends State<LoginScreen> {
   Widget _input(TextEditingController controller, String placeholder,
       IconData icon, {bool isPassword = false,
       TextInputType? keyboard, TextInputAction? action}) {
-    return SizedBox(height: 43, child: TextField(
+    return SizedBox(height: 42, child: TextField(
       controller: controller,
       keyboardType: keyboard,
       textInputAction: action,
@@ -255,7 +255,8 @@ class _LoginScreenState extends State<LoginScreen> {
       enableSuggestions: !isPassword,
       autocorrect: false,
       obscureText: isPassword && obscure,
-      onTap: challenge == null ? _openSavedLogins : null,
+      onTap: challenge == null && (identical(controller, tenant) ||
+        identical(controller, user)) ? _openSavedLogins : null,
       onSubmitted: isPassword ? (_) => submit() : null,
       style: const TextStyle(fontSize: 13.5),
       decoration: InputDecoration(
@@ -285,9 +286,11 @@ class _LoginScreenState extends State<LoginScreen> {
           scheme.surface],
       )),
       child: SafeArea(child: LayoutBuilder(builder: (context, constraints) {
-        final diameter = math.min(constraints.maxWidth - 18,
-          math.min(440.0, math.max(310.0, constraints.maxHeight - 175)));
-        final formWidth = math.min(270.0, diameter - 57);
+        // Keep inputs readable on narrow Android phones; do not scale text.
+        final compact = constraints.maxHeight < 660;
+        final diameter = math.min(constraints.maxWidth - 16,
+          math.min(440.0, math.max(320.0, constraints.maxHeight - 168)));
+        final formWidth = math.min(252.0, diameter - 94);
         return SingleChildScrollView(
           keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
           child: ConstrainedBox(
@@ -301,7 +304,7 @@ class _LoginScreenState extends State<LoginScreen> {
               Text('POS & ERP', style: TextStyle(
                 color: scheme.onSurfaceVariant, fontSize: 13,
                 letterSpacing: 1.5)),
-              const SizedBox(height: 25),
+              SizedBox(height: compact ? 14 : 23),
               Container(
                 width: diameter, height: diameter,
                 padding: const EdgeInsets.all(9),
@@ -316,30 +319,28 @@ class _LoginScreenState extends State<LoginScreen> {
                     blurRadius: 32, offset: const Offset(3, 14))],
                 ),
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     color: scheme.surface.withValues(alpha: .95),
                     border: Border.all(color: scheme.outlineVariant.withValues(alpha: .55)),
                   ),
-                  child: Center(child: FittedBox(
-                    fit: BoxFit.scaleDown,
-                    child: SizedBox(width: formWidth,
-                      child: AutofillGroup(child: Column(
+                  child: Center(child: SizedBox(width: formWidth,
+                    child: AutofillGroup(child: Column(
                         mainAxisSize: MainAxisSize.min, children: [
-                          BlueposBrandMark(size: challenge == null ? 42 : 52),
+                          BlueposBrandMark(size: compact ? 36 : 40),
                           const SizedBox(height: 5),
                           Text(challenge == null ? 'Welcome Back' : 'Verify Account',
                             style: const TextStyle(
                               fontSize: 18, fontWeight: FontWeight.w900)),
-                          const SizedBox(height: 12),
+                          SizedBox(height: compact ? 8 : 10),
                           if (challenge == null) ...[
                             _input(tenant, 'Tenant / Mart Code',
                               Icons.storefront_outlined, action: TextInputAction.next),
-                            const SizedBox(height: 8),
+                            SizedBox(height: compact ? 5 : 7),
                             _input(user, 'Username',
                               Icons.person_outline_rounded, action: TextInputAction.next),
-                            const SizedBox(height: 8),
+                            SizedBox(height: compact ? 5 : 7),
                             _input(password, 'Password',
                               Icons.lock_outline_rounded, isPassword: true),
                           ] else ...[
@@ -358,15 +359,15 @@ class _LoginScreenState extends State<LoginScreen> {
                                 style: TextStyle(fontSize: 11))),
                             ])),
                           ],
-                          SizedBox(height: 35, child: Row(children: [
+                          SizedBox(height: compact ? 30 : 32, child: Row(children: [
                             Checkbox(value: remember,
                               onChanged: busy ? null : (v) =>
                                 setState(() => remember = v ?? false)),
                             const Expanded(child: Text('Remember Me',
                               style: TextStyle(fontSize: 11))),
                           ])),
-                          const SizedBox(height: 7),
-                          SizedBox(height: 43, width: double.infinity,
+                          const SizedBox(height: 5),
+                          SizedBox(height: 42, width: double.infinity,
                             child: FilledButton.icon(
                               onPressed: busy ? null : submit,
                               icon: busy ? const SizedBox(width: 14, height: 14,
@@ -381,7 +382,6 @@ class _LoginScreenState extends State<LoginScreen> {
                             child: const Text('Resend code')),
                         ],
                       ))),
-                    ),
                   )),
                 ),
               if (error != null) Padding(
@@ -396,7 +396,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   error = null;
                 }),
                 child: const Text('Back to password login')),
-              const SizedBox(height: 34),
+              SizedBox(height: compact ? 27 : 39),
               SizedBox(
                 width: math.min(constraints.maxWidth - 54, 305.0),
                 height: 49,
@@ -407,7 +407,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     style: TextStyle(fontWeight: FontWeight.w700)),
                 ),
               ),
-              const SizedBox(height: 30),
+              SizedBox(height: compact ? 16 : 24),
             ]),
           ),
         );
