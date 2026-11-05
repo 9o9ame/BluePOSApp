@@ -6,6 +6,7 @@ import '../core/session.dart';
 import '../widgets/common.dart';
 import '../widgets/product_thumb.dart';
 import 'scanner.dart';
+import 'product_editor.dart';
 
 class ProductsScreen extends StatefulWidget {
   const ProductsScreen({super.key, required this.app, this.onAdd});
@@ -93,6 +94,14 @@ class _ProductsScreenState extends State<ProductsScreen> {
     finally { if (mounted) setState(() => scanBusy = false); }
   }
 
+  Future<void> openEditor({Map<String, dynamic>? product}) async {
+    if (widget.onAdd != null) return;
+    final saved = await Navigator.push<bool>(context,
+      MaterialPageRoute(builder: (_) => ProductEditor(
+        app: widget.app, product: product)));
+    if (saved == true && mounted) await load();
+  }
+
   void showDetails(Map<String, dynamic> product) {
     showModalBottomSheet<void>(context: context, isScrollControlled: true,
       useSafeArea: true, showDragHandle: true, builder: (ctx) => SafeArea(child: Padding(
@@ -112,6 +121,16 @@ class _ProductsScreenState extends State<ProductsScreen> {
             Text('In stock: ${field(objectOf(product['sales_lookup'])['in_stock'], '—')}'),
             Text('Retail: ${money(_price(product), widget.app.currency)}'),
             const SizedBox(height: 12),
+            if (widget.onAdd == null && widget.app.hasPermission('products.edit'))
+              FilledButton.icon(
+                icon: const Icon(Icons.edit_outlined),
+                label: const Text('Edit Product'),
+                onPressed: () {
+                  Navigator.pop(ctx);
+                  openEditor(product: product);
+                },
+              ),
+            const SizedBox(height: 6),
           ]),
       )));
   }
@@ -129,8 +148,14 @@ class _ProductsScreenState extends State<ProductsScreen> {
     final app = widget.app;
     return RefreshIndicator(onRefresh: load, child: ListView(padding: const EdgeInsets.all(16), children: [
       SectionHeading(widget.onAdd == null ? 'Products catalog' : 'Add a product',
-        trailing: IconButton(onPressed: scanBusy ? null : scan,
-          icon: Icon(Icons.qr_code_scanner_rounded, color: scheme.primary), tooltip: 'Scan barcode')),
+        trailing: Row(mainAxisSize: MainAxisSize.min, children: [
+          if (widget.onAdd == null && app.hasPermission('products.create'))
+            IconButton(onPressed: () => openEditor(), tooltip: 'Add product',
+              icon: Icon(Icons.add_circle_outline_rounded, color: scheme.primary)),
+          IconButton(onPressed: scanBusy ? null : scan,
+            icon: Icon(Icons.qr_code_scanner_rounded, color: scheme.primary),
+            tooltip: 'Scan barcode'),
+        ])),
       TextField(controller: search, onChanged: queryChanged,
         decoration: InputDecoration(prefixIcon: const Icon(Icons.search),
           hintText: 'Search product, SKU or barcode',
