@@ -5,6 +5,7 @@ import '../core/session.dart';
 import '../widgets/common.dart';
 import 'catalog_master.dart';
 import 'parties.dart';
+import 'stock_status.dart';
 import 'history.dart';
 import 'settings.dart';
 
@@ -183,6 +184,9 @@ class _ModulesScreenState extends State<ModulesScreen> {
         permissions: const ['sales.view'], entitlement: 'sales'),
     ],
     'Reports': [
+      ModuleAction('Stock Status', 'Live warehouse inventory balances',
+        Icons.warehouse_outlined, () => _open(StockStatusReport(app: widget.app)),
+        permissions: const ['reports.inventory'], entitlement: 'inventory'),
       ModuleAction('Reports & Insights', 'Sales and product summaries',
         Icons.analytics_outlined, () => widget.navigate(3)),
       ModuleAction('Product-wise Sales', 'Product transaction summary',
