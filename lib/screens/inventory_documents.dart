@@ -280,8 +280,10 @@ class _InventoryDocumentEditorState extends State<InventoryDocumentEditor> {
                         (!validNonNegativeDecimal(cost.text.trim(), 4))) ||
                       (kind == InventoryDocumentKind.adjustment &&
                         (!validNonNegativeDecimal(minus.text.trim(), 6) ||
-                        (count.text.trim() == '0' && minus.text.trim() == '0') ||
-                        (count.text.trim() != '0' && minus.text.trim() != '0')))) {
+                        (!validPositiveDecimal(count.text.trim(), 6) &&
+                          !validPositiveDecimal(minus.text.trim(), 6)) ||
+                        (validPositiveDecimal(count.text.trim(), 6) &&
+                          validPositiveDecimal(minus.text.trim(), 6))))) {
                     update(() => formError = 'Enter a valid product and quantities.');
                     return;
                   }
