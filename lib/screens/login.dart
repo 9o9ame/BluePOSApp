@@ -66,7 +66,7 @@ class _LoginScreenState extends State<LoginScreen> {
     if (busy) return;
     if (!biometricConfigured) {
       if (!automatic && mounted) {
-        setState(() => error = 'Sign in first, then enable biometrics in Settings.');
+        setState(() => error = 'Sign in first to enable biometrics.');
       }
       return;
     }
