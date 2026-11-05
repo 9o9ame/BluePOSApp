@@ -208,3 +208,12 @@
 - The module directory now opens the interactive quotation workflow instead of the earlier generic read-only listing.
 - **Still pending within Quotations:** editing an existing quotation, richer line/scheme controls, native quote print/export/convert actions and complete draft recovery UI. These are not marked implemented.
 - No APK build, user-device testing, backend change, web branch switch, or production database action took place.
+
+
+### Daily Cash Position source checkpoint — 2026-11-05
+
+- `lib/screens/cash_position.dart`: replaced generic accounts list with the existing, server-scoped `GET /api/cash-position/summary` and `GET /api/cash-position/dashboard` read-only accounting overview.
+- Supports date selection, server-derived opening/received/paid/closing, posted debit/credit account balances and individually labeled **unsupported** accounting categories rather than treating unsupported figures as zero.
+- `lib/screens/modules.dart`: Daily Entries now navigates to the proper dashboard under `accounting.journal.view`.
+- Remaining accounting implementation: account ledger detail, payment/receiving/journal vouchers with existing draft/posting services, day-close, controlled payments, and full supporting administration flows.
+- **Validation deferred to the final user-approved phase.** No APK build/publish and no changes to the web repository.
