@@ -48,6 +48,97 @@ class _BlueposSplashState extends State<BlueposSplash> with SingleTickerProvider
     ]),
   );
 
+  /// Layered POS terminal, receipt printer, scanner and store bag rather
+  /// than decorative glyphs. Colors adapt to the active appearance palette.
+  Widget _hardwareIllustration(Color accent, ColorScheme scheme) {
+    BoxDecoration caseDecoration(double radius, {bool dark = false}) =>
+      BoxDecoration(
+        borderRadius: BorderRadius.circular(radius),
+        gradient: LinearGradient(
+          begin: Alignment.topLeft, end: Alignment.bottomRight,
+          colors: dark ? [
+            accent.withValues(alpha: .88),
+            accent.withValues(alpha: .54),
+          ] : [
+            scheme.surface,
+            scheme.primaryContainer.withValues(alpha: .85),
+          ],
+        ),
+        border: Border.all(color: accent.withValues(alpha: .22)),
+        boxShadow: [BoxShadow(
+          color: accent.withValues(alpha: .18),
+          blurRadius: 18, offset: const Offset(1, 8),
+        )],
+      );
+
+    return SizedBox(width: 310, height: 180, child: Stack(children: [
+      Positioned(left: 22, right: 20, bottom: 8, child: Container(
+        height: 18,
+        decoration: BoxDecoration(
+          color: accent.withValues(alpha: .14),
+          borderRadius: BorderRadius.circular(80),
+        ),
+      )),
+      Positioned(left: 106, bottom: 26, child: Container(
+        width: 24, height: 55,
+        decoration: caseDecoration(8, dark: true),
+      )),
+      Positioned(left: 66, bottom: 23, child: Container(
+        width: 107, height: 18,
+        decoration: caseDecoration(8, dark: true),
+      )),
+      Positioned(left: 46, top: 13, child: Transform.rotate(
+        angle: -.085,
+        child: Container(
+          width: 146, height: 106, padding: const EdgeInsets.all(9),
+          decoration: caseDecoration(17, dark: true),
+          child: Container(
+            decoration: BoxDecoration(
+              color: scheme.surface.withValues(alpha: .94),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Column(mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.shopping_cart_checkout_rounded,
+                  color: accent, size: 36),
+                const SizedBox(height: 1),
+                Text('BLUEPOS', style: TextStyle(
+                  color: accent, fontSize: 14, letterSpacing: 1.3,
+                  fontWeight: FontWeight.w900)),
+              ]),
+          ),
+        ),
+      )),
+      Positioned(right: 22, top: 51, child: Container(
+        width: 72, height: 95, padding: const EdgeInsets.all(8),
+        decoration: caseDecoration(13),
+        child: Icon(Icons.shopping_bag_outlined,
+          color: accent, size: 47),
+      )),
+      Positioned(left: 12, bottom: 23, child: Container(
+        width: 68, height: 59,
+        decoration: caseDecoration(10),
+        child: Column(mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.receipt_long_rounded, color: accent, size: 25),
+            Container(width: 39, height: 3,
+              decoration: BoxDecoration(
+                color: accent.withValues(alpha: .5),
+                borderRadius: BorderRadius.circular(3))),
+          ]),
+      )),
+      Positioned(right: 91, bottom: 25, child: Transform.rotate(
+        angle: .16,
+        child: Container(
+          width: 35, height: 55,
+          decoration: caseDecoration(9, dark: true),
+          child: const Icon(Icons.qr_code_scanner_rounded,
+            color: Colors.white, size: 25),
+        ),
+      )),
+    ]));
+  }
+
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
@@ -87,25 +178,19 @@ class _BlueposSplashState extends State<BlueposSplash> with SingleTickerProvider
                 _feature(Icons.bar_chart_rounded, 'Reports & Insights', 'Sales, stock and business performance', accent),
                 _feature(Icons.storefront_outlined, 'Multi-Store', 'Manage multiple outlets with ease', accent),
                 const SizedBox(height: 18),
-                Center(child: AnimatedBuilder(animation: _motion, builder: (context, child) {
-                  final lift = widget.appearance.animations ? (1 - _motion.value) * 10 : 0.0;
-                  return Transform.translate(offset: Offset(0, lift), child: child);
-                }, child: Container(
-                  width: 250, height: size.maxHeight < 700 ? 125 : 165,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(28),
-                    gradient: LinearGradient(colors: [accent.withValues(alpha: .20),
-                      accent.withValues(alpha: .06)]),
+                Center(child: AnimatedBuilder(animation: _motion,
+                  builder: (context, child) => Transform.translate(
+                    offset: Offset(0, widget.appearance.animations
+                      ? (1 - _motion.value) * 9 : 0),
+                    child: child,
                   ),
-                  child: Stack(alignment: Alignment.center, children: [
-                    Positioned(left: 25, bottom: 23,
-                      child: Icon(Icons.qr_code_scanner_rounded, size: 53, color: accent)),
-                    Center(child: Icon(Icons.point_of_sale_rounded,
-                      size: size.maxHeight < 700 ? 83 : 115, color: accent)),
-                    Positioned(right: 27, bottom: 20,
-                      child: Icon(Icons.receipt_long_rounded, size: 54, color: accent)),
-                  ]),
-                ))),
+                  child: SizedBox(
+                    width: size.maxWidth < 340 ? 250 : 298,
+                    height: size.maxHeight < 700 ? 137 : 183,
+                    child: FittedBox(fit: BoxFit.contain,
+                      child: _hardwareIllustration(accent, scheme)),
+                  ),
+                )),
                 const SizedBox(height: 16),
                 Center(child: AnimatedBuilder(animation: _motion, builder: (context, _) {
                   return Row(mainAxisSize: MainAxisSize.min, children: [
