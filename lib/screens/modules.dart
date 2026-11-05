@@ -9,6 +9,7 @@ import 'stock_status.dart';
 import 'cash_book.dart';
 import 'financial_statements.dart';
 import 'general_journal.dart';
+import 'next_reports.dart';
 import 'trial_balance.dart';
 import 'product_ledger.dart';
 import 'history.dart';
@@ -18,16 +19,21 @@ import 'settings.dart';
 /// Read-only modules remain read-only until their write workflow is verified.
 class ModuleAction {
   const ModuleAction(this.title, this.description, this.icon,
-    this.open, {this.permissions = const [], this.entitlement});
+    this.open, {this.permissions = const [], this.allPermissions = const [],
+    this.entitlement});
 
   final String title;
   final String description;
   final IconData icon;
   final VoidCallback open;
   final List<String> permissions;
+  final List<String> allPermissions;
   final String? entitlement;
 
   bool visible(AppController app) {
+    if (allPermissions.any((permission) => !app.hasPermission(permission))) {
+      return false;
+    }
     if (permissions.isNotEmpty &&
         !permissions.any((permission) => app.hasPermission(permission))) {
       return false;
@@ -212,6 +218,37 @@ class _ModulesScreenState extends State<ModulesScreen> {
       ModuleAction('General Journal', 'Posted journal report and balance checks',
         Icons.menu_book_outlined,
         () => _open(GeneralJournalReportScreen(app: widget.app)),
+        permissions: const ['reports.accounting']),
+      ModuleAction('Advance Sales View', 'Sold quantities and warehouse stock',
+        Icons.trending_up_outlined,
+        () => _open(NextReportScreen(app: widget.app,
+          kind: NextReportKind.advanceSales)),
+        allPermissions: const ['reports.inventory', 'reports.accounting'],
+        entitlement: 'inventory'),
+      ModuleAction('Day Book', 'Posted business documents and account ledger',
+        Icons.calendar_month_outlined,
+        () => _open(NextReportScreen(app: widget.app,
+          kind: NextReportKind.dayBook)),
+        permissions: const ['reports.accounting']),
+      ModuleAction('Product Wise Transactions', 'Signed stock movements',
+        Icons.inventory_2_outlined,
+        () => _open(NextReportScreen(app: widget.app,
+          kind: NextReportKind.productTransactions)),
+        permissions: const ['reports.inventory'], entitlement: 'inventory'),
+      ModuleAction('Detailed Transactions', 'Party summary, daily and detail',
+        Icons.view_list_outlined,
+        () => _open(NextReportScreen(app: widget.app,
+          kind: NextReportKind.detailedTransactions)),
+        permissions: const ['reports.accounting']),
+      ModuleAction('FBR Sales Register', 'Internal sales tax review',
+        Icons.receipt_outlined,
+        () => _open(NextReportScreen(app: widget.app,
+          kind: NextReportKind.fbrSales)),
+        permissions: const ['reports.accounting']),
+      ModuleAction('FBR Purchase Register', 'Internal purchase tax review',
+        Icons.receipt_long_outlined,
+        () => _open(NextReportScreen(app: widget.app,
+          kind: NextReportKind.fbrPurchases)),
         permissions: const ['reports.accounting']),
       ModuleAction('Stock Status', 'Live warehouse inventory balances',
         Icons.warehouse_outlined, () => _open(StockStatusReport(app: widget.app)),
