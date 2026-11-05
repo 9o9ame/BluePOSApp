@@ -155,7 +155,9 @@ class _LoginScreenState extends State<LoginScreen> {
                 decoration: BoxDecoration(shape: BoxShape.circle, color: scheme.surface.withValues(alpha: .93),
                   border: Border.all(color: scheme.outlineVariant.withValues(alpha: .5)),
                   boxShadow: [BoxShadow(color: scheme.primary.withValues(alpha: .05), blurRadius: 22, spreadRadius: -8)]),
-                child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+                child: FittedBox(fit: BoxFit.scaleDown, child: SizedBox(width: 250,
+                  child: Column(mainAxisSize: MainAxisSize.min,
+                    mainAxisAlignment: MainAxisAlignment.center, children: [
                   BlueposBrandMark(size: challenge == null ? 43 : 55),
                   const SizedBox(height: 3),
                   Text(challenge == null ? 'Welcome Back' : 'Verify Account',
@@ -190,7 +192,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   )),
                   if (challenge != null) TextButton(onPressed: busy ? null : resend,
                     child: const Text('Resend code', style: TextStyle(fontSize: 11))),
-                ]),
+                ]))),
               ),
             ),
             if (error != null) Padding(padding: const EdgeInsets.all(15), child: Text(error!,
