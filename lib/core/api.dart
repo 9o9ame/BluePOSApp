@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
@@ -25,6 +26,7 @@ class BlueposApi {
   final HttpClient _client = HttpClient()..connectionTimeout = const Duration(seconds: 15);
   final Map<String, String> _cookies = {};
   bool _csrfReady = false;
+  final Map<String, Uint8List> _productImageCache = {};
   static const _cookieKey = 'bluepos_mobile_auth_cookies_v1';
 
   Future<void> restore() async {
@@ -48,6 +50,7 @@ class BlueposApi {
   Future<void> clear() async {
     _cookies.clear();
     _csrfReady = false;
+    _productImageCache.clear();
     await _storage.delete(key: _cookieKey);
   }
 
@@ -140,6 +143,35 @@ class BlueposApi {
     } on HttpException {
       throw const ApiFailure('HTTP', 'Network response was interrupted.', 0);
     }
+  }
+
+  /// Authenticated same-origin product images, never remote arbitrary URLs.
+  /// Image bytes stay in memory only, scoped to the current authenticated user.
+  Future<Uint8List?> productImage(String path) async {
+    final parsed = Uri.tryParse(path);
+    if (parsed == null || parsed.hasAuthority || parsed.scheme.isNotEmpty ||
+        !RegExp(r'^/api/products/[0-9A-HJKMNP-TV-Z]{26}/image$').hasMatch(parsed.path)) {
+      return null;
+    }
+    if (_productImageCache.containsKey(path)) return _productImageCache[path];
+    try {
+      final request = await _client.getUrl(Uri.parse('$apiOrigin$path')).timeout(const Duration(seconds: 10));
+      request.headers.set(HttpHeaders.acceptHeader, 'image/png,image/jpeg,image/webp,*/*');
+      if (_cookies.isNotEmpty) request.headers.set(HttpHeaders.cookieHeader,
+          _cookies.entries.map((e) => '${e.key}=${e.value}').join('; '));
+      final response = await request.close().timeout(const Duration(seconds: 10));
+      if (response.statusCode != 200) { await response.drain<void>(); return null; }
+      final bytes = BytesBuilder(copy: false);
+      await for (final chunk in response) {
+        if (bytes.length + chunk.length > 2 * 1024 * 1024) return null;
+        bytes.add(chunk);
+      }
+      final image = bytes.takeBytes();
+      if (image.isEmpty) return null;
+      if (_productImageCache.length >= 80) _productImageCache.clear();
+      _productImageCache[path] = image;
+      return image;
+    } catch (_) { return null; }
   }
 
   dynamic _decode(String raw) {

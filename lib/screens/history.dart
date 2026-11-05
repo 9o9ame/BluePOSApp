@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../core/api.dart';
 import '../core/session.dart';
 import '../widgets/common.dart';
+import 'receipt.dart';
 
 class DataListScreen extends StatefulWidget {
   const DataListScreen({super.key, required this.app, required this.title, required this.path,
@@ -23,23 +24,32 @@ class _DataListScreenState extends State<DataListScreen> {
   String? error;
   List<Map<String, dynamic>> rows = [];
   int count = 0;
+  int page = 1;
+  bool loadingMore = false;
+  final search = TextEditingController();
+  @override
+  void dispose() { search.dispose(); super.dispose(); }
   @override
   void initState() { super.initState(); reload(); }
-  Future<void> reload() async {
-    setState(() {loading = true; error = null;});
+  Future<void> reload({bool more = false}) async {
+    if (more && (loadingMore || loading || rows.length >= count)) return;
+    setState(() { if (more) { loadingMore = true; } else { loading = true; error = null; page = 1; } });
     try {
-      final result = await widget.app.api.get(widget.path);
+      final next = more ? page + 1 : 1;
+      final uri = Uri.parse(widget.path);
+      final params = Map<String, String>.from(uri.queryParameters);
+      if (params.containsKey('per_page')) params['page'] = '$next';
+      final path = uri.replace(queryParameters: params.isEmpty ? null : params).toString();
+      final response = await widget.app.api.get(path);
       if (!mounted) return;
-      final next = recordsOf(result);
+      final list = recordsOf(response);
       setState(() {
-        rows = next;
-        count = int.tryParse(field(objectOf(objectOf(result)['meta'])['total'])) ?? next.length;
+        rows = more ? [...rows, ...list] : list;
+        count = int.tryParse(field(objectOf(objectOf(response)['meta'])['total'])) ?? rows.length;
+        page = next;
       });
-    } catch (e) {
-      if (mounted) setState(() => error = e.toString());
-    } finally {
-      if (mounted) setState(() => loading = false);
-    }
+    } catch (e) { if (mounted) setState(() => error = e.toString()); }
+    finally { if (mounted) setState(() { loading = false; loadingMore = false; }); }
   }
 
   @override
@@ -51,10 +61,16 @@ class _DataListScreenState extends State<DataListScreen> {
       ]),
       body: RefreshIndicator(onRefresh: reload, child: ListView(padding: const EdgeInsets.all(16), children: [
         SectionHeading('$count records'),
+        TextField(controller: search, onChanged: (_) => setState(() {}),
+          decoration: const InputDecoration(prefixIcon: Icon(Icons.search),
+            hintText: 'Search loaded records')),
+        const SizedBox(height: 14),
         if (loading) pageLoading()
         else if (error != null) FailureState(message: error!, retry: reload)
         else if (rows.isEmpty) EmptyState(title: 'No ${widget.title.toLowerCase()} yet')
-        else ...rows.map((r) => Padding(padding: const EdgeInsets.only(bottom: 10),
+        else ...rows.where((r) => search.text.trim().isEmpty ||
+          '${field(r[widget.nameKey])} ${field(r[widget.subtitleKey])}'.toLowerCase()
+            .contains(search.text.trim().toLowerCase())).map((r) => Padding(padding: const EdgeInsets.only(bottom: 10),
           child: Surface(child: Row(children: [
             CircleAvatar(backgroundColor: scheme.primaryContainer,
               child: Icon(Icons.receipt_long_outlined, color: scheme.onPrimaryContainer)),
@@ -69,6 +85,9 @@ class _DataListScreenState extends State<DataListScreen> {
             if (widget.detailPrefix != null) IconButton(icon: const Icon(Icons.chevron_right),
               onPressed: () => showDetail(r)),
           ])))),
+        if (rows.length < count && !loading) Padding(padding: const EdgeInsets.all(12),
+          child: OutlinedButton(onPressed: loadingMore ? null : () => reload(more: true),
+            child: Text(loadingMore ? 'Loading…' : 'Load more records'))),
       ])),
     );
   }
@@ -95,6 +114,10 @@ class _DataListScreenState extends State<DataListScreen> {
                   child: Row(children: [Expanded(child: Text(key.replaceAll('_', ' '))),
                     Flexible(child: Text(field(details[key]), textAlign: TextAlign.right))])),
               const SizedBox(height: 20),
+              if (widget.detailPrefix == '/api/sales') FilledButton.icon(
+                onPressed: () { Navigator.of(ctx).pop(); Navigator.of(context).push(
+                  MaterialPageRoute(builder: (_) => ReceiptScreen(app: widget.app, saleUlid: ulid))); },
+                icon: const Icon(Icons.receipt_long_outlined), label: const Text('View / Print Receipt')),
             ],
           )),
         )));

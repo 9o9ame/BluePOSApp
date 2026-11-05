@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:bluepos_app/core/appearance.dart';
+import 'package:bluepos_app/core/api.dart';
 import 'package:bluepos_app/screens/sale.dart';
 import 'package:bluepos_app/widgets/common.dart';
 
@@ -37,4 +38,18 @@ void main() {
     expect(payload.containsKey('tenant_id'), isFalse);
     expect(payload.containsKey('grand_total'), isFalse);
   });
+
+test('server response helpers never infer tenant ids or totals', () {
+  final page = {
+    'data': [
+      {'ulid': '01JAAABBBCCCDDDEEEFFFGGGHH', 'name': 'Authorized product'},
+    ],
+    'meta': {'total': 1},
+  };
+  final rows = recordsOf(page);
+  expect(rows.length, 1);
+  expect(rows.first['name'], 'Authorized product');
+  expect(rows.first.containsKey('tenant_id'), isFalse);
+});
+
 }

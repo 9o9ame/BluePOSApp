@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:local_auth/local_auth.dart';
 
 import '../core/api.dart';
 import '../core/appearance.dart';
@@ -14,115 +15,163 @@ class SettingsScreen extends StatefulWidget {
 
 class _SettingsScreenState extends State<SettingsScreen> {
   late Map<String, dynamic> draft;
-  bool saving = false;
+  bool saving = false, biometricEnabled = false, biometricAvailable = false, biometricBusy = false;
+  List<BiometricType> types = [];
+
   @override
   void initState() {
     super.initState();
     draft = Map<String, dynamic>.from(widget.app.appearance.toJson());
+    inspectBiometrics();
   }
 
-  void set(String name, dynamic value) {
-    setState(() => draft[name] = value);
+  Future<void> inspectBiometrics() async {
+    final enrolled = await widget.app.biometric.supportedTypes();
+    final active = await widget.app.biometric.enabledFor(widget.app.currentUserUlid);
+    if (!mounted) return;
+    setState(() {
+      types = enrolled;
+      biometricAvailable = enrolled.isNotEmpty;
+      biometricEnabled = active;
+    });
   }
+
+  void set(String name, dynamic value) => setState(() => draft[name] = value);
 
   Future<void> save() async {
     if (saving) return;
     setState(() => saving = true);
     try {
       await widget.app.saveAppearance(draft);
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Appearance saved to your BluePOS account.')));
-    } catch (e) {
-      if (mounted) await showApiError(context, e);
-    } finally {
-      if (mounted) setState(() => saving = false);
-    }
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+        content: Text('Appearance saved to your BluePOS account.')));
+    } catch (e) { if (mounted) await showApiError(context, e); }
+    finally { if (mounted) setState(() => saving = false); }
+  }
+
+  Future<void> toggleBiometric(bool enabled) async {
+    if (biometricBusy) return;
+    setState(() => biometricBusy = true);
+    try {
+      if (enabled) {
+        final success = await widget.app.activateBiometrics();
+        if (mounted && !success) await showApiError(context,
+          'Biometric setup cancelled. Enroll fingerprint/face in Android Settings and retry.');
+      } else {
+        await widget.app.deactivateBiometrics();
+      }
+      await inspectBiometrics();
+    } catch (e) { if (mounted) await showApiError(context, e); }
+    finally { if (mounted) setState(() => biometricBusy = false); }
   }
 
   Widget option(String label, String name, List<String> values) => Padding(
-    padding: const EdgeInsets.only(bottom: 14),
+    padding: const EdgeInsets.only(bottom: 12),
     child: DropdownButtonFormField<String>(
       key: ValueKey('$name-${draft[name]}'),
       initialValue: draft[name] as String?,
       isExpanded: true,
       decoration: InputDecoration(labelText: label),
       items: values.map((value) => DropdownMenuItem(value: value,
-          child: Text(value == '3d' ? '3D' : value.replaceAll('-', ' ').split(' ').map(
-            (part) => part.isEmpty ? '' : '${part[0].toUpperCase()}${part.substring(1)}').join(' ')))).toList(),
-      onChanged: (value) { if (value != null) set(name, value); },
+        child: Text(value == '3d' ? '3D' : value.replaceAll('-', ' ').split(' ').map(
+          (part) => part.isEmpty ? '' : '${part[0].toUpperCase()}${part.substring(1)}').join(' ')))).toList(),
+      onChanged: (value) {if (value != null) set(name, value);},
     ),
+  );
+
+  Widget appearanceMode() => SegmentedButton<String>(
+    segments: const [
+      ButtonSegment(value: 'light', icon: Icon(Icons.light_mode_outlined), label: Text('Light')),
+      ButtonSegment(value: 'dark', icon: Icon(Icons.dark_mode_outlined), label: Text('Dark')),
+      ButtonSegment(value: 'system', icon: Icon(Icons.phone_android_outlined), label: Text('System')),
+    ],
+    selected: {field(draft['theme'], 'system')},
+    onSelectionChanged: (selection) => set('theme', selection.first),
   );
 
   @override
   Widget build(BuildContext context) {
-    final appearance = widget.app.appearance;
     final scheme = Theme.of(context).colorScheme;
+    final app = widget.app;
     return ListView(padding: const EdgeInsets.all(16), children: [
-      const SectionHeading('Account'),
-      Surface(child: ListTile(contentPadding: EdgeInsets.zero,
-        leading: CircleAvatar(radius: 24, backgroundColor: appearance.accent,
-          child: Text(widget.app.userName.isEmpty ? 'BP' : widget.app.userName[0].toUpperCase(),
-            style: const TextStyle(color: Colors.white))),
-        title: Text(widget.app.userName, style: const TextStyle(fontWeight: FontWeight.bold)),
-        subtitle: Text(widget.app.tenantName),
-      )),
-      const SizedBox(height: 12),
-      Surface(child: Column(children: [
-        ListTile(title: const Text('Branch'), subtitle: Text(widget.app.branchName),
-          leading: const Icon(Icons.storefront_outlined)),
-        const Divider(height: 1),
-        ListTile(title: const Text('Warehouse'), subtitle: Text(widget.app.warehouseName),
-          leading: const Icon(Icons.warehouse_outlined)),
+      GradientHero(appearance: app.appearance, child: Row(children: [
+        const BlueposBrandMark(size: 58), const SizedBox(width: 14),
+        Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Text(app.userName, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w900,
+            fontSize: 19)),
+          Text(app.tenantName, style: const TextStyle(color: Colors.white70)),
+          Text('${app.branchName} • ${app.warehouseName}', maxLines: 1,
+            overflow: TextOverflow.ellipsis, style: const TextStyle(color: Colors.white70, fontSize: 11)),
+        ])),
       ])),
-      const SizedBox(height: 18),
-      const SectionHeading('Theme & Appearance'),
+      const SizedBox(height: 20),
+      const SectionHeading('Appearance'),
       Surface(child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-        Text('Syncs with your BluePOS web appearance settings.',
-          style: TextStyle(color: scheme.onSurfaceVariant, fontSize: 12)),
-        const SizedBox(height: 18),
-        option('Appearance', 'theme', ['system','light','dark']),
-        option('Primary theme', 'primaryTheme', AppAppearance.palette.keys.toList()),
-        Wrap(spacing: 12, runSpacing: 12, children: AppAppearance.palette.entries.map((e) {
-          return InkWell(onTap: () => set('primaryTheme', e.key),
-            child: CircleAvatar(radius: 18, backgroundColor: e.value,
-              child: draft['primaryTheme'] == e.key ? const Icon(Icons.check, size: 19, color: Colors.white) : null));
-        }).toList()),
+        const Text('Choose your display', style: TextStyle(fontWeight: FontWeight.w800)),
+        const SizedBox(height: 12),
+        appearanceMode(),
+        const SizedBox(height: 19),
+        const Text('Primary theme', style: TextStyle(fontWeight: FontWeight.w800)),
+        const SizedBox(height: 11),
+        Wrap(spacing: 10, runSpacing: 10, children: AppAppearance.palette.entries.map((entry) =>
+          InkWell(onTap: () => set('primaryTheme', entry.key), borderRadius: BorderRadius.circular(30),
+            child: CircleAvatar(radius: 22, backgroundColor: entry.value,
+              child: draft['primaryTheme'] == entry.key ? const Icon(Icons.check, color: Colors.white) : null))).toList()),
         const SizedBox(height: 20),
-        option('Interface style', 'skin', ['classic','hybrid','advanced']),
+        option('Interface style', 'skin', ['classic', 'hybrid', 'advanced']),
         option('Font family', 'font',
-          ['skin-default','inter','roboto-condensed','segoe-ui','tahoma','arial']),
-        option('Density', 'density', ['compact','comfortable']),
-        option('Border radius', 'radius', ['small','medium','large']),
-        option('Card shadow', 'shadow', ['none','soft','normal','3d']),
-        SwitchListTile.adaptive(contentPadding: EdgeInsets.zero, title: const Text('UI animations'),
+          ['skin-default', 'inter', 'roboto-condensed', 'segoe-ui', 'tahoma', 'arial']),
+        option('Density', 'density', ['compact', 'comfortable']),
+        option('Border radius', 'radius', ['small', 'medium', 'large']),
+        option('Card shadow', 'shadow', ['none', 'soft', 'normal', '3d']),
+        SwitchListTile.adaptive(contentPadding: EdgeInsets.zero,
+          title: const Text('UI animations'), subtitle: const Text('Respect motion preferences'),
           value: draft['animations'] == true, onChanged: (v) => set('animations', v)),
-        const SizedBox(height: 6),
-        FilledButton.icon(onPressed: saving ? null : save,
-          icon: const Icon(Icons.save_outlined),
-          label: Text(saving ? 'Saving…' : 'Save appearance')),
+        const SizedBox(height: 12),
+        FilledButton.icon(onPressed: saving ? null : save, icon: const Icon(Icons.check_rounded),
+          label: Text(saving ? 'Saving…' : 'Save & Sync Appearance')),
       ])),
-      const SizedBox(height: 18),
+      const SizedBox(height: 20),
+      const SectionHeading('Biometric Security'),
+      Surface(child: Column(children: [
+        ListTile(contentPadding: EdgeInsets.zero,
+          leading: Icon(Icons.fingerprint_rounded, color: scheme.primary, size: 31),
+          title: const Text('Fingerprint / Face Unlock', style: TextStyle(fontWeight: FontWeight.w800)),
+          subtitle: Text(!biometricAvailable
+            ? 'No enrolled Android biometrics found. Set up fingerprint or face in Android Settings.'
+            : 'Use your enrolled ${types.contains(BiometricType.face) ? 'fingerprint or face' : 'fingerprint / supported biometric'} to unlock a valid BluePOS session.'),
+        ),
+        SwitchListTile.adaptive(contentPadding: EdgeInsets.zero,
+          value: biometricEnabled,
+          title: const Text('App lock on return'),
+          subtitle: const Text('Requires operating system verification after app resumes.'),
+          onChanged: !biometricAvailable || biometricBusy ? null : toggleBiometric),
+        Text('First login always requires mart code, password, location and any server device/MFA approvals. Biometrics do not create a new server session.',
+          style: TextStyle(fontSize: 11, color: scheme.onSurfaceVariant)),
+      ])),
+      const SizedBox(height: 20),
       const SectionHeading('Application'),
       Surface(child: Column(children: [
-        const ListTile(leading: Icon(Icons.cloud_done_outlined),
-          title: Text('Connected server'), subtitle: Text(apiOrigin)),
-        const ListTile(leading: Icon(Icons.security_outlined),
-          title: Text('Secure data'),
-          subtitle: Text('Server permissions, tenant context and totals remain authoritative.')),
-        const ListTile(leading: Icon(Icons.info_outline),
-          title: Text('BluePOS Mobile'), subtitle: Text('First Android preview · v0.1.0')),
+        const ListTile(leading: Icon(Icons.cloud_done_outlined), title: Text('Live server'), subtitle: Text(apiOrigin)),
+        const Divider(height: 1),
+        const ListTile(leading: Icon(Icons.security_outlined), title: Text('Access control'),
+          subtitle: Text('Permissions, prices, stock and totals remain server-authoritative.')),
+        const Divider(height: 1),
+        const ListTile(leading: Icon(Icons.info_outline), title: Text('BluePOS Mobile'),
+          subtitle: Text('Android design edition • v0.2.0')),
       ])),
       const SizedBox(height: 18),
-      OutlinedButton.icon(onPressed: saving ? null : () async {
-        final should = await showDialog<bool>(context: context, builder: (ctx) => AlertDialog(
-          title: const Text('Sign out?'),
-          content: const Text('This removes your local secure session from this device.'),
-          actions: [TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
-            TextButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Sign out'))],
-        ));
-        if (should == true) await widget.app.logout();
-      }, icon: const Icon(Icons.logout), label: const Text('Sign out')),
-      const SizedBox(height: 24),
+      OutlinedButton.icon(icon: const Icon(Icons.logout), label: const Text('Sign out'),
+        onPressed: saving ? null : () async {
+          final should = await showDialog<bool>(context: context, builder: (ctx) => AlertDialog(
+            title: const Text('Sign out?'),
+            content: const Text('This clears local session credentials and biometric unlock enrollment for this app.'),
+            actions: [TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
+              FilledButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Sign out'))],
+          ));
+          if (should == true) await app.logout();
+        }),
+      const SizedBox(height: 28),
     ]);
   }
 }

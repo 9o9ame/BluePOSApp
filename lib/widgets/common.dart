@@ -111,3 +111,64 @@ Future<void> showApiError(BuildContext context, Object error) async {
 }
 
 Widget pageLoading() => const Center(child: CircularProgressIndicator());
+
+
+/// Identical brand mark across Login, Workspace, Receipts and Android launcher.
+class BlueposBrandMark extends StatelessWidget {
+  const BlueposBrandMark({super.key, this.size = 44});
+  final double size;
+  @override
+  Widget build(BuildContext context) => ClipRRect(
+    borderRadius: BorderRadius.circular(size * .23),
+    child: Image.asset('assets/branding/bluepos_launcher.png',
+      width: size, height: size, fit: BoxFit.cover),
+  );
+}
+
+class BpModuleTile extends StatelessWidget {
+  const BpModuleTile({super.key, required this.icon, required this.name,
+    required this.onTap, this.tint});
+  final IconData icon;
+  final String name;
+  final VoidCallback onTap;
+  final Color? tint;
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final accent = tint ?? scheme.primary;
+    return InkWell(onTap: onTap, borderRadius: BorderRadius.circular(18),
+      child: Surface(padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 13),
+        child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+          Container(width: 44, height: 44, decoration: BoxDecoration(
+            color: accent.withValues(alpha: .11), borderRadius: BorderRadius.circular(15)),
+            child: Icon(icon, size: 25, color: accent)),
+          const SizedBox(height: 10),
+          Text(name, maxLines: 2, textAlign: TextAlign.center,
+            style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w800)),
+        ])),
+    );
+  }
+}
+
+class BpStatCard extends StatelessWidget {
+  const BpStatCard({super.key, required this.icon, required this.caption,
+    required this.value, this.hint});
+  final IconData icon;
+  final String caption, value;
+  final String? hint;
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return Surface(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      Row(children: [Icon(icon, size: 21, color: scheme.primary), const Spacer(),
+        Icon(Icons.arrow_outward, size: 14, color: scheme.onSurfaceVariant)]),
+      const SizedBox(height: 11),
+      FittedBox(fit: BoxFit.scaleDown, alignment: Alignment.centerLeft,
+        child: Text(value, style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 21))),
+      const SizedBox(height: 4),
+      Text(caption, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 12)),
+      if (hint != null) Text(hint!, style: TextStyle(fontSize: 10,
+        color: scheme.onSurfaceVariant), maxLines: 2),
+    ]));
+  }
+}

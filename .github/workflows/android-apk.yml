@@ -1,4 +1,4 @@
-name: Build Android APK
+name: Validate & Build BluePOS Mobile Android
 
 on:
   push:
@@ -9,55 +9,62 @@ permissions:
   contents: write
 
 jobs:
-  build-debug-apk:
+  build-android:
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 55
     steps:
       - uses: actions/checkout@v4
-
       - uses: subosito/flutter-action@v2
         with:
           channel: stable
           cache: true
 
-      - name: Generate Android platform
+      - name: Generate isolated Android platform
         run: flutter create --platforms=android --org pk.com.bluemarketing --project-name bluepos_app .
 
-      - name: Remove generated Flutter starter test
+      - name: Remove Flutter generated starter test
         run: rm -f test/widget_test.dart
 
-      - name: Apply Android permissions
+      - name: Configure Android security and biometrics
         run: python3 tool/patch_android.py
 
-      - name: Resolve Flutter dependencies
+      - name: Resolve exact app dependencies
         run: flutter pub get
 
-      - name: Analyze source
+      - name: Create BluePOS Android launcher icons
+        run: dart run flutter_launcher_icons
+
+      - name: Flutter static analysis
         run: flutter analyze --no-fatal-infos
 
-      - name: Run mobile focused tests
+      - name: Focused Flutter tests
         run: flutter test
 
-      - name: Build installable debug APK
-        run: flutter build apk --debug
+      - name: Build optimized Android APK
+        run: flutter build apk --release
 
-      - name: Upload Android APK
+      - name: Verify APK and checksum
+        run: |
+          test -s build/app/outputs/flutter-apk/app-release.apk
+          sha256sum build/app/outputs/flutter-apk/app-release.apk
+
+      - name: Upload validated Android APK
         uses: actions/upload-artifact@v4
         with:
-          name: BluePOS-Mobile-0.1.0-debug-APK
-          path: build/app/outputs/flutter-apk/app-debug.apk
+          name: BluePOS-Mobile-v0.2.0-Android-APK
+          path: build/app/outputs/flutter-apk/app-release.apk
           if-no-files-found: error
           retention-days: 30
 
-      # One-off public pre-release, only when the explicit publish commit is pushed.
-      - name: Publish downloadable preview APK
+      # A public release is published ONLY for an explicitly marked commit.
+      - name: Publish GitHub direct-download APK
         if: ${{ github.event_name == 'push' && contains(github.event.head_commit.message, '[publish-apk]') }}
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release create mobile-v0.1.0-preview \
-            "build/app/outputs/flutter-apk/app-debug.apk#BluePOS-Mobile-v0.1.0-preview.apk" \
+          gh release create mobile-v0.2.0-preview \
+            'build/app/outputs/flutter-apk/app-release.apk#BluePOS-Mobile-v0.2.0-preview.apk' \
             --target "$GITHUB_SHA" \
-            --title "BluePOS Mobile v0.1.0 — Android preview APK" \
-            --notes "Development preview (debug-signed Android APK), not a production release. Connects to the configured live BluePOS API. Install and log in only with an authorized test account and approved device. Sale posting is a real financial/stock operation." \
+            --title 'BluePOS Mobile 0.2.0 - Android preview' \
+            --notes 'Independent Flutter client. Validated in GitHub CI. This preview uses default Flutter-generated signing; a persistent production signing key is needed for final Play Store distribution and in-place updates. First authorized server login requires mart code, password, device/location approval and any MFA. Optional fingerprint/face can only unlock a still-valid approved session. Uses live BluePOS API; sale posting changes real stock and financial records. Test with an authorized test tenant.' \
             --prerelease

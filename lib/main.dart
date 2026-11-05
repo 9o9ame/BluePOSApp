@@ -6,6 +6,7 @@ import 'core/session.dart';
 import 'screens/login.dart';
 import 'screens/shell.dart';
 import 'screens/change_password.dart';
+import 'screens/biometric_unlock.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -15,26 +16,51 @@ void main() {
   controller.initialize();
 }
 
-class BluePOSMobile extends StatelessWidget {
+class BluePOSMobile extends StatefulWidget {
   const BluePOSMobile({super.key, required this.app});
   final AppController app;
+  @override
+  State<BluePOSMobile> createState() => _BluePOSMobileState();
+}
+
+class _BluePOSMobileState extends State<BluePOSMobile> with WidgetsBindingObserver {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.hidden || state == AppLifecycleState.paused) {
+      widget.app.lockForBackground();
+    }
+  }
 
   @override
   Widget build(BuildContext context) => AnimatedBuilder(
-        animation: Listenable.merge([app, app.appearance]),
+        animation: Listenable.merge([widget.app, widget.app.appearance]),
         builder: (context, _) => MaterialApp(
           title: 'BluePOS Mobile',
           debugShowCheckedModeBanner: false,
-          theme: app.appearance.data(Brightness.light),
-          darkTheme: app.appearance.data(Brightness.dark),
-          themeMode: app.appearance.mode,
-          home: app.loading
+          theme: widget.app.appearance.data(Brightness.light),
+          darkTheme: widget.app.appearance.data(Brightness.dark),
+          themeMode: widget.app.appearance.mode,
+          home: widget.app.loading
               ? const Scaffold(body: Center(child: CircularProgressIndicator()))
-              : app.authenticated
-                  ? app.needsPasswordChange
-                      ? ChangePasswordScreen(app: app)
-                      : AppShell(app: app)
-                  : LoginScreen(app: app),
+              : !widget.app.authenticated
+                  ? LoginScreen(app: widget.app)
+                  : widget.app.needsPasswordChange
+                      ? ChangePasswordScreen(app: widget.app)
+                      : widget.app.locked
+                          ? BiometricUnlockScreen(app: widget.app)
+                          : AppShell(app: widget.app),
         ),
       );
 }

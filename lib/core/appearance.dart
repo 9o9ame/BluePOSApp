@@ -99,21 +99,28 @@ class AppAppearance extends ChangeNotifier {
 
   ThemeData data(Brightness brightness) {
     final isDark = brightness == Brightness.dark;
+    final classic = skin == 'classic';
+    final advanced = skin == 'advanced';
     final colorScheme = ColorScheme.fromSeed(seedColor: accent, brightness: brightness,
         surface: isDark ? const Color(0xFF0F172A) : const Color(0xFFF5F8FE));
-    final r = BorderRadius.circular(corner);
+    final r = BorderRadius.circular(classic ? corner * .7 : advanced ? corner * 1.12 : corner);
     return ThemeData(
       useMaterial3: true,
       colorScheme: colorScheme,
-      scaffoldBackgroundColor: colorScheme.surface,
+      scaffoldBackgroundColor: classic ? (isDark ? const Color(0xFF101827) : const Color(0xFFF8F9FD)) : colorScheme.surface,
+      pageTransitionsTheme: animations ? null : const PageTransitionsTheme(builders: {
+        TargetPlatform.android: _NoMotionTransitions(),
+        TargetPlatform.iOS: _NoMotionTransitions(),
+      }),
       fontFamily: fontFamily,
       visualDensity: density == 'compact' ? VisualDensity.compact : VisualDensity.standard,
       appBarTheme: AppBarTheme(backgroundColor: colorScheme.surface, elevation: 0,
           centerTitle: false, titleTextStyle: TextStyle(fontSize: 20, fontWeight: FontWeight.w800,
               color: colorScheme.onSurface)),
       cardTheme: CardThemeData(
-        color: isDark ? const Color(0xFF18233A) : Colors.white,
-        elevation: shadow == 'none' ? 0 : shadow == '3d' ? 6 : shadow == 'normal' ? 3 : 1,
+        color: isDark ? const Color(0xFF18233A) : advanced ? const Color(0xFFF4F8FF) : Colors.white,
+        elevation: shadow == 'none' ? 0 : shadow == '3d' ? (advanced ? 8 : 6) :
+          shadow == 'normal' ? (advanced ? 5 : 3) : (classic ? 0 : 1),
         shadowColor: accent.withValues(alpha: 0.12),
         shape: RoundedRectangleBorder(borderRadius: r),
       ),
@@ -137,4 +144,12 @@ class AppAppearance extends ChangeNotifier {
       )),
     );
   }
+}
+
+
+class _NoMotionTransitions extends PageTransitionsBuilder {
+  const _NoMotionTransitions();
+  @override
+  Widget buildTransitions<T>(PageRoute<T> route, BuildContext context,
+      Animation<double> animation, Animation<double> secondaryAnimation, Widget child) => child;
 }

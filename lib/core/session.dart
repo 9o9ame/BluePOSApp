@@ -5,11 +5,17 @@ import 'package:geolocator/geolocator.dart';
 
 import 'api.dart';
 import 'appearance.dart';
+import 'biometrics.dart';
 
 class AppController extends ChangeNotifier {
-  AppController(this.api, this.appearance);
+  AppController(this.api, this.appearance, {BiometricAccess? biometric})
+      : biometric = biometric ?? BiometricAccess();
   final BlueposApi api;
   final AppAppearance appearance;
+  final BiometricAccess biometric;
+  bool locked = false;
+  bool unlocking = false;
+  String? biometricMessage;
   Map<String, dynamic>? session;
   bool loading = true;
 
@@ -19,6 +25,7 @@ class AppController extends ChangeNotifier {
   String get warehouseName => field(objectOf(session?['warehouse'])['name'], 'Warehouse');
   String get userName => field(objectOf(session?['user'])['name'], 'Team member');
   String get currency => field(objectOf(session?['tenant'])['currency_code'], 'PKR');
+  String get currentUserUlid => field(objectOf(session?['user'])['ulid']);
   bool get needsPasswordChange => session?['must_change_password'] == true;
   bool hasPermission(String key) {
     final raw = session?['permissions'];
@@ -32,6 +39,9 @@ class AppController extends ChangeNotifier {
     try {
       final response = await api.get('/api/auth/me');
       _setSession(response);
+      if (session != null && !needsPasswordChange) {
+        locked = await biometric.enabledFor(currentUserUlid);
+      }
     } catch (_) {
       // An existing device cookie may expire; login remains available.
     } finally {
@@ -133,6 +143,70 @@ class AppController extends ChangeNotifier {
     session?['appearance'] = appearance.toJson();
   }
 
+  /// Engage local screen lock before backgrounding; no content is displayed
+  /// until the operating system verifies an enrolled biometric.
+  Future<void> lockForBackground() async {
+    if (authenticated && !needsPasswordChange && !unlocking &&
+        await biometric.enabledFor(currentUserUlid)) {
+      locked = true;
+      notifyListeners();
+    }
+  }
+
+  Future<bool> unlock() async {
+    if (unlocking || session == null || !locked) return false;
+    unlocking = true;
+    biometricMessage = null;
+    notifyListeners();
+    try {
+      if (!await biometric.confirm()) {
+        biometricMessage = 'Biometric verification was cancelled or unavailable.';
+        return false;
+      }
+      // Device permissions, session lifetime and tenancy still come from server.
+      final response = await api.get('/api/auth/me');
+      final validated = objectOf(response);
+      final sessionValue = validated.containsKey('user') ? validated : objectOf(validated['data']);
+      if (field(objectOf(sessionValue['user'])['ulid']) != currentUserUlid) {
+        throw const ApiFailure('SESSION_CHANGED', 'Your session changed; sign in with password.', 401);
+      }
+      _setSession(response);
+      locked = false;
+      return true;
+    } catch (e) {
+      biometricMessage = e.toString();
+      // For a revoked/expired session, require server login again.
+      if (e is ApiFailure && (e.status == 401 || e.status == 403)) {
+        await signInWithPassword();
+      }
+      return false;
+    } finally {
+      unlocking = false;
+      notifyListeners();
+    }
+  }
+
+  Future<void> signInWithPassword() async {
+    await api.clear();
+    session = null;
+    locked = false;
+    biometricMessage = null;
+    notifyListeners();
+  }
+
+  Future<bool> activateBiometrics() async {
+    if (session == null || needsPasswordChange) return false;
+    final activated = await biometric.enroll(currentUserUlid);
+    notifyListeners();
+    return activated;
+  }
+
+  Future<void> deactivateBiometrics() async {
+    await biometric.disable();
+    locked = false;
+    notifyListeners();
+  }
+
   Future<void> logout() async {
     try {
       await api.post('/api/auth/logout', {});
@@ -140,7 +214,9 @@ class AppController extends ChangeNotifier {
       // Even if network fails, remove all local session credentials.
     } finally {
       await api.clear();
+      await biometric.disable();
       session = null;
+      locked = false;
       notifyListeners();
     }
   }
