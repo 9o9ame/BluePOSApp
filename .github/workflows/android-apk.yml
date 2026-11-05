@@ -51,7 +51,7 @@ jobs:
       - name: Upload validated Android APK
         uses: actions/upload-artifact@v4
         with:
-          name: BluePOS-Mobile-v0.2.0-Android-APK
+          name: BluePOS-Mobile-v0.2.1-Android-APK
           path: build/app/outputs/flutter-apk/app-release.apk
           if-no-files-found: error
           retention-days: 30
@@ -62,9 +62,9 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release create mobile-v0.2.0-preview \
-            'build/app/outputs/flutter-apk/app-release.apk#BluePOS-Mobile-v0.2.0-preview.apk' \
+          gh release create mobile-v0.2.1-preview \
+            'build/app/outputs/flutter-apk/app-release.apk#BluePOS-Mobile-v0.2.1-preview.apk' \
             --target "$GITHUB_SHA" \
-            --title 'BluePOS Mobile 0.2.0 - Android preview' \
+            --title 'BluePOS Mobile 0.2.1 - Android preview' \
             --notes 'Independent Flutter client. Validated in GitHub CI. This preview uses default Flutter-generated signing; a persistent production signing key is needed for final Play Store distribution and in-place updates. First authorized server login requires mart code, password, device/location approval and any MFA. Optional fingerprint/face can only unlock a still-valid approved session. Uses live BluePOS API; sale posting changes real stock and financial records. Test with an authorized test tenant.' \
             --prerelease

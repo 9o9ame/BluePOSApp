@@ -80,7 +80,7 @@ class _DataListScreenState extends State<DataListScreen> {
               Text(field(r[widget.subtitleKey]), style: TextStyle(fontSize: 12,
                 color: scheme.onSurfaceVariant)),
             ])),
-            if (widget.amountKey != null) Text(money(r[widget.amountKey]),
+            if (widget.amountKey != null) Text(r[widget.amountKey] == null ? '—' : money(r[widget.amountKey]),
               style: const TextStyle(fontWeight: FontWeight.w700)),
             if (widget.detailPrefix != null) IconButton(icon: const Icon(Icons.chevron_right),
               onPressed: () => showDetail(r)),

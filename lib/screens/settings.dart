@@ -197,7 +197,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           subtitle: Text('Permissions, prices, stock and totals remain server-authoritative.')),
         const Divider(height: 1),
         const ListTile(leading: Icon(Icons.info_outline), title: Text('BluePOS Mobile'),
-          subtitle: Text('Android design edition • v0.2.0')),
+          subtitle: Text('Android design edition • v0.2.1')),
       ])),
       const SizedBox(height: 18),
       OutlinedButton.icon(icon: const Icon(Icons.logout), label: const Text('Sign out'),

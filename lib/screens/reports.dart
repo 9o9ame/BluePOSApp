@@ -71,7 +71,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
     final app = widget.app;
     final sampleCount = records.length;
     final isProduct = tab == 'products';
-    final grandTotal = sum(isProduct ? 'net_amount' : 'net_sale_total');
+    final grandTotal = sum(isProduct ? 'amount' : 'net_sale_total');
     final outstanding = sum('balance_due');
     final values = records.take(9).toList().reversed.toList();
     return RefreshIndicator(onRefresh: load, child: ListView(
@@ -123,7 +123,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
             : Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
               SizedBox(height: 148, width: double.infinity,
                 child: CustomPaint(painter: _ReportLinePainter(
-                  values: values.map((row) => (Decimal.tryParse(field(row[isProduct ? 'net_amount' : 'grand_total']))
+                  values: values.map((row) => (Decimal.tryParse(field(row[isProduct ? 'amount' : 'grand_total']))
                     ?? Decimal.zero).toDouble()).toList(), color: scheme.primary))),
               const SizedBox(height: 14),
               ...records.take(5).map((row) => Padding(padding: const EdgeInsets.symmetric(vertical: 7),
@@ -132,7 +132,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
                   const SizedBox(width: 9),
                   Expanded(child: Text(field(row[isProduct ? 'sale_number' : 'document_number']),
                     style: const TextStyle(fontWeight: FontWeight.w700))),
-                  Text(money(row[isProduct ? 'net_amount' : 'grand_total'], app.currency),
+                  Text(money(row[isProduct ? 'amount' : 'grand_total'], app.currency),
                     style: const TextStyle(fontWeight: FontWeight.bold)),
                 ]))),
             ])),

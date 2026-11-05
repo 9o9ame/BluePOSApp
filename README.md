@@ -1,4 +1,4 @@
-# BluePOS Mobile — Android 0.2.0 preview
+# BluePOS Mobile — Android 0.2.1 preview
 
 Independent Flutter app in `9o9ame/BluePOSApp`, connecting to existing live BluePOS APIs. This repository does not modify `9o9ame/bluepos`, its frontend, backend, database or policies.
 
