@@ -15,6 +15,7 @@ import 'report_headings.dart';
 import 'calculator.dart';
 import 'workplace_directory.dart';
 import 'quotations.dart';
+import 'cash_position.dart';
 import 'trial_balance.dart';
 import 'product_ledger.dart';
 import 'history.dart';
@@ -187,9 +188,9 @@ class _ModulesScreenState extends State<ModulesScreen> {
           '/api/vouchers?per_page=25', nameKey: 'document_number',
           subtitleKey: 'voucher_type', detailPrefix: '/api/vouchers'),
         permissions: const ['accounting.journal.view']),
-      ModuleAction('Daily Cash Position', 'Authorized cash information',
-        Icons.payments_outlined, () => _data('Cash Position',
-          '/api/cash-position/accounts', nameKey: 'name', subtitleKey: 'code'),
+      ModuleAction('Daily Cash Position', 'Cash, credit and account balances',
+        Icons.payments_outlined,
+        () => _open(CashPositionScreen(app: widget.app)),
         permissions: const ['accounting.journal.view']),
       ModuleAction('Expenses', 'Recorded expenses',
         Icons.credit_card_outlined, () => _data('Expenses',
