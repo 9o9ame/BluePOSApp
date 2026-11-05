@@ -17,6 +17,10 @@ import 'workplace_directory.dart';
 import 'quotations.dart';
 import 'cash_position.dart';
 import 'money_actions.dart';
+import 'roles_admin.dart';
+import 'users_admin.dart';
+import 'device_admin.dart';
+import 'security_sessions.dart';
 import 'purchase_orders.dart';
 import 'purchase_invoices.dart';
 import 'inventory_documents.dart';
@@ -300,19 +304,17 @@ class _ModulesScreenState extends State<ModulesScreen> {
       ModuleAction('Calculator', 'Local decimal-safe calculator',
         Icons.calculate_outlined,
         () => _open(const CalculatorScreen())),
-      ModuleAction('Users', 'Authorized team members',
-        Icons.people_alt_outlined, () => _data('Users', '/api/memberships',
-          nameKey: 'username', subtitleKey: 'name',
-          detailPrefix: '/api/memberships'),
+      ModuleAction('Users', 'User onboarding and access management',
+        Icons.people_alt_outlined,
+        () => _open(UsersAdminScreen(app: widget.app)),
         permissions: const ['users.view']),
-      ModuleAction('Roles & Groups', 'Access groups and permissions',
-        Icons.admin_panel_settings_outlined, () => _data('Roles', '/api/roles',
-          nameKey: 'name', subtitleKey: 'description',
-          detailPrefix: '/api/roles'),
+      ModuleAction('Roles & Groups', 'Role and permission management',
+        Icons.admin_panel_settings_outlined,
+        () => _open(RolesAdminScreen(app: widget.app)),
         permissions: const ['roles.view']),
-      ModuleAction('Devices', 'Registered and trusted devices',
-        Icons.devices_outlined, () => _data('Devices', '/api/devices',
-          nameKey: 'name', subtitleKey: 'status'),
+      ModuleAction('Devices', 'Device registry and owner access approvals',
+        Icons.devices_outlined,
+        () => _open(DeviceAdminScreen(app: widget.app)),
         permissions: const ['devices.view']),
       ModuleAction('Report Headings', 'Manage report heading presets',
         Icons.article_outlined,
@@ -331,10 +333,9 @@ class _ModulesScreenState extends State<ModulesScreen> {
           app: widget.app, kind: WorkplaceKind.warehouses)),
         permissions: const ['warehouses.manage', 'inventory.view',
           'branches.view', 'products.view']),
-      ModuleAction('Security Sessions', 'Server-approved sessions',
-        Icons.verified_user_outlined, () => _data('Sessions',
-          '/api/security/sessions', nameKey: 'device_name',
-          subtitleKey: 'last_active_at'),
+      ModuleAction('Security Sessions', 'Revocation and active sessions',
+        Icons.verified_user_outlined,
+        () => _open(SecuritySessionsScreen(app: widget.app)),
         permissions: const ['security.sessions.view']),
       ModuleAction('Appearance & Security', 'Themes, biometrics and account',
         Icons.settings_outlined, _settings),
