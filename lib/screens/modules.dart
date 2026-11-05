@@ -19,6 +19,7 @@ import 'cash_position.dart';
 import 'purchase_orders.dart';
 import 'purchase_invoices.dart';
 import 'inventory_documents.dart';
+import 'vouchers.dart';
 import 'trial_balance.dart';
 import 'product_ledger.dart';
 import 'history.dart';
@@ -184,10 +185,9 @@ class _ModulesScreenState extends State<ModulesScreen> {
         () => _open(InventoryDocumentDirectory(app: widget.app,
           kind: InventoryDocumentKind.stockTake)),
         permissions: const ['inventory.view'], entitlement: 'inventory'),
-      ModuleAction('Vouchers', 'Journal and payment entries',
-        Icons.account_balance_wallet_outlined, () => _data('Vouchers',
-          '/api/vouchers?per_page=25', nameKey: 'document_number',
-          subtitleKey: 'voucher_type', detailPrefix: '/api/vouchers'),
+      ModuleAction('Vouchers', 'Opening, Payment, Receiving and Journal entries',
+        Icons.account_balance_wallet_outlined,
+        () => _open(VoucherDirectoryScreen(app: widget.app)),
         permissions: const ['accounting.journal.view']),
       ModuleAction('Daily Cash Position', 'Cash, credit and account balances',
         Icons.payments_outlined,
