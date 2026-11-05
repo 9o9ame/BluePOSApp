@@ -93,3 +93,13 @@ class VoucherAttemptStore extends DocumentAttemptStore {
 
   static const key = 'bluepos_unconfirmed_voucher_v1';
 }
+
+
+/// Source-linked Sales Return draft creation is server-idempotent.
+class SaleReturnAttemptStore extends DocumentAttemptStore {
+  const SaleReturnAttemptStore({
+    FlutterSecureStorage storage = const FlutterSecureStorage(),
+  }) : super(storageKey: key, storage: storage);
+
+  static const key = 'bluepos_unconfirmed_sale_return_v1';
+}
