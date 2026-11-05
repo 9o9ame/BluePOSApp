@@ -466,7 +466,7 @@ class _PurchaseInvoiceEditorState extends State<PurchaseInvoiceEditor> {
                     final saved = await Navigator.push<bool>(context,
                       MaterialPageRoute(builder: (_) => MoneyActionScreen(
                         app: widget.app, kind: MoneyActionKind.purchasePayment,
-                        documentUlid: id)));
+                        documentUlid: ulid)));
                     if (saved == true && mounted) await refresh();
                   },
                   icon: const Icon(Icons.payments_outlined),
