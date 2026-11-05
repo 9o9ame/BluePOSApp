@@ -8,6 +8,7 @@ import 'history.dart';
 import 'trial_balance.dart';
 import 'cash_book.dart';
 import 'financial_statements.dart';
+import 'general_journal.dart';
 import 'stock_status.dart';
 import 'product_ledger.dart';
 
@@ -110,6 +111,12 @@ class _ReportsScreenState extends State<ReportsScreen> {
               onPressed: () => Navigator.push(context, MaterialPageRoute(
                 builder: (_) => FinancialStatementScreen(
                   app: app, kind: FinancialStatementKind.incomeStatement))),
+            ),
+            ActionChip(
+              avatar: const Icon(Icons.menu_book_outlined, size: 17),
+              label: const Text('General Journal'),
+              onPressed: () => Navigator.push(context, MaterialPageRoute(
+                builder: (_) => GeneralJournalReportScreen(app: app))),
             ),
           ],
           if (app.hasPermission('reports.inventory')) ...[
