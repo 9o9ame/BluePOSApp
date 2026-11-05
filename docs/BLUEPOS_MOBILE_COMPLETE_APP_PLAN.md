@@ -155,6 +155,8 @@
 - Existing web `PROJECT_UI_DESIGN_SYSTEM.md` governs color/shape/motion. Do not change frozen web Sales Invoice Amounts geometry.
 - No app build, release, keystore rotation, backend/database migration, or web-repo modification as part of this approval.
 
+> Release readiness check requested 2026-11-05: compile/analyze and focused tests are now authorized; APK requested after blockers are resolved. Do not claim untested workflows complete.
+
 ## 18. Implementation journal
 
 | Date | Work | Validation | Status |
