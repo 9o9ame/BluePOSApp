@@ -181,6 +181,7 @@ class _PurchaseInvoiceEditorState extends State<PurchaseInvoiceEditor> {
     DateTime? expiry = DateTime.tryParse(field(original?['expiry_date']));
     String? formError;
     bool inFlight = false;
+    bool ambiguous = false;
     try {
       final saved = await showModalBottomSheet<bool>(context: context,
         showDragHandle: true, isScrollControlled: true, useSafeArea: true,
@@ -245,7 +246,7 @@ class _PurchaseInvoiceEditorState extends State<PurchaseInvoiceEditor> {
                 style: TextStyle(color: Theme.of(sheet).colorScheme.error)),
               const SizedBox(height: 12),
               FilledButton.icon(
-                onPressed: inFlight ? null : () async {
+                onPressed: inFlight || ambiguous ? null : () async {
                   final id = field(product['ulid']);
                   final base = field(unit['ulid']);
                   if (!validPublicUlid(id) || !validPublicUlid(base) ||
@@ -282,13 +283,17 @@ class _PurchaseInvoiceEditorState extends State<PurchaseInvoiceEditor> {
                     }
                     if (sheet.mounted) Navigator.pop(sheet, true);
                   } on ApiFailure catch (ex) {
-                    if (sheet.mounted) change(() => formError = ex.status == 0 ||
-                      ex.status >= 500
+                    if (sheet.mounted) change(() {
+                      ambiguous = ex.status == 0 || ex.status >= 500;
+                      formError = ambiguous
                         ? 'Save status uncertain. Close and refresh the invoice before retrying this line.'
-                        : ex.message);
+                        : ex.message;
+                    });
                   } catch (_) {
-                    if (sheet.mounted) change(() => formError =
-                      'Save status uncertain. Close and refresh before trying again.');
+                    if (sheet.mounted) change(() {
+                      ambiguous = true;
+                      formError = 'Save status uncertain. Close and refresh before trying again.';
+                    });
                   } finally {
                     if (sheet.mounted) change(() => inFlight = false);
                   }
