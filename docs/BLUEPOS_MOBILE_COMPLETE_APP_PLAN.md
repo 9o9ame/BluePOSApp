@@ -160,3 +160,13 @@
 | Date | Work | Validation | Status |
 |---|---|---|---|
 | 2026-11-05 | This plan recorded from approved user requirements and read-only source inspection | Source inspection | Done |
+
+
+### Implementation progress checkpoint — 2026-11-05 (no APK)
+
+- Source implementation on the existing module branch includes BluePOS splash, refined circular sign-in, remembered account picker, opt-in biometrics, camera error/retry/manual barcode entry, shared mobile navigation and permissioned modules. Final visual/device acceptance remains pending.
+- Catalog master editors (category/subcategory/brand/unit), party directory/editors, improved dashboard, server-authoritative Stock Status and Trial Balance and Product Ledger reports have been introduced. Their completion checkboxes remain open until contract/integration/device testing.
+- Trial Balance row syntax was corrected after a failing analyzer CI; subsequent analyzer-only run succeeded.
+- The biometric unenrolled guidance is the concise English **"Sign in first to enable biometrics."**
+- **Cash Book** screen added using verified `GET /api/reports/accounting/cash-book` and `GET /api/reports/accounting/cash-book/accounts` contracts. It exposes an account filter, bank toggle, date range and server-authoritative opening, received, paid and closing totals. Permissions are required and the backend rechecks tenant/branch. Its UI and request integration need focused validation.
+- APK compilation and release publishing remain prohibited; `.github/workflows/android-apk.yml` is manual-only. `mobile-checks.yml` performs analysis and tests without compiling an APK.
