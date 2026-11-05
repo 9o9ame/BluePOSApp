@@ -1,0 +1,24 @@
+name: bluepos_app
+description: BluePOS mobile client for approved retail and wholesale workspaces.
+publish_to: none
+version: 0.1.0+1
+
+environment:
+  sdk: '>=3.5.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_secure_storage: ^9.2.4
+  shared_preferences: ^2.3.3
+  geolocator: ^13.0.2
+  mobile_scanner: ^6.0.2
+  decimal: ^3.2.1
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^5.0.0
+
+flutter:
+  uses-material-design: true

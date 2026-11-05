@@ -1,0 +1,47 @@
+name: Build Android APK
+
+on:
+  push:
+    branches: [feature/daily-entries]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-debug-apk:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Generate Android platform
+        run: flutter create --platforms=android --org pk.com.bluemarketing --project-name bluepos_app .
+
+      - name: Apply Android permissions
+        run: python3 tool/patch_android.py
+
+      - name: Resolve Flutter dependencies
+        run: flutter pub get
+
+      - name: Analyze source
+        run: flutter analyze --no-fatal-infos
+
+      - name: Run mobile focused tests
+        run: flutter test
+
+      - name: Build installable debug APK
+        run: flutter build apk --debug
+
+      - name: Upload Android APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: BluePOS-Mobile-0.1.0-debug-APK
+          path: build/app/outputs/flutter-apk/app-debug.apk
+          if-no-files-found: error
+          retention-days: 30
