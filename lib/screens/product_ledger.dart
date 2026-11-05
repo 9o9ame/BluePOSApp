@@ -86,7 +86,7 @@ class _ProductLedgerScreenState extends State<ProductLedgerScreen> {
               ]),
             ),
           ),
-        )),
+        ),
       );
       if (chosen != null && mounted && field(chosen['ulid']).length == 26) {
         setState(() => selected = chosen);
@@ -214,7 +214,7 @@ class _ProductLedgerScreenState extends State<ProductLedgerScreen> {
                         textAlign: TextAlign.end)),
                     ]),
                   ]))),
-            )),
+            ),
             if (movements.length < count) Padding(
               padding: const EdgeInsets.all(10),
               child: OutlinedButton(
