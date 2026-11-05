@@ -2,12 +2,15 @@ name: Validate & Build BluePOS Mobile Android
 
 on:
   workflow_dispatch:
+  push:
+    branches: [feature/daily-entries]
 
 permissions:
   contents: write
 
 jobs:
   build-android:
+    if: github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[publish-apk]')
     runs-on: ubuntu-latest
     timeout-minutes: 55
     steps:
@@ -39,18 +42,18 @@ jobs:
         run: flutter test
 
       - name: Build optimized Android APK
-        run: flutter build apk --release
+        run: flutter build apk --release --split-per-abi
 
       - name: Verify APK and checksum
         run: |
-          test -s build/app/outputs/flutter-apk/app-release.apk
-          sha256sum build/app/outputs/flutter-apk/app-release.apk
+          test -s build/app/outputs/flutter-apk/app-arm64-v8a-release.apk
+          sha256sum build/app/outputs/flutter-apk/app-arm64-v8a-release.apk
 
       - name: Upload validated Android APK
         uses: actions/upload-artifact@v4
         with:
-          name: BluePOS-Mobile-v0.2.1-Android-APK
-          path: build/app/outputs/flutter-apk/app-release.apk
+          name: BluePOS-Mobile-v0.3.0-Android-arm64-APK
+          path: build/app/outputs/flutter-apk/app-arm64-v8a-release.apk
           if-no-files-found: error
           retention-days: 30
 
@@ -60,9 +63,9 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release create mobile-v0.2.1-preview \
-            'build/app/outputs/flutter-apk/app-release.apk#BluePOS-Mobile-v0.2.1-preview.apk' \
+          gh release create mobile-v0.3.0-testing \
+            'build/app/outputs/flutter-apk/app-arm64-v8a-release.apk#BluePOS-Mobile-v0.3.0-test-arm64.apk' \
             --target "$GITHUB_SHA" \
-            --title 'BluePOS Mobile 0.2.1 - Android preview' \
-            --notes 'Independent Flutter client. Validated in GitHub CI. This preview uses default Flutter-generated signing; a persistent production signing key is needed for final Play Store distribution and in-place updates. First authorized server login requires mart code, password, device/location approval and any MFA. Optional fingerprint/face can only unlock a still-valid approved session. Uses live BluePOS API; sale posting changes real stock and financial records. Test with an authorized test tenant.' \
+            --title 'BluePOS Mobile 0.3.0 - Android ARM64 test build' \
+            --notes 'Android ARM64 test APK for Redmi Note 10 and similar arm64 devices. This is a pre-release; module integration and physical camera/biometrics still require testing. APK is signed with the temporary Flutter generated signing key: uninstall older previews if Android reports a signature conflict; release upgrades need a persistent production key. Live BluePOS API is used; posting will affect the selected tenant financials and stock. Use authorized test tenant records, not production data.' \
             --prerelease
