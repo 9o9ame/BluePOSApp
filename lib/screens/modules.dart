@@ -10,6 +10,7 @@ import 'cash_book.dart';
 import 'financial_statements.dart';
 import 'general_journal.dart';
 import 'next_reports.dart';
+import 'daily_reports.dart';
 import 'trial_balance.dart';
 import 'product_ledger.dart';
 import 'history.dart';
@@ -250,6 +251,29 @@ class _ModulesScreenState extends State<ModulesScreen> {
         () => _open(NextReportScreen(app: widget.app,
           kind: NextReportKind.fbrPurchases)),
         permissions: const ['reports.accounting']),
+      ModuleAction('Daily Activity Report', 'Posted documents and stock movements',
+        Icons.today_outlined,
+        () => _open(DailyReportScreen(app: widget.app,
+          kind: DailyReportKind.activity)),
+        allPermissions: const ['reports.inventory', 'reports.accounting'],
+        entitlement: 'inventory'),
+      ModuleAction('Detail Sale + Stock + Profit/Loss', 'Actual stock and gross margin',
+        Icons.query_stats_outlined,
+        () => _open(DailyReportScreen(app: widget.app,
+          kind: DailyReportKind.saleStockProfit)),
+        permissions: const ['reports.inventory'], entitlement: 'inventory'),
+      ModuleAction('Business by Groups', 'Category and brand summaries',
+        Icons.account_tree_outlined,
+        () => _open(DailyReportScreen(app: widget.app,
+          kind: DailyReportKind.businessGroups)),
+        allPermissions: const ['reports.inventory', 'reports.accounting'],
+        entitlement: 'inventory'),
+      ModuleAction('Daily Product Profit/Loss', 'Verified movement-based product cost',
+        Icons.trending_up_rounded,
+        () => _open(DailyReportScreen(app: widget.app,
+          kind: DailyReportKind.productProfit)),
+        allPermissions: const ['reports.inventory', 'reports.accounting', 'inventory.view'],
+        entitlement: 'inventory'),
       ModuleAction('Stock Status', 'Live warehouse inventory balances',
         Icons.warehouse_outlined, () => _open(StockStatusReport(app: widget.app)),
         permissions: const ['reports.inventory'], entitlement: 'inventory'),
