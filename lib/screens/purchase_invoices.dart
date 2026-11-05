@@ -4,6 +4,7 @@ import '../core/api.dart';
 import '../core/session.dart';
 import '../widgets/common.dart';
 import 'transaction_widgets.dart';
+import 'money_actions.dart';
 
 /// Purchase invoices are staged on the server: draft header, separately
 /// persisted lines, review and explicit posting through the existing atomic
@@ -457,6 +458,19 @@ class _PurchaseInvoiceEditorState extends State<PurchaseInvoiceEditor> {
                 Text('Balance: ${money(document?['balance_payable'], widget.app.currency)}'),
               ],
             ])),
+            if (field(document?['status']) == 'posted' &&
+                widget.app.hasPermission('payments.create'))
+              Padding(padding: const EdgeInsets.only(top: 13),
+                child: OutlinedButton.icon(
+                  onPressed: saving ? null : () async {
+                    final saved = await Navigator.push<bool>(context,
+                      MaterialPageRoute(builder: (_) => MoneyActionScreen(
+                        app: widget.app, kind: MoneyActionKind.purchasePayment,
+                        documentUlid: id)));
+                    if (saved == true && mounted) await refresh();
+                  },
+                  icon: const Icon(Icons.payments_outlined),
+                  label: const Text('Record Purchase Payment'))),
             if (draft && canPost) Padding(
               padding: const EdgeInsets.only(top: 13),
               child: FilledButton.icon(
