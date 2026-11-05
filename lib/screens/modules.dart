@@ -7,6 +7,7 @@ import 'catalog_master.dart';
 import 'parties.dart';
 import 'stock_status.dart';
 import 'trial_balance.dart';
+import 'product_ledger.dart';
 import 'history.dart';
 import 'settings.dart';
 
@@ -185,6 +186,9 @@ class _ModulesScreenState extends State<ModulesScreen> {
         permissions: const ['sales.view'], entitlement: 'sales'),
     ],
     'Reports': [
+      ModuleAction('Product Ledger', 'Server-issued stock movements',
+        Icons.receipt_long_outlined, () => _open(ProductLedgerScreen(app: widget.app)),
+        permissions: const ['reports.inventory'], entitlement: 'inventory'),
       ModuleAction('Trial Balance', 'Server-calculated debit and credit',
         Icons.balance_outlined, () => _open(TrialBalanceScreen(app: widget.app)),
         permissions: const ['reports.accounting']),
