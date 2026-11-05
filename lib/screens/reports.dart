@@ -9,6 +9,7 @@ import 'trial_balance.dart';
 import 'cash_book.dart';
 import 'financial_statements.dart';
 import 'general_journal.dart';
+import 'next_reports.dart';
 import 'stock_status.dart';
 import 'product_ledger.dart';
 
@@ -133,6 +134,18 @@ class _ReportsScreenState extends State<ReportsScreen> {
                 builder: (_) => ProductLedgerScreen(app: app))),
             ),
           ],
+          for (final kind in NextReportKind.values)
+            if (app.hasPermission(kind.permission) &&
+                (!kind.needsAccountingToo ||
+                  app.hasPermission('reports.accounting')))
+              ActionChip(
+                avatar: Icon(kind.internalTaxReview
+                  ? Icons.receipt_long_outlined
+                  : Icons.description_outlined, size: 17),
+                label: Text(kind.title),
+                onPressed: () => Navigator.push(context, MaterialPageRoute(
+                  builder: (_) => NextReportScreen(app: app, kind: kind))),
+              ),
         ]),
         const SizedBox(height: 14),
         GradientHero(appearance: app.appearance, child: Column(
