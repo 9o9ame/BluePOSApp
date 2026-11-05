@@ -19,7 +19,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        api: [30, 35]
+        api: [36]
     steps:
       - name: Download exact APK that user could not install
         env:
