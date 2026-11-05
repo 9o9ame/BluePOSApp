@@ -23,6 +23,9 @@ jobs:
       - name: Generate Android platform
         run: flutter create --platforms=android --org pk.com.bluemarketing --project-name bluepos_app .
 
+      - name: Remove generated Flutter starter test
+        run: rm -f test/widget_test.dart
+
       - name: Apply Android permissions
         run: python3 tool/patch_android.py
 
