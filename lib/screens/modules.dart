@@ -12,6 +12,7 @@ import 'general_journal.dart';
 import 'next_reports.dart';
 import 'daily_reports.dart';
 import 'report_headings.dart';
+import 'calculator.dart';
 import 'trial_balance.dart';
 import 'product_ledger.dart';
 import 'history.dart';
@@ -293,6 +294,9 @@ class _ModulesScreenState extends State<ModulesScreen> {
         permissions: const ['sales.view'], entitlement: 'sales'),
     ],
     'Tools': [
+      ModuleAction('Calculator', 'Local decimal-safe calculator',
+        Icons.calculate_outlined,
+        () => _open(const CalculatorScreen())),
       ModuleAction('Users', 'Authorized team members',
         Icons.people_alt_outlined, () => _data('Users', '/api/memberships',
           nameKey: 'username', subtitleKey: 'name',
