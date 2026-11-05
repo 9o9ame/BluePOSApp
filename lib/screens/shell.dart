@@ -4,6 +4,7 @@ import '../core/api.dart';
 import '../core/session.dart';
 import '../widgets/common.dart';
 import 'history.dart';
+import 'modules.dart';
 import 'products.dart';
 import 'reports.dart';
 import 'sale.dart';
@@ -89,7 +90,7 @@ class _AppShellState extends State<AppShell> {
             NavigationDestination(icon: Icon(Icons.bar_chart_outlined),
               selectedIcon: Icon(Icons.bar_chart_rounded, color: Colors.white), label: 'Reports'),
             NavigationDestination(icon: Icon(Icons.apps_outlined),
-              selectedIcon: Icon(Icons.apps_rounded, color: Colors.white), label: 'More'),
+              selectedIcon: Icon(Icons.apps_rounded, color: Colors.white), label: 'Modules'),
           ],
         ),
       )),
@@ -230,50 +231,8 @@ class MoreScreen extends StatelessWidget {
   final ValueChanged<int> navigate;
 
   @override
-  Widget build(BuildContext context) {
-    void open(Widget page) => Navigator.of(context).push(MaterialPageRoute(builder: (_) => page));
-    final items = <(String, IconData, VoidCallback)>[
-      ('Sales invoices', Icons.receipt_long_outlined, () => openSales(context, app)),
-      ('Purchases', Icons.shopping_bag_outlined, () => open(DataListScreen(app: app,
-        title:'Purchases', path:'/api/purchases?per_page=25', nameKey:'document_number',
-        subtitleKey:'invoice_date', amountKey:'grand_total'))),
-      ('Warehouse stock', Icons.warehouse_outlined, () => open(InventoryScreen(app: app))),
-      ('Customers', Icons.people_alt_outlined, () => open(DataListScreen(app: app,
-        title:'Customers', path:'/api/parties?type=customer', nameKey:'name', subtitleKey:'code'))),
-      ('Suppliers', Icons.local_shipping_outlined, () => open(DataListScreen(app: app,
-        title:'Suppliers', path:'/api/parties?type=vendor', nameKey:'name', subtitleKey:'code'))),
-      ('Sales due', Icons.pending_actions_outlined, () => open(DataListScreen(app: app,
-        title:'Outstanding invoices', path:'/api/sales?due_only=1&per_page=25',
-        nameKey:'document_number', subtitleKey:'customer_name',
-        amountKey:'balance_due', detailPrefix:'/api/sales'))),
-      ('Expenses', Icons.wallet_outlined, () => open(DataListScreen(app: app,
-        title:'Expenses', path:'/api/sales/expenses?per_page=25',
-        nameKey:'description', subtitleKey:'expense_date', amountKey:'amount'))),
-      ('Product sales', Icons.query_stats_outlined, () => open(DataListScreen(app: app,
-        title:'Product-wise sales', path:'/api/sales/product-wise?per_page=25',
-        nameKey:'sale_number', subtitleKey:'sale_date', amountKey:'amount'))),
-      ('Reports', Icons.bar_chart_outlined, () => navigate(3)),
-      ('Appearance', Icons.palette_outlined, () => open(Scaffold(
-        appBar: AppBar(title: const Text('Settings')), body: SettingsScreen(app: app)))),
-    ];
-    return ListView(padding: const EdgeInsets.all(16), children: [
-      const SectionHeading('Business modules'),
-      Text('Everything in one secure workspace. Features depend on your account permissions.',
-        style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 12)),
-      const SizedBox(height: 14),
-      GridView.builder(shrinkWrap: true, physics: const NeverScrollableScrollPhysics(),
-        itemCount: items.length,
-        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 3, crossAxisSpacing: 10, mainAxisSpacing: 10, childAspectRatio: .92),
-        itemBuilder: (_, index) { final item = items[index]; return BpModuleTile(
-          icon: item.$2, name: item.$1, onTap: item.$3); }),
-      const SizedBox(height: 18),
-      Surface(child: ListTile(leading: const Icon(Icons.shield_outlined),
-        title: const Text('Secure tenancy & device access'),
-        subtitle: Text('${app.tenantName} • ${app.branchName}'),
-      )),
-    ]);
-  }
+  Widget build(BuildContext context) =>
+      ModulesScreen(app: app, navigate: navigate);
 }
 
 class InventoryScreen extends StatefulWidget {
