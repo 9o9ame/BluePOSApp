@@ -318,9 +318,10 @@ class _TransactionDirectoryState extends State<TransactionDirectory> {
                       style: const TextStyle(fontSize: 11)),
                   ])),
                   Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
-                    Text(money(item[widget.amountKey], widget.app.currency),
-                      style: const TextStyle(fontSize: 12,
-                        fontWeight: FontWeight.w800)),
+                    if (item[widget.amountKey] != null)
+                      Text(money(item[widget.amountKey], widget.app.currency),
+                        style: const TextStyle(fontSize: 12,
+                          fontWeight: FontWeight.w800)),
                     const Icon(Icons.chevron_right_rounded),
                   ]),
                 ])),
