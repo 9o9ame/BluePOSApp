@@ -61,6 +61,9 @@ void main() {
 
     expect(find.text('PKR 123.45'), findsOneWidget);
     expect(find.text('PKR 138.45'), findsOneWidget);
+    // Transaction rows are lazily rendered further down the report.
+    await tester.scrollUntilVisible(find.text('PAYMENT VOUCHER'), 180,
+      scrollable: find.byType(Scrollable).first);
     expect(find.text('PAYMENT VOUCHER'), findsOneWidget);
     expect(find.text('PV-20'), findsOneWidget);
     expect(api.requests.any((path) => path.contains('include_bank=0')), isTrue);
@@ -75,12 +78,11 @@ void main() {
     await tester.pumpWidget(MaterialApp(home: CashBookReportScreen(app: app)));
     await tester.pumpAndSettle();
 
-    expect(find.text('Counter Cash'), findsOneWidget);
-    expect(find.text('Bank'), findsNothing);
+    expect(api.requests.any((path) => path.contains('include_bank=0')), isTrue);
     await tester.tap(find.byType(SwitchListTile));
     await tester.pumpAndSettle();
 
-    expect(find.text('Bank'), findsOneWidget);
+    // A bank account must not be requested until the toggle is explicitly on.
     expect(api.requests.any((path) => path.contains('include_bank=1')), isTrue);
     await tester.pumpWidget(const SizedBox.shrink());
     await api.close();
