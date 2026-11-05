@@ -65,6 +65,57 @@ class _SettingsScreenState extends State<SettingsScreen> {
     finally { if (mounted) setState(() => biometricBusy = false); }
   }
 
+  Future<void> manageSavedAccounts() async {
+    var accounts = await widget.app.savedAccounts.list();
+    if (!mounted) return;
+    await showModalBottomSheet<void>(
+      context: context,
+      showDragHandle: true,
+      useSafeArea: true,
+      isScrollControlled: true,
+      builder: (sheetContext) => StatefulBuilder(
+        builder: (sheetContext, updateSheet) => Padding(
+          padding: const EdgeInsets.fromLTRB(18, 4, 18, 26),
+          child: Column(mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start, children: [
+              const Text('Saved login accounts',
+                style: TextStyle(fontWeight: FontWeight.w900, fontSize: 20)),
+              const SizedBox(height: 6),
+              const Text('Accounts are remembered without passwords.',
+                style: TextStyle(fontSize: 12)),
+              const SizedBox(height: 14),
+              if (accounts.isEmpty) const ListTile(
+                leading: Icon(Icons.person_off_outlined),
+                title: Text('No saved accounts')),
+              if (accounts.isNotEmpty) ConstrainedBox(
+                constraints: BoxConstraints(
+                  maxHeight: MediaQuery.sizeOf(sheetContext).height * .55),
+                child: ListView(shrinkWrap: true, children: [
+                  ...accounts.map((account) => ListTile(
+                    leading: const Icon(Icons.account_circle_outlined),
+                    title: Text(account.displayName.isEmpty
+                      ? account.username : account.displayName),
+                    subtitle: Text('${account.martCode} • ${account.username}'),
+                    trailing: IconButton(
+                      tooltip: 'Remove remembered account',
+                      icon: const Icon(Icons.delete_outline_rounded),
+                      onPressed: () async {
+                        await widget.app.savedAccounts.forget(account);
+                        final updated = await widget.app.savedAccounts.list();
+                        if (sheetContext.mounted) {
+                          updateSheet(() => accounts = updated);
+                        }
+                      },
+                    ),
+                  )),
+                ]),
+              ),
+            ]),
+        ),
+      ),
+    );
+  }
+
   Future<void> pickBranch() async {
     try {
       final response = await widget.app.api.get('/api/branches');
@@ -188,6 +239,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
         Text('First login always requires mart code, password, location and any server device/MFA approvals. Biometrics do not create a new server session.',
           style: TextStyle(fontSize: 11, color: scheme.onSurfaceVariant)),
       ])),
+      const SizedBox(height: 20),
+      const SectionHeading('Saved Accounts'),
+      Surface(child: ListTile(
+        leading: const Icon(Icons.manage_accounts_outlined),
+        title: const Text('Remembered login accounts'),
+        subtitle: const Text('View and remove local account history'),
+        trailing: const Icon(Icons.chevron_right_rounded),
+        onTap: manageSavedAccounts,
+      )),
       const SizedBox(height: 20),
       const SectionHeading('Application'),
       Surface(child: Column(children: [
