@@ -114,3 +114,13 @@ class MoneyActionAttemptStore extends DocumentAttemptStore {
 
   static const key = 'bluepos_unconfirmed_money_action_v1';
 }
+
+
+/// Unconfirmed POS hold requests must use the same key upon retries.
+class SaleHoldAttemptStore extends DocumentAttemptStore {
+  const SaleHoldAttemptStore({
+    FlutterSecureStorage storage = const FlutterSecureStorage(),
+  }) : super(storageKey: key, storage: storage);
+
+  static const key = 'bluepos_unconfirmed_hold_v1';
+}
