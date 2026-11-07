@@ -282,13 +282,20 @@ class _LoginScreenState extends State<LoginScreen> {
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final accent = widget.app.appearance.accent;
-    return Scaffold(body: DecoratedBox(
+    return Scaffold(
+      // Paint the entire viewport, including the area beside scrolling content.
+      backgroundColor: scheme.surface,
+      body: SizedBox.expand(
+        key: const ValueKey('login-background'),
+        child: DecoratedBox(
       decoration: BoxDecoration(gradient: LinearGradient(
         begin: Alignment.topLeft, end: Alignment.bottomRight,
         colors: [scheme.surface, scheme.primaryContainer.withValues(alpha: .28),
           scheme.surface],
       )),
-      child: SafeArea(child: LayoutBuilder(builder: (context, constraints) {
+      child: ScrollConfiguration(
+        behavior: const MaterialScrollBehavior().copyWith(scrollbars: false),
+        child: SafeArea(child: LayoutBuilder(builder: (context, constraints) {
         // Keep inputs readable on narrow Android phones; do not scale text.
         final compact = constraints.maxHeight < 660 || constraints.maxWidth < 350;
         final narrow = constraints.maxWidth < 350;
@@ -302,7 +309,10 @@ class _LoginScreenState extends State<LoginScreen> {
         return SingleChildScrollView(
           keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
           child: ConstrainedBox(
-            constraints: BoxConstraints(minHeight: constraints.maxHeight),
+            constraints: BoxConstraints(
+              minWidth: constraints.maxWidth,
+              minHeight: constraints.maxHeight,
+            ),
             child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
               const SizedBox(height: 22),
               Text('BLUEPOS', style: TextStyle(
@@ -434,7 +444,7 @@ class _LoginScreenState extends State<LoginScreen> {
             ]),
           ),
         );
-      })),
-    ));
+      }))),
+    )));
   }
 }
