@@ -341,8 +341,14 @@ class _LoginScreenState extends State<LoginScreen> {
                         : const NeverScrollableScrollPhysics(),
                       child: AutofillGroup(child: Column(
                         mainAxisSize: MainAxisSize.min, children: [
-                          BlueposBrandMark(size: compact ? 30 : 34),
-                          const SizedBox(height: 4),
+                          // At 320px the BLUEPOS wordmark above the circle
+                          // replaces the inner mark, leaving room for Login.
+                          if (narrow)
+                            const SizedBox(height: 9)
+                          else ...[
+                            BlueposBrandMark(size: compact ? 30 : 34),
+                            const SizedBox(height: 4),
+                          ],
                           Text(challenge == null ? 'Welcome Back' : 'Verify Account',
                             style: const TextStyle(
                               fontSize: 18, fontWeight: FontWeight.w900)),
