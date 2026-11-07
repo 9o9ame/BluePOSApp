@@ -10,14 +10,58 @@ Safe to run again after rebuilding the generated Android platform.
 
 from pathlib import Path
 import re
+import sys
 import xml.etree.ElementTree as ET
 
 ROOT = Path(__file__).resolve().parent.parent
 GRADLE = ROOT / "android" / "app" / "build.gradle.kts"
 DEBUG_MANIFEST = ROOT / "android" / "app" / "src" / "debug" / "AndroidManifest.xml"
+GRADLE_PROPERTIES = ROOT / "android" / "gradle.properties"
 
 ANDROID_NS = "http://schemas.android.com/apk/res/android"
 TOOLS_NS = "http://schemas.android.com/tools"
+
+
+
+def configure_windows_kotlin_cache() -> None:
+    """Avoid Kotlin incremental path errors across C: Pub cache and D: app.
+
+    This changes only locally generated Android gradle.properties on Windows.
+    It does not change tracked app sources or GitHub Android release builds.
+    """
+    if sys.platform != "win32":
+        return
+    if not GRADLE_PROPERTIES.is_file():
+        raise SystemExit(
+            "Missing android/gradle.properties: run flutter create first."
+        )
+
+    original = GRADLE_PROPERTIES.read_text(encoding="utf-8")
+    property_pattern = re.compile(
+        r"(?m)^[ \\t]*kotlin\\.incremental[ \\t]*=[ \\t]*[^\\r\\n]*$"
+    )
+    matches = list(property_pattern.finditer(original))
+    if len(matches) > 1:
+        raise SystemExit(
+            "Multiple kotlin.incremental properties found. "
+            "Review android/gradle.properties before continuing."
+        )
+    if matches:
+        match = matches[0]
+        if match.group().strip().replace(" ", "") == "kotlin.incremental=false":
+            print("Windows Kotlin incremental cache fix already configured.")
+            return
+        updated = original[:match.start()] + "kotlin.incremental=false" + original[match.end():]
+    else:
+        newline = "\\r\\n" if "\\r\\n" in original else "\\n"
+        separator = "" if not original or original.endswith(("\\n", "\\r")) else newline
+        updated = (
+            original + separator
+            + "# Local Windows fix for Kotlin C:/D: plugin cache root mismatch"
+            + newline + "kotlin.incremental=false" + newline
+        )
+    GRADLE_PROPERTIES.write_text(updated, encoding="utf-8")
+    print("Configured Kotlin incremental cache workaround for Windows.")
 
 
 def configure_gradle() -> None:
@@ -130,6 +174,7 @@ if __name__ == "__main__":
             "flutter create --platforms=android --org pk.com.bluemarketing "
             "--project-name bluepos_app ."
         )
+    configure_windows_kotlin_cache()
     configure_gradle()
     configure_debug_manifest()
     print("BluePOS Dev is ready. Run: flutter run -d d2b1f972 --debug")
