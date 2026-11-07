@@ -245,8 +245,9 @@ class _LoginScreenState extends State<LoginScreen> {
 
   Widget _input(TextEditingController controller, String placeholder,
       IconData icon, {bool isPassword = false,
-      TextInputType? keyboard, TextInputAction? action}) {
-    return SizedBox(height: 42, child: TextField(
+      TextInputType? keyboard, TextInputAction? action,
+      bool compact = false}) {
+    return SizedBox(height: compact ? 38 : 42, child: TextField(
       controller: controller,
       keyboardType: keyboard,
       textInputAction: action,
@@ -263,9 +264,11 @@ class _LoginScreenState extends State<LoginScreen> {
         hintText: placeholder,
         isDense: true,
         contentPadding: const EdgeInsets.symmetric(horizontal: 9, vertical: 10),
-        prefixIconConstraints: const BoxConstraints(minWidth: 39, minHeight: 42),
+        prefixIconConstraints: BoxConstraints(minWidth: 39,
+          minHeight: compact ? 38 : 42),
         prefixIcon: Icon(icon, size: 18),
-        suffixIconConstraints: const BoxConstraints(minWidth: 40, minHeight: 42),
+        suffixIconConstraints: BoxConstraints(minWidth: 40,
+          minHeight: compact ? 38 : 42),
         suffixIcon: isPassword ? IconButton(
           tooltip: obscure ? 'Show password' : 'Hide password',
           onPressed: () => setState(() => obscure = !obscure),
@@ -292,6 +295,10 @@ class _LoginScreenState extends State<LoginScreen> {
         final diameter = math.min(constraints.maxWidth - 16,
           math.min(440.0, math.max(320.0, constraints.maxHeight - 168)));
         final formWidth = math.min(252.0, diameter - 94);
+        // The chord narrows near the circle's bottom. A full-width submit
+        // button would cross the rim on phones even when the form itself fits.
+        final submitWidth = math.min(formWidth,
+          math.max(112.0, diameter - 190.0));
         return SingleChildScrollView(
           keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
           child: ConstrainedBox(
@@ -307,6 +314,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 letterSpacing: 1.5)),
               SizedBox(height: compact ? 14 : 23),
               Container(
+                key: const ValueKey('login-circle'),
                 width: diameter, height: diameter,
                 padding: const EdgeInsets.all(9),
                 decoration: BoxDecoration(
@@ -333,25 +341,28 @@ class _LoginScreenState extends State<LoginScreen> {
                         : const NeverScrollableScrollPhysics(),
                       child: AutofillGroup(child: Column(
                         mainAxisSize: MainAxisSize.min, children: [
-                          BlueposBrandMark(size: compact ? 36 : 40),
-                          const SizedBox(height: 5),
+                          BlueposBrandMark(size: compact ? 30 : 34),
+                          const SizedBox(height: 4),
                           Text(challenge == null ? 'Welcome Back' : 'Verify Account',
                             style: const TextStyle(
                               fontSize: 18, fontWeight: FontWeight.w900)),
-                          SizedBox(height: compact ? 8 : 10),
+                          const SizedBox(height: 6),
                           if (challenge == null) ...[
                             _input(tenant, 'Tenant / Mart Code',
-                              Icons.storefront_outlined, action: TextInputAction.next),
-                            SizedBox(height: compact ? 5 : 7),
+                              Icons.storefront_outlined, action: TextInputAction.next,
+                              compact: compact),
+                            SizedBox(height: compact ? 4 : 5),
                             _input(user, 'Username',
-                              Icons.person_outline_rounded, action: TextInputAction.next),
-                            SizedBox(height: compact ? 5 : 7),
+                              Icons.person_outline_rounded, action: TextInputAction.next,
+                              compact: compact),
+                            SizedBox(height: compact ? 4 : 5),
                             _input(password, 'Password',
-                              Icons.lock_outline_rounded, isPassword: true),
+                              Icons.lock_outline_rounded, isPassword: true,
+                              compact: compact),
                           ] else ...[
                             _input(code, '6-digit verification code',
                               Icons.verified_user_outlined, keyboard: TextInputType.number,
-                              action: TextInputAction.done),
+                              action: TextInputAction.done, compact: compact),
                             if (hint?.isNotEmpty == true) Padding(
                               padding: const EdgeInsets.only(top: 5),
                               child: Text('Recovery hint: $hint',
@@ -364,16 +375,17 @@ class _LoginScreenState extends State<LoginScreen> {
                                 style: TextStyle(fontSize: 11))),
                             ])),
                           ],
-                          SizedBox(height: compact ? 30 : 32, child: Row(children: [
+                          SizedBox(height: compact ? 26 : 28, child: Row(children: [
                             Checkbox(value: remember,
                               onChanged: busy ? null : (v) =>
                                 setState(() => remember = v ?? false)),
                             const Expanded(child: Text('Remember Me',
                               style: TextStyle(fontSize: 11))),
                           ])),
-                          const SizedBox(height: 5),
-                          SizedBox(height: 42, width: double.infinity,
+                          const SizedBox(height: 3),
+                          SizedBox(height: compact ? 40 : 42, width: submitWidth,
                             child: FilledButton.icon(
+                              key: const ValueKey('login-submit'),
                               onPressed: busy ? null : submit,
                               icon: busy ? const SizedBox(width: 14, height: 14,
                                 child: CircularProgressIndicator(
