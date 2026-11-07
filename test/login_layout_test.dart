@@ -108,6 +108,29 @@ void main() {
     });
   }
 
+  for (final size in const [
+    Size(320, 680),
+    Size(360, 780),
+    Size(393, 851),
+  ]) {
+    testWidgets('login background spans full viewport at ${size.width}px',
+        (tester) async {
+      await tester.binding.setSurfaceSize(size);
+      addTearDown(() async => tester.binding.setSurfaceSize(null));
+      final app = AppController(BlueposApi(), AppAppearance(),
+        biometric: _NoBiometricHardware(), savedAccounts: _RememberedLogins());
+      await tester.pumpWidget(MaterialApp(home: LoginScreen(app: app)));
+      await tester.pumpAndSettle();
+
+      final background = tester.getRect(
+        find.byKey(const ValueKey('login-background')));
+      expect(background.left, 0);
+      expect(background.width, size.width);
+      expect(background.height, size.height);
+      expect(tester.takeException(), isNull);
+    });
+  }
+
   testWidgets('circular form avoids overflow on compact Android phones',
       (tester) async {
     await tester.binding.setSurfaceSize(const Size(320, 680));
