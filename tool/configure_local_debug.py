@@ -38,7 +38,7 @@ def configure_windows_kotlin_cache() -> None:
 
     original = GRADLE_PROPERTIES.read_text(encoding="utf-8")
     property_pattern = re.compile(
-        r"(?m)^[ \\t]*kotlin\\.incremental[ \\t]*=[ \\t]*[^\\r\\n]*$"
+        r"(?m)^[ \t]*kotlin\.incremental[ \t]*=[ \t]*[^\r\n]*$"
     )
     matches = list(property_pattern.finditer(original))
     if len(matches) > 1:
@@ -53,8 +53,8 @@ def configure_windows_kotlin_cache() -> None:
             return
         updated = original[:match.start()] + "kotlin.incremental=false" + original[match.end():]
     else:
-        newline = "\\r\\n" if "\\r\\n" in original else "\\n"
-        separator = "" if not original or original.endswith(("\\n", "\\r")) else newline
+        newline = "\r\n" if "\r\n" in original else "\n"
+        separator = "" if not original or original.endswith(("\n", "\r")) else newline
         updated = (
             original + separator
             + "# Local Windows fix for Kotlin C:/D: plugin cache root mismatch"
