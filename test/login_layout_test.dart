@@ -80,6 +80,34 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
+
+  for (final size in const [
+    Size(320, 680),
+    Size(360, 780),
+    Size(393, 851),
+  ]) {
+    testWidgets('login button corners stay within circle at ${size.width}px',
+        (tester) async {
+      await tester.binding.setSurfaceSize(size);
+      addTearDown(() async => tester.binding.setSurfaceSize(null));
+      final app = AppController(BlueposApi(), AppAppearance(),
+        biometric: _NoBiometricHardware(), savedAccounts: _RememberedLogins());
+      await tester.pumpWidget(MaterialApp(home: LoginScreen(app: app)));
+      await tester.pumpAndSettle();
+
+      final circle = tester.getRect(find.byKey(const ValueKey('login-circle')));
+      final button = tester.getRect(find.byKey(const ValueKey('login-submit')));
+      final radius = circle.width / 2 - 10;
+      for (final corner in [
+        button.topLeft, button.topRight, button.bottomLeft, button.bottomRight,
+      ]) {
+        expect((corner - circle.center).distance, lessThan(radius),
+          reason: 'Login button must stay within circular panel at ${size.width}px');
+      }
+      expect(tester.takeException(), isNull);
+    });
+  }
+
   testWidgets('circular form avoids overflow on compact Android phones',
       (tester) async {
     await tester.binding.setSurfaceSize(const Size(320, 680));
