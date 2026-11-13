@@ -146,3 +146,14 @@ python3 -m unittest discover -s test -p 'test_mobile_mockup_manifest.py' -v
 - **Pending primary design blocker:** The binary PNG pack and actual `SCREEN_MANIFEST.csv` are not yet committed in GitHub. Design 79 duplicates 63; design 91 duplicates 09; design 92 duplicates 08. Do not mark 92 final-approved screens or visual parity complete.
 - **Next work:** Run `flutter analyze --no-fatal-infos` and `flutter test test/dashboard_permissions_widget_test.dart` with Flutter installed, inspect and fix findings if any, then reconcile shell tab routing with session grants and the visual handoff. Do not alter frozen UI or ship APK without approval.
 
+
+
+### 2026-11-13 — Pre-UI checkpoint / complete screen sequence index
+
+- Added `docs/design/mobile-92/SCREEN_IMPLEMENTATION_INDEX.md` with the **full 01–92 numbered design sequence** and implementation readiness indicators. It reflects the actual ZIP manifest, not a fabricated approved-screen count.
+- Verified current local archive exists at `BluePOS_Mobile_92_Screen_Reference_Pack.zip` (~125 MB), with 92 PNG images, a README and `SCREEN_MANIFEST.csv`. Local manifest statuses: 89 `reference`, 3 `DUPLICATE / PROVISIONAL`.
+- GitHub PNG upload remains blocked by the current tool connection (no supported local file to binary GitHub action). The ZIP **is not present** on the remote branch; repository contains text docs/checker only. Do not claim design assets are stored there.
+- A further image generation attempt produced an unrelated overview infographic, **not** screen 91/92; that output is rejected and was **not** added to the numbered reference pack.
+- Flutter/Dart CLI unavailable on the execution host; the `dashboard_permissions_widget_test.dart` and dashboard code edits from the previous checkpoint remain **unverified by Flutter analyze/test**. GitHub status API did not establish an analyzer pass. Treat previous tests as written, not executed.
+- No route layout change was made in this step: current `AppShell` has Home, POS, Products, Reports and Modules, while the premium reference proposes a central scan control and More tab. Resolve this explicitly before implementing shell geometry.
+- **Next approved work:** implement actual Flutter UI in a focused first batch of 1–5 screens, based on the numbered screen index and verified source/API/appearance contracts. Do not add placeholders pretending to be real features. Remain on `feature/daily-entries`; do not build/publish APK without explicit direction.
