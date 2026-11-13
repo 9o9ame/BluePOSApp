@@ -115,3 +115,22 @@ The pack is curated into this order to establish foundation before high-risk tra
 | Pending | First implementation phase from verified baseline | Focused tests and review | **NOT STARTED under this handoff** |
 
 **Resume rule:** Update this journal only after verifiable changes. Distinguish proposed designs, code-implemented features, tested features, and released features. Do not overwrite earlier known defects or silently claim completion.
+
+
+### 2026-11-13 — Phase 0 implemented checkpoint (design pack integrity)
+
+- Added `tool/verify_mobile_mockups.py` as a **read-only** 92-slot ZIP/extracted-folder validator: ordered screen IDs, safe PNG paths, PNG dimensions, SHA256, duplicate and provisional warnings. Optional `--require-unique` fails until all 92 unique designs are approved.
+- Added `test/test_mobile_mockup_manifest.py` with four focused Python unittest cases covering valid inventory, missing image, hash tampering and strict duplicate rejection.
+- Local `python -m unittest discover -s test -p 'test_mobile_mockup_manifest.py' -v`: **4/4 passed**.
+- Local check against `BluePOS_Mobile_92_Screen_Reference_Pack.zip`: **PASS, 0 integrity errors, 6 warnings**. Duplicates: screen 79 == 63, 91 == 09, 92 == 08; all three flagged provisional. With `--require-unique`, the real archive fails as expected.
+- Repo files are committed on **`feature/daily-entries`**; no edits to Flutter UI, web/backend, database or CI. Python checker tests were run locally; **Flutter analyze/tests and Android device validation were not run**. PNG binary upload remains **pending**.
+- Next resume step: land the manifest + PNGs on the branch with SHA256 verification, replace/approve 79/91/92, reconcile actual navigation with mockups, then start smallest shared Flutter UI change. Do not silently change the existing navigation or ship preview-only functions.
+
+Usage:
+
+```bash
+python3 tool/verify_mobile_mockups.py BluePOS_Mobile_92_Screen_Reference_Pack.zip
+python3 tool/verify_mobile_mockups.py --require-unique BluePOS_Mobile_92_Screen_Reference_Pack.zip
+python3 -m unittest discover -s test -p 'test_mobile_mockup_manifest.py' -v
+```
+
