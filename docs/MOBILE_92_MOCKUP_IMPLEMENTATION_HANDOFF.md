@@ -134,3 +134,15 @@ python3 tool/verify_mobile_mockups.py --require-unique BluePOS_Mobile_92_Screen_
 python3 -m unittest discover -s test -p 'test_mobile_mockup_manifest.py' -v
 ```
 
+
+
+### 2026-11-13 — Phase 1 localized dashboard authorization checkpoint
+
+- **Changed:** `lib/screens/dashboard.dart`. Home now avoids calling sales/products API endpoints when missing the corresponding session permission and product/sales entitlement. The New Sale button requires `sales.create`, sales invoice history requires `sales.view`, and product shortcuts require `products.view` or `products.manage`. Unauthorized tiles and empty summary sections are hidden. The server remains authoritative: these checks are only presentation/request gating.
+- **Added:** `test/dashboard_permissions_widget_test.dart` with widget regressions for no permissions and a create-only sales user.
+- **Committed on:** `feature/daily-entries`; no branch change, no web/backend/DB modifications and no APK builds.
+- **Validation:** GitHub file contents fetched back and manually inspected; **Flutter/Dart SDK is not available in the current execution environment**, so `flutter analyze` and focused widget tests **have not run**. These must pass before approval or merge. No production server calls were made.
+- **Known remaining limitation:** Bottom tab navigation and report landing behavior still need **separate** entitlement/RBAC reconciliation with approved mockups; this change deliberately did not silently redesign the navigation.
+- **Pending primary design blocker:** The binary PNG pack and actual `SCREEN_MANIFEST.csv` are not yet committed in GitHub. Design 79 duplicates 63; design 91 duplicates 09; design 92 duplicates 08. Do not mark 92 final-approved screens or visual parity complete.
+- **Next work:** Run `flutter analyze --no-fatal-infos` and `flutter test test/dashboard_permissions_widget_test.dart` with Flutter installed, inspect and fix findings if any, then reconcile shell tab routing with session grants and the visual handoff. Do not alter frozen UI or ship APK without approval.
+
