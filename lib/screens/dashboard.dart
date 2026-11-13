@@ -35,21 +35,33 @@ class _DashboardScreenState extends State<DashboardScreen> {
     setState(() { busy = true; error = null; });
     try {
       final today = _date(DateTime.now());
-      final result = await Future.wait([
-        widget.app.api.get('/api/sales?per_page=5'),
-        widget.app.api.get('/api/products?per_page=1'),
-        widget.app.api.get('/api/sales?per_page=1&date_from=' +
-          today + '&date_to=' + today),
+      final canViewSales = widget.app.hasPermission('sales.view');
+      final canViewProducts = widget.app.hasPermission('products.view') ||
+          widget.app.hasPermission('products.manage');
+      final features = objectOf(widget.app.session?['entitlements'])['features'];
+      final salesEnabled = canViewSales &&
+          (features is! List || features.contains('sales'));
+      final productsEnabled = canViewProducts &&
+          (features is! List || features.contains('catalog'));
+      // Only request module data when the server session allows that module.
+      final result = await Future.wait<dynamic>([
+        if (salesEnabled) widget.app.api.get('/api/sales?per_page=5')
+          else Future.value(<String, dynamic>{}),
+        if (productsEnabled) widget.app.api.get('/api/products?per_page=1')
+          else Future.value(<String, dynamic>{}),
+        if (salesEnabled) widget.app.api.get('/api/sales?per_page=1&date_from=' +
+          today + '&date_to=' + today)
+          else Future.value(<String, dynamic>{}),
       ]);
       if (!mounted) return;
       setState(() {
-        recent = recordsOf(result[0]);
-        branchInvoices = int.tryParse(field(
-          objectOf(objectOf(result[0])['meta'])['total']));
-        productsCount = int.tryParse(field(
-          objectOf(objectOf(result[1])['meta'])['total']));
-        todayInvoices = int.tryParse(field(
-          objectOf(objectOf(result[2])['meta'])['total']));
+        recent = salesEnabled ? recordsOf(result[0]) : const [];
+        branchInvoices = salesEnabled ? int.tryParse(field(
+          objectOf(objectOf(result[0])['meta'])['total'])) : null;
+        productsCount = productsEnabled ? int.tryParse(field(
+          objectOf(objectOf(result[1])['meta'])['total'])) : null;
+        todayInvoices = salesEnabled ? int.tryParse(field(
+          objectOf(objectOf(result[2])['meta'])['total'])) : null;
       });
     } catch (ex) {
       if (mounted) setState(() => error = ex.toString());
@@ -93,6 +105,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
   Widget build(BuildContext context) {
     final app = widget.app;
     final scheme = Theme.of(context).colorScheme;
+    final features = objectOf(app.session?['entitlements'])['features'];
+    bool enabled(String key) => features is! List || features.contains(key);
+    final canViewSales = enabled('sales') && app.hasPermission('sales.view');
+    final canCreateSale = enabled('sales') && app.hasPermission('sales.create');
+    final canViewProducts = enabled('catalog') &&
+        (app.hasPermission('products.view') || app.hasPermission('products.manage'));
     return RefreshIndicator(onRefresh: reload, child: ListView(
       padding: EdgeInsets.all(app.appearance.spacing), children: [
         const SizedBox(height: 9),
@@ -134,9 +152,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 fontSize: 23, fontWeight: FontWeight.w900)),
             const Text('Your secure business workspace',
               style: TextStyle(color: Colors.white70, fontSize: 12)),
-            const SizedBox(height: 16),
-            Row(children: [
-              Expanded(child: FilledButton.icon(
+            if (canCreateSale) ...[
+              const SizedBox(height: 16),
+              Row(children: [
+                Expanded(child: FilledButton.icon(
                 onPressed: () => widget.navigate(1),
                 style: FilledButton.styleFrom(
                   backgroundColor: Colors.white,
@@ -144,7 +163,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 icon: const Icon(Icons.add_shopping_cart_rounded),
                 label: const Text('New Sale')),
               ),
-            ]),
+              ]),
+            ],
           ])),
         const SizedBox(height: 16),
         const SectionHeading('Business at a glance'),
@@ -152,24 +172,26 @@ class _DashboardScreenState extends State<DashboardScreen> {
         else if (error != null) FailureState(message: error!, retry: reload)
         else Column(children: [
           Row(children: [
-            Expanded(child: BpStatCard(
+            if (canViewSales) Expanded(child: BpStatCard(
               icon: Icons.today_outlined,
               caption: "Today's invoices",
               value: todayInvoices?.toString() ?? '—',
               hint: 'Current branch')),
-            const SizedBox(width: 9),
-            Expanded(child: BpStatCard(
+            if (canViewSales && canViewProducts) const SizedBox(width: 9),
+            if (canViewProducts) Expanded(child: BpStatCard(
               icon: Icons.inventory_2_outlined,
               caption: 'Products',
               value: productsCount?.toString() ?? '—',
               hint: 'Authorized catalog')),
           ]),
-          const SizedBox(height: 9),
-          BpStatCard(
-            icon: Icons.receipt_long_outlined,
+          if (canViewSales) ...[
+            const SizedBox(height: 9),
+            BpStatCard(
+              icon: Icons.receipt_long_outlined,
             caption: 'All invoices',
             value: branchInvoices?.toString() ?? '—',
             hint: 'Current branch • API record count'),
+          ],
         ]),
         const SizedBox(height: 16),
         const SectionHeading('Quick actions'),
@@ -180,20 +202,24 @@ class _DashboardScreenState extends State<DashboardScreen> {
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
           children: [
-            _action(Icons.point_of_sale_outlined, 'New Sale',
-              () => widget.navigate(1)),
-            _action(Icons.inventory_2_outlined, 'Products',
-              () => widget.navigate(2)),
-            _action(Icons.receipt_long_outlined, 'Invoices', _sales),
-            _action(Icons.analytics_outlined, 'Reports',
-              () => widget.navigate(3)),
+            if (canCreateSale)
+              _action(Icons.point_of_sale_outlined, 'New Sale',
+                () => widget.navigate(1)),
+            if (canViewProducts)
+              _action(Icons.inventory_2_outlined, 'Products',
+                () => widget.navigate(2)),
+            if (canViewSales) ...[
+              _action(Icons.receipt_long_outlined, 'Invoices', _sales),
+              _action(Icons.analytics_outlined, 'Reports',
+                () => widget.navigate(3)),
+            ],
           ],
         ),
         const SizedBox(height: 17),
-        SectionHeading('Recent invoices',
+        if (canViewSales) SectionHeading('Recent invoices',
           trailing: TextButton(onPressed: _sales,
             child: const Text('View all'))),
-        if (!busy && error == null)
+        if (canViewSales && !busy && error == null)
           if (recent.isEmpty) const EmptyState(title: 'No invoices yet')
           else ...recent.take(5).map((item) => Padding(
             padding: const EdgeInsets.only(bottom: 8),
