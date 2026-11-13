@@ -156,19 +156,20 @@ class _DashboardScreenState extends State<DashboardScreen> {
               const SizedBox(height: 16),
               Row(children: [
                 Expanded(child: FilledButton.icon(
-                onPressed: () => widget.navigate(1),
-                style: FilledButton.styleFrom(
-                  backgroundColor: Colors.white,
-                  foregroundColor: app.appearance.accent),
-                icon: const Icon(Icons.add_shopping_cart_rounded),
-                label: const Text('New Sale')),
-              ),
+                  onPressed: () => widget.navigate(1),
+                  style: FilledButton.styleFrom(
+                    backgroundColor: Colors.white,
+                    foregroundColor: app.appearance.accent),
+                  icon: const Icon(Icons.add_shopping_cart_rounded),
+                  label: const Text('New Sale')),
+                ),
               ]),
             ],
           ])),
         const SizedBox(height: 16),
-        const SectionHeading('Business at a glance'),
-        if (busy) pageLoading()
+        if (canViewSales || canViewProducts) ...[
+          const SectionHeading('Business at a glance'),
+          if (busy) pageLoading()
         else if (error != null) FailureState(message: error!, retry: reload)
         else Column(children: [
           Row(children: [
@@ -193,6 +194,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
             hint: 'Current branch • API record count'),
           ],
         ]),
+        ],
+        if (canCreateSale || canViewProducts || canViewSales) ...[
         const SizedBox(height: 16),
         const SectionHeading('Quick actions'),
         GridView.count(
@@ -215,7 +218,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
             ],
           ],
         ),
-        const SizedBox(height: 17),
+        ],
+        if (canViewSales) const SizedBox(height: 17),
         if (canViewSales) SectionHeading('Recent invoices',
           trailing: TextButton(onPressed: _sales,
             child: const Text('View all'))),
