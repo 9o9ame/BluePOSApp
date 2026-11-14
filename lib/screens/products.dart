@@ -69,9 +69,12 @@ class PosCatalogProductCard extends StatelessWidget {
 }
 
 class ProductsScreen extends StatefulWidget {
-  const ProductsScreen({super.key, required this.app, this.onAdd});
+  const ProductsScreen({super.key, required this.app, this.onAdd,
+    this.inlineCatalog = false});
   final AppController app;
   final ValueChanged<Map<String, dynamic>>? onAdd;
+  /// Reuse the authorized search/category grid directly inside the POS page.
+  final bool inlineCatalog;
   @override
   State<ProductsScreen> createState() => _ProductsScreenState();
 }
@@ -207,6 +210,7 @@ class _ProductsScreenState extends State<ProductsScreen> {
     final scheme = Theme.of(context).colorScheme;
     final app = widget.app;
     return RefreshIndicator(onRefresh: load, child: ListView(padding: const EdgeInsets.all(16), children: [
+      if (!widget.inlineCatalog)
       SectionHeading(widget.onAdd == null ? 'Products catalog' : 'Add a product',
         trailing: Row(mainAxisSize: MainAxisSize.min, children: [
           if (widget.onAdd == null && app.hasPermission('products.create'))
@@ -218,9 +222,17 @@ class _ProductsScreenState extends State<ProductsScreen> {
         ])),
       TextField(controller: search, onChanged: queryChanged,
         decoration: InputDecoration(prefixIcon: const Icon(Icons.search),
-          hintText: 'Search product, SKU or barcode',
-          suffixIcon: search.text.isEmpty ? null : IconButton(icon: const Icon(Icons.close),
-            onPressed: () { search.clear(); load(); }))),
+          hintText: widget.inlineCatalog
+            ? 'Scan barcode or search product...' : 'Search product, SKU or barcode',
+          suffixIcon: widget.inlineCatalog
+            ? IconButton(
+                key: const ValueKey('inline-pos-scan'),
+                tooltip: 'Scan barcode',
+                onPressed: scanBusy ? null : scan,
+                icon: const Icon(Icons.qr_code_scanner_rounded))
+            : (search.text.isEmpty ? null : IconButton(
+                icon: const Icon(Icons.close),
+                onPressed: () { search.clear(); load(); })))),
       if (categories.isNotEmpty) ...[
         const SizedBox(height: 12),
         SizedBox(height: 42, child: ListView(scrollDirection: Axis.horizontal, children: [
@@ -244,14 +256,16 @@ class _ProductsScreenState extends State<ProductsScreen> {
       else if (!busy && items.isEmpty) const EmptyState(title: 'No products found',
         subtitle: 'Try a product name, barcode or another category.')
       else if (widget.onAdd != null) LayoutBuilder(builder: (context, constraints) {
-        final columns = constraints.maxWidth < 330 ? 2 : 3;
+        // The approved POS reference uses two image-first product columns.
+        final columns = widget.inlineCatalog ? 2 :
+          (constraints.maxWidth < 330 ? 2 : 3);
         return GridView.builder(
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
           itemCount: items.length,
           gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
             crossAxisCount: columns, crossAxisSpacing: 9, mainAxisSpacing: 9,
-            mainAxisExtent: 194),
+            mainAxisExtent: widget.inlineCatalog ? 202 : 194),
           itemBuilder: (context, index) {
             final p = items[index];
             return PosCatalogProductCard(
