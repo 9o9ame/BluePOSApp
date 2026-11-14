@@ -376,3 +376,23 @@ flutter test "C:\Projects\BluePOSApp\test\products_catalog_reference_widget_test
 After a safe successful pull and tests, press capital `R` in already-running Flutter debug terminal to initialize the new route/widgets.
 
 **Known visual gap:** New details page approximates reference hierarchy with app Theme & Appearance, rather than embedded mockup gradients or exact product artwork; Print Barcode button is not faked pending verified mobile workflow. Full screenshot-level design acceptance and user Flutter tests for Screen 13 **pending**. No backend/db changes, APK release or branch switch.
+
+
+## 2026-11-14 — Screen 13 compilation blocker corrected (user build evidence)
+
+- User requested future **5 screens per development batch** instead of one; preserve exact newer individual design PNGs, permission/tenant contracts, QA and handoff every batch. **First resolve current build errors before advancing.**
+- User's actual `C:\Projects\BluePOSApp` console: successful `git pull --ff-only` through previous Screen 13 checkpoint; `flutter analyze --no-fatal-infos` reported 130 findings including **two blocking errors**, and BOTH `product_details_widget_test.dart` and `products_catalog_reference_widget_test.dart` failed to compile.
+- Blocking errors: `lib/screens/product_details.dart:182:14 Expected to find ']'` caused by an extra `)),` in product hero Row; `lib/screens/products.dart:260:10 validPublicUlid undefined` caused by calling a helper not imported in that screen. The Products file also had an unused `_price` warning.
+- Fix commits: `28c65d1c6d77cbcc7bfc7253d31e0e3b715c5261` removes extra closing bracket; `ac3d203ebb9de796012dbd0addd1d8ad5f5baa9b` uses 26-character Crockford ULID regex already used in ProductDetailsScreen and removes unused `_price`. Minimal 2-source-file changes, **no visual redesign, financial/server changes, or persistent DB edits**.
+- Test run remains **PENDING** on user's Windows Flutter environment; assistant cannot claim fix passes. On second PowerShell terminal:
+```powershell
+cd "C:\Projects\BluePOSApp"
+git status --short
+git pull --ff-only origin feature/daily-entries
+flutter analyze --no-fatal-infos
+flutter test "C:\Projects\BluePOSApp\test\product_details_widget_test.dart"
+flutter test "C:\Projects\BluePOSApp\test\products_catalog_reference_widget_test.dart"
+```
+- Existing modified `analysis_options.yaml` and untracked `android/`, `.idea/`, `.metadata`, `bluepos_app.iml`, `widget_test.generated.bak` are local user work: **do not reset/clean/delete**. Pull was previously FF-safe with these files.
+- After green analyzer (no `error` or `warning`) and focused widget tests, use `R` Hot Restart in running Flutter terminal; verify Product Details and all five tabs. **Do not Save product/transaction** on production just for UI QA.
+- New development batches should target **five consecutive scoped screens** (next numbered 14–18 after Screen 13 acceptance) with source-image verification, safe reuse of backend APIs/RBAC, focused tests, QA and handoff. Do not claim five completed if blocked by actual design/API dependencies.
