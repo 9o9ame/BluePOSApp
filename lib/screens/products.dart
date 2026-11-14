@@ -73,6 +73,84 @@ class PosCatalogProductCard extends StatelessWidget {
   }
 }
 
+/// Newer premium reference 12: the standalone product catalog uses a
+/// horizontal image-first row. All visible values originate in the API response.
+class CatalogProductRow extends StatelessWidget {
+  const CatalogProductRow({
+    super.key,
+    required this.product,
+    required this.api,
+    required this.currency,
+    required this.onTap,
+  });
+
+  final Map<String, dynamic> product;
+  final BlueposApi api;
+  final String currency;
+  final VoidCallback onTap;
+
+  dynamic get retailPrice {
+    for (final p in recordsOf(product['prices'])) {
+      if (p['price_type'] == 'retail' && p['is_active'] != false) {
+        return p['amount'];
+      }
+    }
+    return null;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final stock = objectOf(product['sales_lookup'])['in_stock'];
+    final price = retailPrice;
+    return InkWell(
+      key: ValueKey('catalog-product-${field(product['ulid'])}'),
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(16),
+      child: Surface(
+        padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 12),
+        child: Row(children: [
+          ProductThumb(api: api, imageUrl: field(product['image_url']), size: 74),
+          const SizedBox(width: 11),
+          Expanded(child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(field(product['name'], 'Product'),
+                maxLines: 2, overflow: TextOverflow.ellipsis,
+                style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 14)),
+              const SizedBox(height: 5),
+              Text('SKU: ${field(product['sku'], '—')}',
+                maxLines: 1, overflow: TextOverflow.ellipsis,
+                style: TextStyle(fontSize: 11, color: scheme.onSurfaceVariant)),
+              const SizedBox(height: 7),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 4),
+                decoration: BoxDecoration(
+                  color: scheme.tertiaryContainer,
+                  borderRadius: BorderRadius.circular(8)),
+                child: Text(stock == null ? 'Stock not shown'
+                    : 'Stock: ${field(stock)}',
+                  maxLines: 1, overflow: TextOverflow.ellipsis,
+                  style: TextStyle(fontSize: 10, fontWeight: FontWeight.w800,
+                    color: scheme.onTertiaryContainer)),
+              ),
+            ],
+          )),
+          const SizedBox(width: 8),
+          Container(width: 1, height: 63, color: scheme.outlineVariant),
+          const SizedBox(width: 8),
+          SizedBox(width: 90, child: Text(
+            price == null ? 'Price unavailable' : money(price, currency),
+            textAlign: TextAlign.end, maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w900),
+          )),
+        ]),
+      ),
+    );
+  }
+}
+
 class ProductsScreen extends StatefulWidget {
   const ProductsScreen({super.key, required this.app, this.onAdd,
     this.inlineCatalog = false});
@@ -93,6 +171,7 @@ class _ProductsScreenState extends State<ProductsScreen> {
   bool busy = true, loadingMore = false, scanBusy = false;
   String? error;
   String? categoryUlid;
+  bool showCatalogFilters = false;
   int total = 0, version = 0, page = 1;
 
   @override
@@ -216,31 +295,45 @@ class _ProductsScreenState extends State<ProductsScreen> {
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final app = widget.app;
-    return RefreshIndicator(onRefresh: load, child: ListView(padding: const EdgeInsets.all(16), children: [
+    final standalone = widget.onAdd == null;
+    return Stack(children: [
+      RefreshIndicator(onRefresh: load, child: ListView(
+        padding: const EdgeInsets.all(16), children: [
       if (!(widget.inlineCatalog == true))
-      SectionHeading(widget.onAdd == null ? 'Products catalog' : 'Add a product',
-        trailing: Row(mainAxisSize: MainAxisSize.min, children: [
-          if (widget.onAdd == null && app.hasPermission('products.create'))
-            IconButton(onPressed: () => openEditor(), tooltip: 'Add product',
-              icon: Icon(Icons.add_circle_outline_rounded, color: scheme.primary)),
-          IconButton(onPressed: scanBusy ? null : scan,
-            icon: Icon(Icons.qr_code_scanner_rounded, color: scheme.primary),
-            tooltip: 'Scan barcode'),
-        ])),
-      TextField(controller: search, onChanged: queryChanged,
-        decoration: InputDecoration(prefixIcon: const Icon(Icons.search),
-          hintText: (widget.inlineCatalog == true)
-            ? 'Scan barcode or search product...' : 'Search product, SKU or barcode',
-          suffixIcon: (widget.inlineCatalog == true)
-            ? IconButton(
-                key: const ValueKey('inline-pos-scan'),
-                tooltip: 'Scan barcode',
-                onPressed: scanBusy ? null : scan,
-                icon: const Icon(Icons.qr_code_scanner_rounded))
-            : (search.text.isEmpty ? null : IconButton(
-                icon: const Icon(Icons.close),
-                onPressed: () { search.clear(); load(); })))),
-      if (categories.isNotEmpty) ...[
+        SectionHeading(standalone ? 'Products' : 'Add a product',
+          trailing: IconButton(
+            tooltip: 'Scan barcode', onPressed: scanBusy ? null : scan,
+            icon: Icon(Icons.qr_code_scanner_rounded, color: scheme.primary))),
+      if (standalone)
+        Row(children: [
+          Expanded(child: TextField(
+            controller: search, onChanged: queryChanged,
+            decoration: const InputDecoration(
+              prefixIcon: Icon(Icons.search),
+              hintText: 'Search products...'))),
+          const SizedBox(width: 9),
+          IconButton.filledTonal(
+            key: const ValueKey('catalog-filter'),
+            tooltip: 'Filter categories',
+            onPressed: () => setState(() =>
+              showCatalogFilters = !showCatalogFilters),
+            icon: const Icon(Icons.filter_alt_outlined)),
+        ])
+      else
+        TextField(controller: search, onChanged: queryChanged,
+          decoration: InputDecoration(
+            prefixIcon: const Icon(Icons.search),
+            hintText: (widget.inlineCatalog == true)
+              ? 'Scan barcode or search product...' : 'Search product, SKU or barcode',
+            suffixIcon: (widget.inlineCatalog == true)
+              ? IconButton(
+                  key: const ValueKey('inline-pos-scan'),
+                  tooltip: 'Scan barcode', onPressed: scanBusy ? null : scan,
+                  icon: const Icon(Icons.qr_code_scanner_rounded))
+              : (search.text.isEmpty ? null : IconButton(
+                  icon: const Icon(Icons.close),
+                  onPressed: () { search.clear(); load(); })))),
+      if (categories.isNotEmpty && (!standalone || showCatalogFilters)) ...[
         const SizedBox(height: 12),
         SizedBox(height: 42, child: ListView(scrollDirection: Axis.horizontal, children: [
           Padding(padding: const EdgeInsets.only(right: 8), child: ChoiceChip(
@@ -281,31 +374,25 @@ class _ProductsScreenState extends State<ProductsScreen> {
               onTap: () => widget.onAdd!(p));
           });
       })
-      else ...items.map((p) => Padding(padding: const EdgeInsets.only(bottom: 9),
-        child: InkWell(onTap: () => widget.onAdd != null ? widget.onAdd!(p) : showDetails(p),
-          child: Surface(padding: const EdgeInsets.all(10), child: Row(children: [
-            ProductThumb(api: app.api, imageUrl: field(p['image_url']), size: 55),
-            const SizedBox(width: 11),
-            Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Text(field(p['name'], 'Product'), maxLines: 2, overflow: TextOverflow.ellipsis,
-                style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 13)),
-              Text(field(p['product_number']), style: TextStyle(fontSize: 11,
-                color: scheme.onSurfaceVariant)),
-              Text(money(_price(p), app.currency), style: TextStyle(fontWeight: FontWeight.w800,
-                color: scheme.primary)),
-            ])),
-            if (objectOf(p['sales_lookup'])['in_stock'] != null)
-              Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
-                Text('In Stock', style: TextStyle(fontSize: 10, color: scheme.onSurfaceVariant)),
-                Text(field(objectOf(p['sales_lookup'])['in_stock']),
-                  style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
-              ]),
-            if (widget.onAdd != null) Icon(Icons.add_circle, color: scheme.primary),
-          ]))))),
+      else ...items.map((p) => Padding(
+        padding: const EdgeInsets.only(bottom: 11),
+        child: CatalogProductRow(
+          product: p, api: app.api, currency: app.currency,
+          onTap: () => showDetails(p)),
+      )),
       if (items.length < total && !busy) Padding(padding: const EdgeInsets.all(12),
         child: OutlinedButton(onPressed: loadingMore ? null : () => load(more: true),
           child: Text(loadingMore ? 'Loading…' : 'Load more products'))),
-      const SizedBox(height: 16),
-    ]));
+      SizedBox(height: standalone && app.hasPermission('products.create') ? 96 : 16),
+    ])),
+      if (standalone && app.hasPermission('products.create'))
+        Positioned(right: 18, bottom: 18,
+          child: FloatingActionButton.extended(
+            key: const ValueKey('catalog-add-product'),
+            onPressed: () => openEditor(),
+            icon: const Icon(Icons.add_rounded),
+            label: const Text('Add Product'),
+          )),
+    ]);
   }
 }
