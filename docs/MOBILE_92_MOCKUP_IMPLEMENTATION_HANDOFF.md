@@ -298,3 +298,14 @@ python3 -m unittest discover -s test -p 'test_mobile_mockup_manifest.py' -v
 - NEW `test/definition_home_widget_test.dart`: visibility/order, unauthorized omission, navigation and back. **Testing pending user Flutter CLI**; tests not run in assistant environment.
 - USER QA: safely pull branch `feature/daily-entries`; run `flutter analyze --no-fatal-infos` and `flutter test "C:\Projects\BluePOSApp\test\definition_home_widget_test.dart"`; press `R` in still-running Flutter terminal; device test Definition, authorized rows/routes, back/browse, all-tab stability. Do not issue Save/Post on production.
 - NEXT on pass: inspect newer Screen 12 `bluepos_products_catalog.png` and existing Flutter Products data contracts and image; smallest visual alignment, focused tests and handoff. No branch merge, no release/APK, no frozen auth changes.
+
+
+### 2026-11-14 — Screen 11 PASS; Screen 12 Products Catalog implemented
+
+- User marked **all six** Definition Home phone checks PASS. Record functional acceptance only; cannot infer exact pixel parity nor that user ran `test/definition_home_widget_test.dart`.
+- Inspected actual newer individual `/mnt/data/bluepos_products_catalog.png` (Screen 12, after rejected pack). Layout: search + funnel, image-first wide rows with SKU, stock pill, right price and floating Add Product. Example brands/prices/stock are illustration only.
+- UPDATED `lib/screens/products.dart` with `CatalogProductRow` from server fields, explicit missing data labels, standalone search/filter UI and authorized Create Product FAB. `catalogHome` mode intentionally separates bottom Products tab from `onAdd` POS picker: product tap shows product details, POS grid remains add-to-cart. Existing API, pagination, category filter, details/editor, tenant context and RBAC reused.
+- UPDATED `lib/screens/shell.dart` to wire `catalogHome: true` on both initial Products tab and refresh constructor.
+- NEW `test/products_catalog_reference_widget_test.dart`: row data/tap and missing-value tests. Not executed in assistant host; user runs analyzer and focused test with `C:\Projects\BluePOSApp` working directory. Hot restart capital `R` recommended due new widget fields. No native rebuild, API/database edits, sales posting changes or branch switches.
+- User QA: verify Products tab horizontal rows and real values, filter categories, row details, permitted Add Product only, POS still 2-column add-to-cart, no blank tabs. Do not issue live product Save or Sale Post for UI QA.
+- Next user PASS → inspect actual newer Screen 13 Product Details reference plus existing Flutter details view and contracts, implement next focused batch, tests and permanent handoff in same turn. Frozen pre-login remains untouched.
