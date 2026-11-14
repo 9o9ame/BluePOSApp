@@ -134,12 +134,12 @@ class AppAppearance extends ChangeNotifier {
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(style: ElevatedButton.styleFrom(
         backgroundColor: accent, foregroundColor: Colors.white,
-        minimumSize: const Size.fromHeight(52),
+        minimumSize: const Size(0, 52),
         shape: RoundedRectangleBorder(borderRadius: r),
       )),
       filledButtonTheme: FilledButtonThemeData(style: FilledButton.styleFrom(
         backgroundColor: accent, foregroundColor: Colors.white,
-        minimumSize: const Size.fromHeight(48),
+        minimumSize: const Size(0, 48),
         shape: RoundedRectangleBorder(borderRadius: r),
       )),
     );
