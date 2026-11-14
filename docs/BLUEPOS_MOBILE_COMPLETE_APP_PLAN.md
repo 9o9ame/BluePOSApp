@@ -381,3 +381,9 @@
 - User marked prior Screens 29–33 device checklist **6/6 PASS**. Next five later premium individual PNGs (34 Sales Invoice Details, 35 Purchase Invoices, 36 Purchase Invoice Entry, 37 Purchase Invoice Details, 38 Sales Returns) inspected and SHA256 verified against manifest. Rejected early generic pack not used.
 - Implemented focused reuse: Sales receipt detail heading/status; shared opt-in server-driven transaction cards for Purchase Invoice and Sales Return directories; Purchase creation/detail headers/status from existing PurchaseInvoiceEditor. No duplicate financial calculations, posting logic or client-authoritative totals; server API/tenant/RBAC unchanged.
 - Added `test/catalog_reference_34_38_widget_test.dart` with five stub-GET widget tests; Flutter execution/device acceptance pending, static source bracket check only. Next on verified PASS: five screens 39–43.
+
+
+### 2026-11-14 — Screens 34–38 user device PASS; Screens 39–43 held for web pagination priority
+
+- User confirmed all six mobile smoke checks for 34–38 PASS. The next mobile five-screen batch is 39–43, still **not started**.
+- User's previously stated priority is to fix pagination button placement on a separate Waqas ERP System web app (localhost:8000, extra charges and voucher registers) before progressing mobile design. Connected repositories do not expose Waqas ERP source under searched terms. No fix attempted or claimed without code access; hold unrelated BluePOS source changes.
