@@ -113,7 +113,7 @@ class _ReceiptScreenState extends State<ReceiptScreen> {
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final lines = recordsOf(sale['items']);
-    return Scaffold(appBar: AppBar(title: const Text('Sales receipt'),
+    return Scaffold(appBar: AppBar(title: const Text('Sales Invoice Detail'),
       actions: [IconButton(onPressed: fetch, icon: const Icon(Icons.refresh))]),
       body: ListView(padding: const EdgeInsets.all(16), children: [
         if (busy) pageLoading()
@@ -125,7 +125,18 @@ class _ReceiptScreenState extends State<ReceiptScreen> {
             style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 17)),
           Text('${widget.app.branchName} · ${widget.app.warehouseName}',
             textAlign: TextAlign.center, style: TextStyle(color: scheme.onSurfaceVariant, fontSize: 11)),
-          const Divider(height: 26),
+          const Divider(height: 22),
+          Row(children: [
+            Icon(Icons.receipt_long_outlined, color: scheme.primary),
+            const SizedBox(width: 9),
+            Expanded(child: Text(
+              field(sale['document_number'], 'Sales invoice'),
+              style: const TextStyle(fontWeight: FontWeight.w900))),
+            Text(field(sale['status'], 'Unknown'),
+              style: TextStyle(color: scheme.primary,
+                fontSize: 12, fontWeight: FontWeight.w800)),
+          ]),
+          const Divider(height: 22),
           Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
             Text(field(sale['document_number']), style: const TextStyle(fontWeight: FontWeight.w900)),
             Text(field(sale['sale_date'])),
