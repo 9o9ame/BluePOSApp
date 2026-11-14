@@ -7,6 +7,7 @@ import '../widgets/common.dart';
 import '../widgets/product_thumb.dart';
 import 'scanner.dart';
 import 'product_editor.dart';
+import 'product_details.dart';
 
 /// Product card for the authorized POS selection catalog.
 /// Prices and stock labels are read from the product lookup response only.
@@ -254,37 +255,15 @@ class _ProductsScreenState extends State<ProductsScreen> {
   }
 
   void showDetails(Map<String, dynamic> product) {
-    showModalBottomSheet<void>(context: context, isScrollControlled: true,
-      useSafeArea: true, showDragHandle: true, builder: (ctx) => SafeArea(child: Padding(
-        padding: const EdgeInsets.all(18), child: Column(mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Row(children: [ProductThumb(api: widget.app.api, imageUrl: field(product['image_url']), size: 70),
-              const SizedBox(width: 12), Expanded(child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  Text(field(product['name']), style: Theme.of(ctx).textTheme.titleMedium),
-                  Text('SKU ${field(product['sku'], '—')}'),
-                  Text('Item #${field(product['product_number'])}'),
-                ])),
-            ]),
-            const SizedBox(height: 16),
-            Text('Barcode: ${field(product['primary_barcode'], '—')}'),
-            Text('Category: ${field(objectOf(product['category'])['name'], '—')}'),
-            Text('In stock: ${field(objectOf(product['sales_lookup'])['in_stock'], '—')}'),
-            Text('Retail: ${money(_price(product), widget.app.currency)}'),
-            const SizedBox(height: 12),
-            if ((widget.onAdd == null || widget.catalogHome == true) &&
-                widget.app.hasPermission('products.edit'))
-              FilledButton.icon(
-                icon: const Icon(Icons.edit_outlined),
-                label: const Text('Edit Product'),
-                onPressed: () {
-                  Navigator.pop(ctx);
-                  openEditor(product: product);
-                },
-              ),
-            const SizedBox(height: 6),
-          ]),
-      )));
+    if (widget.onAdd != null && widget.catalogHome != true) return;
+    final ulid = field(product['ulid']);
+    if (!validPublicUlid(ulid)) {
+      showApiError(context, 'Invalid product reference.');
+      return;
+    }
+    Navigator.of(context).push(MaterialPageRoute(
+      builder: (_) => ProductDetailsScreen(
+        app: widget.app, productUlid: ulid)));
   }
 
   dynamic _price(Map<String, dynamic> item) {
