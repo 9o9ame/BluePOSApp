@@ -667,3 +667,48 @@ If any test fails, share FIRST compiler error/test exception; do not force-pull,
 User explicitly confirmed **all six** mobile smoke checks PASS: (34) authorized Sales Invoice Detail with real amounts and Print/Share; (35) Purchase Invoices list shows real supplier/status/amount; (36) Create Purchase Invoice loads existing draft/line editor; (37) Purchase Invoice Detail shows server status/lines/total; (38) source-linked Sales Returns list opens; Home/POS/Products/Reports/Modules/Notifications are stable. This is user-reported **device functional acceptance**, not screenshot pixel parity or confirmation of a newly executed `catalog_reference_34_38_widget_test.dart` suite.
 
 **Explicit hold before Screens 39–43:** User also reported pagination-position problems in screenshots of a **separate localhost Waqas ERP System** at `/admin/extra_charge`, `/admin/journal-voucher`, `/admin/sales-voucher`, and `/admin/commision-voucher` and requested those resolved before the next mobile batch. Those screenshots are not BluePOS Flutter screens. The Waqas ERP repository/source was not found in connected installed GitHub repositories by search (`Waqas ERP`, `waqas`, `extra_charge`). Do **not** change BluePOS Flutter transaction pagination to fix an unrelated web project; obtain Waqas ERP repo/source access before claiming any web pagination fix. No mobile source change in this checkpoint.
+
+
+## 2026-11-14 — Waqas ERP message withdrawn; newer five-screen batch 39–43
+
+**Correction explicitly from user:** Waqas ERP `localhost:8000` screenshots were accidentally posted in this BluePOS Mobile conversation from a different chat. **There is no web pagination blocker for this project.** Ignore the previous web-pagination hold; do not inspect/edit Waqas ERP or wait for its repository. Continue five-screen BluePOS Mobile batches.
+
+**Previous confirmed state:** Screens 34–38 user device tests were 6/6 PASS: actual Sale Invoice Detail/Print, Purchase list, Purchase Entry, Purchase Details, Sales Returns, plus stable tabs. This is physical device functional smoke acceptance only; the separate focused Flutter CLI test output and exact pixel parity were not supplied.
+
+**Correct newer individual PNG references for current batch**, visually inspected with SHA256 matching `BluePOS_Mobile_Design_Approval_Pack/SCREEN_MANIFEST.csv` (never use old rejected pack):
+- 39 Sales Return Entry: `bluepos_sales_return_form.png`
+- 40 Purchase Returns: `bluepos_purchase_returns_dashboard.png`
+- 41 Purchase Return Entry: `bluepos_purchase_return_screen.png`
+- 42 Purchase Return Details: `bluepos_purchase_return_detail_interface.png`
+- 43 Expense Vouchers: `bluepos_expense_vouchers_dashboard.png`
+
+**Implemented on `feature/daily-entries`:**
+- `lib/screens/returns.dart`: Screen 39 approved **Create Sales Return** form heading via existing secure `ReturnDocumentEditor`. No changes to original posted-sale selection, returnable-line API, quantity limit validation, double-submit safety, draft creation, confirmed posting or refunds.
+- Same existing `ReturnDocumentsScreen` renders **Screen 40 Purchase Returns** using the opt-in reference image-style transaction cards: real document number, supplier if server provided, date, status and server amount. List stays paginated/searchable through `TransactionDirectory`.
+- Screen 41 **Create Purchase Return** heading and existing source-linked return draft editor remain in original authorized workflow; no mock supplier, line, tax, discount or return values.
+- Screen 42 **Purchase Return Detail** shows real server document number, status, original invoice identification and existing quantity/amount lines; per-line rate appears only when server has unit_cost. Posted records retain existing read-only/post permission behavior; no redundant money or inventory calculations introduced.
+- `lib/screens/money_actions.dart`: Screen 43 Expense Vouchers uses approved-style heading, theme-aware icon rows, actual expense account, payment account, date, description, amount, server status (if provided), search and status chips. Only searches/filters the **existing first 100 server-returned records**, clearly labeled "loaded expenses"; does NOT claim full-dataset search or invent pagination. Existing `MoneyActionKind.expense` secured create flow remains unchanged; Add Expense still permission-gated.
+- NEW `test/catalog_reference_39_43_widget_test.dart`: 5 offline/widget tests using stub server GETs for entry forms, real purchase return list and detail, no re-post button for posted return, and expense search. No actual Save, Post, Refund or financial DB calls in tests.
+
+**PC commands (all commands in full project directory):**
+```powershell
+Set-Location "C:\Projects\BluePOSApp"
+git status --short
+git pull --ff-only origin feature/daily-entries
+flutter analyze --no-fatal-infos
+flutter test "C:\Projects\BluePOSApp\test\catalog_reference_39_43_widget_test.dart"
+flutter test "C:\Projects\BluePOSApp\test\catalog_reference_34_38_widget_test.dart"
+```
+If compile/test fails, capture FIRST meaningful error and fix before continuing. Do not reset/clean tracked or generated Android files. No test on development/persistent DB.
+
+**Phone QA checklist, after successful PC tests and capital R Flutter Hot Restart:**
+1. Daily Entries → Sales Returns → Add Return: approved Create Sales Return heading, original posted-sale selector, date/reason/notes; do not Create Draft/Post.
+2. Daily Entries → Purchase Returns: server-returned cards with document/status/date/amount, search, list pagination; tap existing entry.
+3. Purchase Returns → Add Return: Create Purchase Return heading, original posted-purchase selector, date/reason; do not Save/Post.
+4. Open existing Purchase Return: Purchase Return Detail shows server document/status/original purchase/lines/grand total. Posted document does not offer draft line mutations or post button.
+5. Daily Entries → Expenses: Expense Vouchers heading, real expense cards, loaded-record search, status filter chips, authorized Add Expense. Do not create/post live expenses. Check no fake amounts or records; note first-100 search limitation.
+6. All existing Home/POS/Products/Reports/Modules/Notifications, light/dark mode, narrow Redmi Note 10 remain stable; no overflow/blank screens.
+
+**Known visual differences:** PNGs contain illustrative Coke/Lays lines, colors and footer scanner nav; actual authorized tenant data and Theme & Appearance take priority. Return draft/detail row geometry still leverages proven existing line/editor controls; do not claim perfect visual/pixel parity. Expense list search is local to first returned page, not the whole server. Full backend paging/search for expenses would require separate verified API contract. **New Flutter analyzer/widget tests/device acceptance PENDING**; only GitHub commit + basic delimiter-balanced source read-back completed.
+
+**Next on PASS:** inspect five newer individual PNGs **44–48**, existing contracts and routes, implement as one batch with tests plus this QA and permanent handoff update.
