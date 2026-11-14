@@ -502,3 +502,24 @@ If tests or analyzer show errors, stop and share the FIRST meaningful error befo
 6. Check correct RBAC for Brands/Units, no blank tabs, stable POS/Products/Notifications and light/dark/Redmi Note 10 scrolling.
 
 **Known parity/API blockers:** Screen 19 brand icon/color/country-of-origin persistence; Screen 21 conversion factors; Screens 22–23 entire domain API and authorization/persistence. The latter 2 screens are **NOT functional**. Design parity and real device QA remain pending. Once green, next batch 24–28 only after inspecting newer PNGs and backend contracts.
+
+
+## 2026-11-14 — Screens 19–23 PC regression result and focused correction
+
+User provided actual Windows output after fast-forward pull through `c2c5d917`: `flutter analyze --no-fatal-infos` completed with **128 findings: one warning** (`lib/screens/catalog_master.dart:204`, unnecessary `?[]`) and 127 informational lints. `test/catalog_reference_19_23_widget_test.dart` completed **5/6 PASS, 1 FAIL** at Screen 23: `Save Price List` text not found at test line 99 because the footer is below the initially built part of a lazy `ListView`. Prior `test/catalog_master_reference_batch_widget_test.dart` completed **6/6 PASS**. Thus **NOT all tests passed**.
+
+Focused corrections committed:
+- `lib/screens/catalog_master.dart`: `field(item['code'], ...)` instead of redundant null-aware access under `isEdit`.
+- `lib/screens/price_lists.dart`: key `price-list-save-disabled` added to the existing disabled Save button; no enabling action/API write.
+- `test/catalog_reference_19_23_widget_test.dart`: `tester.scrollUntilVisible` on keyed disabled button before testing its text and null `onPressed`.
+
+New tests **not rerun in assistant environment**. PC commands:
+```powershell
+Set-Location "C:\Projects\BluePOSApp"
+git status --short
+git pull --ff-only origin feature/daily-entries
+flutter analyze --no-fatal-infos
+flutter test "C:\Projects\BluePOSApp\test\catalog_reference_19_23_widget_test.dart"
+flutter test "C:\Projects\BluePOSApp\test\catalog_master_reference_batch_widget_test.dart"
+```
+Do not mark PASS until these logs confirm it. Price Lists 22–23 remain UI reference only with no verified backend endpoint; Save remains disabled. No branch switch, DB, live catalog Save or stock/financial posting.
