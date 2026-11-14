@@ -212,3 +212,12 @@ python3 -m unittest discover -s test -p 'test_mobile_mockup_manifest.py' -v
 - Important distinction: **screen structure closer to image**, not full pixel fidelity or final approval. Current shell bottom nav remains Home/POS/Products/Reports/Modules instead of mock Home/POS/Scan/Reports/More; favorite icons and illustrative branded product imagery remain unsupported, and real server data replaces mock samples. See `docs/MOBILE_LIVE_SCREEN_QA.md` for explicit phone checks and gaps.
 - **Validation pending:** no local Flutter CLI in assistant runtime. User should pull in second PowerShell at `C:\Projects\BluePOSApp`, run analyzer + focused tests, then press `r` in still-running Flutter terminal (or `R` if initState is stale) and send sanitized screen 07 screenshot. No APK or branch merge.
 - **Next chat:** read `docs/MOBILE_LIVE_SCREEN_QA.md` and this handoff first; address actual device/test errors, compare screenshot with approved image 07, then handle navigation refactor only with careful route/RBAC mapping and developer approval scope. Preserve pre-login screens and live `bluepos.pk` URL.
+
+
+### 2026-11-14 — Hot Reload crash recovery checkpoint
+
+- User said Home renders but all other tabs blank after updating inline POS layout. PC output reported `flutter analyze --no-fatal-infos` with **125 info** lints, and catalog card widget tests **3/3 PASS** for previous commit.
+- First actual runtime exception: `ProductsScreen.inlineCatalog` returns null for newly added non-nullable bool field from previously mounted `AppShell` IndexedStack on Hot Reload. Subsequent `BoxConstraints forces an infinite width` and RenderBox errors were also logged; cannot assert they are fully resolved until a fresh restart.
+- Patched `lib/screens/products.dart`: nullable `inlineCatalog` and `imageFirst` field declarations with `== true` default-safe checks for hot reload. Added one legacy-null card regression test in `test/pos_catalog_card_widget_test.dart`.
+- **Immediate recovery:** latest Git pull from `C:\Projects\BluePOSApp`, run analyzer + focused test, then **capital R** Hot Restart in existing Flutter terminal. This is not a full APK rebuild; Flutter Hot Reload may not initialize newly added instance fields.
+- Device confirmation **pending** for POS/Products/Reports/Modules and POS inline grid. No pre-login changes, API changes, DB writes, release, or branch switching. Handoff next chat: inspect first exception if any remains and fix only confirmed layout source; continue screen 07 approved-image fidelity after all tabs render.
