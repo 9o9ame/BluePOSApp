@@ -374,3 +374,10 @@
 - Reused secured supplier Party API for new supplier listing/detail and existing full-page Party editor, with server data only. Added ordered Daily Entries authorized route menu and Create Sales Invoice wrapper pointing to **existing** POS SaleScreen; no new financial posting/stock logic.
 - New `test/catalog_reference_29_33_widget_test.dart` covers five screen behavior + supplier payload, updated prior customer title test. Screen 33 geometry and mock payable/ledger panels remain reference-parity gaps, not invented.
 - GitHub committed, Flutter analyzer/tests and phone approval pending. Next on clean results: batch 34–38, preserving frozen auth UI and 5-screen batch rule, QA and handoff updates.
+
+
+### 2026-11-14 — Five-screen batch 34–38: real invoice/return UI reuse
+
+- User marked prior Screens 29–33 device checklist **6/6 PASS**. Next five later premium individual PNGs (34 Sales Invoice Details, 35 Purchase Invoices, 36 Purchase Invoice Entry, 37 Purchase Invoice Details, 38 Sales Returns) inspected and SHA256 verified against manifest. Rejected early generic pack not used.
+- Implemented focused reuse: Sales receipt detail heading/status; shared opt-in server-driven transaction cards for Purchase Invoice and Sales Return directories; Purchase creation/detail headers/status from existing PurchaseInvoiceEditor. No duplicate financial calculations, posting logic or client-authoritative totals; server API/tenant/RBAC unchanged.
+- Added `test/catalog_reference_34_38_widget_test.dart` with five stub-GET widget tests; Flutter execution/device acceptance pending, static source bracket check only. Next on verified PASS: five screens 39–43.
