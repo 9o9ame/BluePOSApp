@@ -454,13 +454,13 @@ class _ModulesScreenState extends State<ModulesScreen> {
     final main = showMainMenu;
     final entries = <({String group, String label, IconData icon, Color color})>[
       (group: 'Definition', label: 'Definition',
-        icon: Icons.layers_rounded, color: Colors.green),
+        icon: Icons.layers_rounded, color: scheme.tertiary),
       (group: 'Daily Entries', label: 'Daily Entries',
-        icon: Icons.calendar_month_rounded, color: Colors.teal),
+        icon: Icons.calendar_month_rounded, color: scheme.secondary),
       (group: 'Reports', label: 'Reports',
-        icon: Icons.bar_chart_rounded, color: Colors.deepPurple),
+        icon: Icons.bar_chart_rounded, color: scheme.primary),
       (group: 'Tools', label: 'Tools',
-        icon: Icons.handyman_rounded, color: Colors.orange),
+        icon: Icons.handyman_rounded, color: scheme.tertiary),
       (group: 'Administration', label: 'Administration',
         icon: Icons.settings_suggest_rounded, color: scheme.primary),
     ];
@@ -514,19 +514,19 @@ class _ModulesScreenState extends State<ModulesScreen> {
           if (groups['Definition']!.any((action) =>
               action.title == 'Customers' && action.visible(app)))
             _menuRow(title: 'Customers', icon: Icons.people_rounded,
-              tone: Colors.redAccent, onTap: () =>
+              tone: scheme.error, onTap: () =>
                 groups['Definition']!.firstWhere((a) =>
                   a.title == 'Customers').open()),
           if (groups['Daily Entries']!.any((action) =>
               action.title == 'Purchases' && action.visible(app)))
             _menuRow(title: 'Purchases', icon: Icons.shopping_bag_rounded,
-              tone: Colors.orange, onTap: () =>
+              tone: scheme.tertiary, onTap: () =>
                 groups['Daily Entries']!.firstWhere((a) =>
                   a.title == 'Purchases').open()),
           if (groups['Daily Entries']!.any((action) =>
               action.title == 'New Sale' && action.visible(app)))
             _menuRow(title: 'Sales', icon: Icons.shopping_cart_rounded,
-              tone: Colors.green, onTap: () => widget.navigate(1)),
+              tone: scheme.tertiary, onTap: () => widget.navigate(1)),
         ] else ...[
           const SizedBox(height: 8),
           Divider(color: scheme.outlineVariant),
@@ -535,7 +535,7 @@ class _ModulesScreenState extends State<ModulesScreen> {
               action.title == 'Security Sessions' && action.visible(app)))
             _menuRow(title: 'Device & Security',
               icon: Icons.verified_user_rounded,
-              tone: Colors.green, onTap: () =>
+              tone: scheme.tertiary, onTap: () =>
                 groups['Administration']!.firstWhere((a) =>
                   a.title == 'Security Sessions').open()),
           _menuRow(title: 'Settings', icon: Icons.settings_rounded,
@@ -556,7 +556,6 @@ class _ModulesScreenState extends State<ModulesScreen> {
   }
 
   Widget _directory() {
-    final scheme = Theme.of(context).colorScheme;
     final query = search.text.trim().toLowerCase();
     return ListView(padding: const EdgeInsets.all(16), children: [
       Row(children: [
