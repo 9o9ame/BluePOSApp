@@ -386,27 +386,39 @@ class SaleScreenState extends State<SaleScreen> {
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final app = widget.app;
-    return ListView(padding: EdgeInsets.all(app.appearance.spacing), children: [
+    return Column(children: [
+      Expanded(child: ListView(
+        padding: EdgeInsets.all(app.appearance.spacing),
+        children: [
       Row(children: [
         Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text('POS (Sales)', style: Theme.of(context).textTheme.titleLarge
               ?.copyWith(fontWeight: FontWeight.w900)),
-            Text('Build a sale using your authorized product catalog',
+            Text('Select products from your authorized catalog',
               style: TextStyle(color: scheme.onSurfaceVariant, fontSize: 12)),
           ],
         )),
         Icon(Icons.shopping_cart_checkout_rounded, color: scheme.primary),
       ]),
       const SizedBox(height: 13),
+      if (!attempted) ...[
+        // Screen 07 reference: search, category chips and two-column cards
+        // belong on the main POS page, not only a second picker screen.
+        SizedBox(
+          height: (MediaQuery.sizeOf(context).height * .54).clamp(335.0, 570.0),
+          child: ProductsScreen(
+            key: const ValueKey('inline-pos-catalog'),
+            app: app,
+            onAdd: addProduct,
+            inlineCatalog: true,
+          ),
+        ),
+        const SizedBox(height: 10),
+      ],
       Surface(padding: const EdgeInsets.all(13), child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-          PosProductEntry(
-            onSearch: pickProducts,
-            onScan: scan,
-            enabled: !attempted,
-          ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 2),
           Text('Price mode', style: TextStyle(
             color: scheme.onSurfaceVariant, fontWeight: FontWeight.w700,
             fontSize: 12)),
@@ -498,21 +510,43 @@ class SaleScreenState extends State<SaleScreen> {
                 icon: Icon(Icons.edit_outlined, color: scheme.primary), tooltip: 'Edit quantity / discount'),
             ]),
           ])))),
-      const SizedBox(height: 14),
-      Surface(child: Column(children: [
-        Row(children: [const Expanded(child: Text('Estimated item net',
-          style: TextStyle(fontWeight: FontWeight.bold))),
-          Text(money(estimatedSubtotal, app.currency),
-            style: const TextStyle(fontSize: 21, fontWeight: FontWeight.w900))]),
-        const SizedBox(height: 5),
-        Text('Final tax, promotions, stock, invoice amounts and credit rules are calculated by BluePOS server.',
-          style: TextStyle(fontSize: 11, color: scheme.onSurfaceVariant)),
-        const SizedBox(height: 16),
-        FilledButton.icon(onPressed: lines.isEmpty || saving || attempted ? null : () =>
-          Navigator.of(context).push(MaterialPageRoute(builder: (_) => PaymentScreen(sale: this))),
-          icon: const Icon(Icons.arrow_forward_rounded), label: const Text('Proceed to Payment')),
-      ])),
-      const SizedBox(height: 24),
+      const SizedBox(height: 20),
+    ])),
+    SafeArea(top: false, child: Padding(
+      padding: EdgeInsets.fromLTRB(app.appearance.spacing, 7,
+        app.appearance.spacing, 8),
+      child: Surface(padding: const EdgeInsets.all(12), child: Column(
+        mainAxisSize: MainAxisSize.min, children: [
+          Row(children: [
+            CircleAvatar(
+              backgroundColor: scheme.primaryContainer,
+              child: Icon(Icons.shopping_cart_outlined, color: scheme.primary)),
+            const SizedBox(width: 10),
+            Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('${lines.length} products · Estimated item net',
+                  style: TextStyle(fontSize: 11,
+                    color: scheme.onSurfaceVariant), maxLines: 1,
+                  overflow: TextOverflow.ellipsis),
+                Text(money(estimatedSubtotal, app.currency),
+                  style: const TextStyle(fontWeight: FontWeight.w900,
+                    fontSize: 19)),
+              ])),
+            const SizedBox(width: 8),
+            FilledButton(
+              onPressed: lines.isEmpty || saving || attempted ? null : () =>
+                Navigator.of(context).push(MaterialPageRoute(
+                  builder: (_) => PaymentScreen(sale: this))),
+              child: const Text('Proceed to Payment'),
+            ),
+          ]),
+          const SizedBox(height: 5),
+          Text('Estimate before tax · BluePOS server calculates final total.',
+            style: TextStyle(fontSize: 10,
+              color: scheme.onSurfaceVariant)),
+        ],
+      )),
+    )),
     ]);
   }
 }
