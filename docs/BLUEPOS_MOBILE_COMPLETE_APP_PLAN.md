@@ -365,3 +365,12 @@
 - New `lib/screens/sale_schemes.dart` + Definition navigation shows real authorized promotion list and non-submittable Add Scheme reference because actual required reward-product API differs from visual mock. Existing `lib/screens/parties.dart` now offers customer image-style directory and full-page Add Customer form reusing server party validation; new `lib/screens/customer_detail.dart` fetches public ULID and shows only actual response fields, no mock receivables or invoices. Test `test/catalog_reference_24_28_widget_test.dart` covers these workflows plus no unsupported client financial fields.
 - Screen 25 remains UI-only; customer opening balance/credit limit mutation and recent ledgers intentionally out of scope until verified financial workflows. Flutter analyzer/widget tests/device signoff pending; no backend/DB changes or main branch merge.
 - Next on green: five screens 29–33, only after newer reference PNGs/backend inspection. Continue exact changed file/test/handoff reporting every batch.
+
+
+### 2026-11-14 — Continuous 5-screen batch 29–33
+
+- Previous five-screen 24–28 user physical-device QA 6/6 PASS; no separate visual parity claim.
+- Verified later individual original PNGs 29 Suppliers, 30 Supplier Details, 31 Supplier Form, 32 Daily Entries Home, 33 Sales Invoice via SHA256 + actual visual inspection; rejected generic mockups not used.
+- Reused secured supplier Party API for new supplier listing/detail and existing full-page Party editor, with server data only. Added ordered Daily Entries authorized route menu and Create Sales Invoice wrapper pointing to **existing** POS SaleScreen; no new financial posting/stock logic.
+- New `test/catalog_reference_29_33_widget_test.dart` covers five screen behavior + supplier payload, updated prior customer title test. Screen 33 geometry and mock payable/ledger panels remain reference-parity gaps, not invented.
+- GitHub committed, Flutter analyzer/tests and phone approval pending. Next on clean results: batch 34–38, preserving frozen auth UI and 5-screen batch rule, QA and handoff updates.
