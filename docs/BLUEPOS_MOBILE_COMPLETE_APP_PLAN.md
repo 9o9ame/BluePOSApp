@@ -252,3 +252,10 @@
 - User's physical phone reported blank non-Home tabs. Runtime log identified `ProductsScreen.inlineCatalog` null-to-bool TypeError in old IndexedStack widget instances after hot reload, then layout exceptions. Local analyzer had only informational lint findings and 3/3 prior product-card tests passed.
 - Patched optional inlineCatalog/imageFirst widget flags to tolerate null during hot reload and added a regression widget test. **Not yet validated** locally/on phone, and independent infinite-width layout issue not ruled out.
 - Next: pull safely, focused tests and Hot Restart (capital R). Confirm all main tabs; if failure persists capture first runtime exception. No main merge, backend, authentication, posting or release changes.
+
+
+### 2026-11-14 — Navigation layout stability follow-up
+
+- New device log after last patch: 4/4 product-card tests passed, but `RenderIndexedStack` still throws `!_debugDoingThisLayout` in POS active tab after hot reload. Prior infinite-width error may be related; precise independent cause not proven.
+- Applied targeted shell finite sizing via `LayoutBuilder` + `SizedBox` + `IndexedStack(sizing: StackFit.expand)` and added a layout-focused widget test. Local execution and physical-device verification pending.
+- Next: full Flutter debug process restart after safe git pull and focused test. Halt further premium UI work until all five main tabs are stable and user supplies first error if any remains.
