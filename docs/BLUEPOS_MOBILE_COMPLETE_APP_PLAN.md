@@ -326,3 +326,10 @@
 - Future BluePOS Mobile batches must target **five screens at once** after the previous batch successfully compiles and passes focused device QA. Start with newer actual reference screens **14–18** once Screen 13's build has been revalidated.
 - Received actual Windows Flutter output: two compile errors in last Product Details work, at `product_details.dart:182` extra closing `)),` and `products.dart:260` undefined `validPublicUlid`; associated tests failed at compile. Removed extra delimiter, replaced ULID helper with local strict regex, removed unused `_price`.
 - Changes committed on `feature/daily-entries`; **testing pending on user's machine**. Do not mark Screen 13 passed until analyzer/tests/device checks complete. Preserve previous frozen screens, stable sales posting/tenant data, working tree and no merge/release.
+
+
+### 2026-11-14 — Source-file duplicate and lazy-list test blocker repairs
+
+- Latest user log after previous fix: Products source still failed parsing due to broken regex and duplicated `showDetails/build` tail; analyzer produced 309 cascading issues and Products Catalog test compilation failed. Product Details 3/4 tests passed; Edit callback test incorrectly used `ensureVisible` on unbuilt lazy ListView button.
+- Fixes committed: `lib/screens/products.dart` strict completed 26-char ULID regex and deleted duplicated tail; `test/product_details_widget_test.dart` uses `scrollUntilVisible`. Static GitHub readback verified expected structure; Flutter test execution and device recovery are **pending**.
+- Five-screen upcoming batch **14–18** remains pending until analyzer and current focused tests pass. Continue only from newer individual PNG source; avoid financial posting and frozen screen changes.
