@@ -282,3 +282,8 @@
 - Verified manifest + opened actual newer originals `bluepos_main_menu_dashboard.png` and `bluepos_more_menu_dashboard.png`.
 - Updated `lib/screens/modules.dart` to use reference-based Main Menu and More navigation while preserving authorized groups and old module directory. Added `test/approved_navigation_menus_widget_test.dart`; final analyzer, focused widget tests and device review pending.
 - Next: validate these two menus on Redmi Note 10. Then address other post-login references in sequence; do not claim pixel-level final acceptance, and do not modify pre-login frozen UI or production posting.
+
+### 2026-11-14 — Newer Menu batch 08/09 on-device functional acceptance
+
+- User marked 6/6 device QA PASS: More real tenant, Main Menu toggle, authorized rows, Definition directory, Settings/full browse, and stable tab switching. Mark the menu **functional smoke test passed**; final visual pixel-fidelity and new focused Flutter test execution remain pending.
+- Resume from later individual PNG source; next candidate Screen 10 Notifications requires actual Flutter/API contract verification before implementation. Do not return to rejected generic design pack.
