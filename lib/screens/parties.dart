@@ -10,6 +10,7 @@ Map<String, dynamic> partyPayload({
   required String type, required String code, required String name,
   required String accountTypeUlid, required bool isActive,
   String contact = '', String mobile = '', String address = '',
+  String area = '',
 }) {
   if (!const {'customer', 'vendor', 'account'}.contains(type) ||
       code.trim().isEmpty || name.trim().isEmpty ||
@@ -22,6 +23,7 @@ Map<String, dynamic> partyPayload({
     'name': name.trim(),
     'account_type_ulid': accountTypeUlid,
     'address': address.trim(),
+    'area': area.trim(),
     'is_active': isActive,
     if (type != 'account') ...{
       'contact_person': contact.trim(), 'mobile': mobile.trim(),
@@ -98,6 +100,7 @@ class _PartyDirectoryState extends State<PartyDirectory> {
     final contact = TextEditingController(text: field(record?['contact_person']));
     final mobile = TextEditingController(text: field(record?['mobile']));
     final address = TextEditingController(text: field(record?['address']));
+    final area = TextEditingController(text: field(record?['area']));
     var selected = field(record?['account_type_ulid']);
     if (!accounts.any((row) => field(row['ulid']) == selected)) selected = '';
     var active = record?['is_active'] != false;
@@ -150,6 +153,11 @@ class _PartyDirectoryState extends State<PartyDirectory> {
                     keyboardType: TextInputType.phone,
                     decoration: const InputDecoration(labelText: 'Mobile')),
                 ],
+                if (widget.type == 'customer')
+                  TextField(controller: area, maxLength: 120,
+                    key: const ValueKey('party-editor-area'),
+                    decoration: const InputDecoration(
+                      labelText: 'City / Area')),
                 TextField(controller: address, maxLines: 2,
                   decoration: const InputDecoration(labelText: 'Address')),
                 const Text('Status *',
@@ -181,7 +189,7 @@ class _PartyDirectoryState extends State<PartyDirectory> {
                         code: code.text, name: name.text,
                         accountTypeUlid: selected, isActive: active,
                         contact: contact.text, mobile: mobile.text,
-                        address: address.text);
+                        address: address.text, area: area.text);
                       if (updating) {
                         await widget.app.api.patch('/api/parties/' + ulid, payload);
                       } else {
@@ -210,7 +218,7 @@ class _PartyDirectoryState extends State<PartyDirectory> {
       }
     } finally {
       code.dispose(); name.dispose(); contact.dispose();
-      mobile.dispose(); address.dispose();
+      mobile.dispose(); address.dispose(); area.dispose();
     }
   }
 
