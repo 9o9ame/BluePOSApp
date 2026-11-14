@@ -555,6 +555,70 @@ class _ModulesScreenState extends State<ModulesScreen> {
     );
   }
 
+  /// Newer approved reference 11: Definition uses ordered navigation rows,
+  /// not the generic two-column directory. No authorization is inferred from
+  /// the screenshot; only existing permission/entitlement-checked actions show.
+  Widget _definitionHome() {
+    final scheme = Theme.of(context).colorScheme;
+    final specs = <({String group, String title, IconData icon, Color tone})>[
+      (group: 'Definition', title: 'Products',
+        icon: Icons.inventory_2_outlined, tone: scheme.primary),
+      (group: 'Definition', title: 'Customers',
+        icon: Icons.people_outline_rounded, tone: scheme.secondary),
+      (group: 'Definition', title: 'Suppliers',
+        icon: Icons.local_shipping_outlined, tone: scheme.tertiary),
+      (group: 'Definition', title: 'Categories',
+        icon: Icons.category_outlined, tone: scheme.tertiary),
+      (group: 'Definition', title: 'Subcategories',
+        icon: Icons.account_tree_outlined, tone: scheme.primary),
+      (group: 'Definition', title: 'Brands',
+        icon: Icons.sell_outlined, tone: scheme.error),
+      (group: 'Definition', title: 'Units',
+        icon: Icons.straighten_outlined, tone: scheme.primary),
+      (group: 'Definition', title: 'Sale Schemes',
+        icon: Icons.local_offer_outlined, tone: scheme.tertiary),
+      (group: 'Daily Entries', title: 'Opening Stock',
+        icon: Icons.upload_file_outlined, tone: scheme.secondary),
+      (group: 'Daily Entries', title: 'Stock Taking',
+        icon: Icons.fact_check_outlined, tone: scheme.error),
+    ];
+    return ListView(
+      key: const ValueKey('approved-definition-home'),
+      padding: EdgeInsets.all(widget.app.appearance.spacing),
+      children: [
+        Row(children: [
+          IconButton(
+            tooltip: 'Back to More',
+            onPressed: () => setState(() => activeGroup = null),
+            icon: const Icon(Icons.arrow_back_rounded)),
+          Expanded(child: Text('Definition',
+            style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+              fontWeight: FontWeight.w900))),
+        ]),
+        const SizedBox(height: 11),
+        for (final item in specs)
+          ...[
+            for (final action in groups[item.group] ?? const <ModuleAction>[])
+              if (action.title == item.title && action.visible(widget.app))
+                _menuRow(
+                  key: ValueKey('definition-${item.title}'),
+                  title: item.title, icon: item.icon, tone: item.tone,
+                  onTap: action.open),
+          ],
+        const SizedBox(height: 9),
+        TextButton.icon(
+          onPressed: () => setState(() {
+            activeGroup = 'Definition';
+            showDirectory = true;
+          }),
+          icon: const Icon(Icons.grid_view_outlined),
+          label: const Text('Browse definition modules'),
+        ),
+        const SizedBox(height: 16),
+      ],
+    );
+  }
+
   Widget _directory() {
     final query = search.text.trim().toLowerCase();
     return ListView(padding: const EdgeInsets.all(16), children: [
@@ -586,6 +650,9 @@ class _ModulesScreenState extends State<ModulesScreen> {
 
   @override
   Widget build(BuildContext context) {
+    if (activeGroup == 'Definition' && !showDirectory) {
+      return _definitionHome();
+    }
     if (showDirectory || activeGroup != null) return _directory();
     return _approvedMenu();
   }
