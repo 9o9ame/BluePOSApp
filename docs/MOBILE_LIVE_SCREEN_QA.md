@@ -158,3 +158,14 @@ After a safe, successful fast-forward pull: in Terminal 1 with `flutter run` sti
 - It depicts `Proceed to Invoice` with a sample final cart total. App intentionally retains real `Proceed to Payment` workflow and **estimated pre-tax** amounts.
 - User/device review and Flutter analysis/tests for this new batch remain **pending**; send a safe screenshot of main POS and the test output to record acceptance.
 
+
+
+## 2026-11-14 — Incident: other tabs blank after hot reload
+
+- User reports Home works but other tabs appear blank after pulling the approved image 07 main POS layout.
+- User's `flutter analyze --no-fatal-infos`: 125 **info** lint findings, no analyzer errors; `flutter test test/pos_catalog_card_widget_test.dart`: **3/3 passed** BEFORE this fix.
+- Actual device log: `type 'Null' is not a subtype of type 'bool'` at `ProductsScreen.inlineCatalog` (called from persistent `AppShell` IndexedStack), followed by secondary layout exceptions `BoxConstraints forces an infinite width`, RenderBox not laid out. This points to newly added non-nullable widget fields not initialized in old instances retained across Hot Reload; do not misdiagnose as network/API failure. Layout warnings should be reassessed after fresh restart; separate cause not proven.
+- **Fix:** `lib/screens/products.dart`: optional inlineCatalog/imageFirst flags are nullable, and all conditions use `== true`; old hot-reload instances with null fields now take non-inline default paths safely. `test/pos_catalog_card_widget_test.dart` adds an explicit legacy-null imageFirst regression. Existing route ordering/API/posting untouched.
+- **Validation pending**: Flutter not executed by assistant. On PC, pull latest on `feature/daily-entries` after `git status --short`, run `flutter analyze --no-fatal-infos` and `flutter test test/pos_catalog_card_widget_test.dart`; then press **capital R** in the active Flutter run terminal (Hot Restart) after successful pull. No need to rerun flutter create or clear session storage.
+- **Acceptance check:** Home → POS → Products → Reports → Modules, visit each; ensure no red framework exception or blank page, then inspect POS inline 2-column grid and footer. If any blank page remains after Hot Restart, collect the **first** Flutter exception after restarting and relevant stack; don't rely on repeated RenderBox follow-on lines.
+- If `git pull --ff-only` fails due to uncommitted generated files, stop and share output; never reset/clean/force.
