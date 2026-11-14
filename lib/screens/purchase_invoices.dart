@@ -19,6 +19,7 @@ class PurchaseInvoicesScreen extends StatelessWidget {
     title: 'Purchase Invoices',
     endpoint: '/api/purchases',
     dateKey: 'invoice_date',
+    referenceStyle: true,
     createPermission: 'purchases.create',
     onCreate: (ctx) async => await Navigator.push<bool>(ctx,
       MaterialPageRoute(builder: (_) =>
@@ -365,7 +366,7 @@ class _PurchaseInvoiceEditorState extends State<PurchaseInvoiceEditor> {
           icon: const Icon(Icons.refresh_rounded),
           tooltip: 'Reload server document')]),
       body: ListView(padding: const EdgeInsets.all(16), children: [
-        const SectionHeading('Purchase Invoice'),
+        SectionHeading(hasDocument ? 'Purchase Invoice Detail' : 'Create Purchase Invoice'),
         Text('Current branch: ${widget.app.branchName} · '
           'Warehouse: ${widget.app.warehouseName}',
           style: TextStyle(fontSize: 12,
@@ -406,6 +407,15 @@ class _PurchaseInvoiceEditorState extends State<PurchaseInvoiceEditor> {
                 label: const Text('Save Header')),
           ])),
           if (hasDocument) ...[
+            const SizedBox(height: 13),
+            Surface(child: Row(children: [
+              Icon(draft ? Icons.edit_note_rounded : Icons.inventory_2_outlined,
+                color: colors.primary),
+              const SizedBox(width: 9),
+              Expanded(child: Text(draft ? 'Draft — not posted' :
+                'Server status: ${field(document?['status'])}',
+                style: const TextStyle(fontWeight: FontWeight.w800))),
+            ])),
             const SizedBox(height: 13),
             Row(children: [
               Expanded(child: SectionHeading('Purchase lines (${serverLines.length})')),
