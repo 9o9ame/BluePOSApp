@@ -27,6 +27,9 @@ void main() {
     expect(find.text('Recent invoices'), findsNothing);
     expect(find.text('Products'), findsNothing);
     expect(find.text('Business at a glance'), findsNothing);
+    expect(find.text('Test tenant'), findsOneWidget);
+    expect(find.text('Test branch • Test warehouse'), findsOneWidget);
+    expect(find.text("Today's invoices"), findsNothing);
     expect(tester.takeException(), isNull);
   });
 
