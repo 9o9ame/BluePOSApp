@@ -168,3 +168,13 @@ python3 -m unittest discover -s test -p 'test_mobile_mockup_manifest.py' -v
 - **Design scope index updated:** `docs/design/mobile-92/SCREEN_IMPLEMENTATION_INDEX.md`. Screen 03 marked archival/NOT REQUIRED, screen 07 corrected to POS Sales. Pre-login code files **were not edited**.
 - **Validation:** GitHub commits confirmed; Flutter analyzer/widget execution and side-by-side Android visual QA are **pending** because no Flutter/Dart executable is installed in the current environment. No APK build, release, web/backend/DB changes or branch merge.
 - **Next:** validate Dashboard using `flutter analyze --no-fatal-infos` and `flutter test test/dashboard_permissions_widget_test.dart` in a Flutter environment; then compare rendered Dashboard to image 06, iterate on approved typography/spacing, and proceed with POS (design 07). Do not add a tenant selection route or redesign pre-login.
+
+
+### 2026-11-14 — Mobile live domain change (connectivity fix)
+
+- User confirmed production BluePOS domain is now **`https://bluepos.pk`**. Previous mobile URL `https://bluepos.bluemarketing.com.pk` in `lib/core/api.dart` was stale, causing the generic `SocketException` => `Internet connection is unavailable.` message.
+- Updated the single central API origin for all API requests, CSRF, images, Origin/Referer to `https://bluepos.pk`.
+- Updated secure session cookie key to `bluepos_pk_mobile_auth_cookies_v1` so expired/retired-host cookies will not be sent to the new domain; next sign-in obtains a fresh authorized session, preserving MFA and device approval.
+- Updated `README.md` and added `test/api_origin_test.dart` to check canonical HTTPS origin and auth/CSRF path resolution.
+- No changes to pre-login screen designs, web/backend, financial posting, Git branches or APK publishing.
+- **Validation still pending:** the public connectivity probe could not reach `bluepos.pk` from this tool environment; user should run a safe unauthenticated `Invoke-WebRequest` GET and `flutter test test/api_origin_test.dart` plus `flutter run -d d2b1f972` on their Windows machine. Distinguish domain connectivity failures from backend/API auth responses. Never ask for passwords, cookies or tokens in logs.
