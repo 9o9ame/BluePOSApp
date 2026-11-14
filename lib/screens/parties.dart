@@ -202,7 +202,7 @@ class _PartyDirectoryState extends State<PartyDirectory> {
               ],
             )),
           )),
-        )));
+        ))));
       if (saved == true && mounted) {
         await refresh();
         if (mounted) ScaffoldMessenger.of(context).showSnackBar(
