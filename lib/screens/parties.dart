@@ -111,8 +111,8 @@ class _PartyDirectoryState extends State<PartyDirectory> {
       final saved = await Navigator.of(context).push<bool>(
         MaterialPageRoute(builder: (_) => StatefulBuilder(
           builder: (sheet, update) => Scaffold(
-            appBar: AppBar(title: Text(updating ? 'Edit ${widget.type}' :
-              'Add ${widget.type}')),
+            appBar: AppBar(title: Text(updating ? 'Edit $title' :
+              'Add ${widget.type == 'vendor' ? 'Supplier' : widget.type == 'customer' ? 'Customer' : 'Account'}')),
             body: SafeArea(child: Padding(
               padding: EdgeInsets.fromLTRB(16, 12, 16,
                 MediaQuery.viewInsetsOf(sheet).bottom + 22),
@@ -124,7 +124,7 @@ class _PartyDirectoryState extends State<PartyDirectory> {
                 Center(child: Icon(Icons.person_add_alt_1_rounded,
                   size: 54, color: Theme.of(sheet).colorScheme.primary)),
                 const SizedBox(height: 14),
-                Text(updating ? 'Edit ${widget.type}' : 'Add ${widget.type}',
+                Text(updating ? 'Edit $title' : 'Add ${widget.type == 'vendor' ? 'Supplier' : widget.type == 'customer' ? 'Customer' : 'Account'}',
                   style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w900)),
                 const SizedBox(height: 12),
                 TextField(controller: code, maxLength: 64,
@@ -268,7 +268,7 @@ class _PartyDirectoryState extends State<PartyDirectory> {
         key: const ValueKey('party-add'),
         onPressed: () => edit(),
         icon: const Icon(Icons.person_add_alt_1_rounded),
-        label: Text(isCustomer ? 'Add Customer' : 'Add $title')) : null,
+        label: Text(isCustomer ? 'Add Customer' : isSupplier ? 'Add Supplier' : 'Add $title')) : null,
       body: RefreshIndicator(onRefresh: refresh, child: ListView(
         key: const ValueKey('party-directory-list'),
         physics: const AlwaysScrollableScrollPhysics(),
