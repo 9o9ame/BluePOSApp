@@ -137,6 +137,7 @@ class AddPriceListReferenceScreen extends StatelessWidget {
               child: const Text('Cancel'))),
             const SizedBox(width: 10),
             const Expanded(child: FilledButton(
+              key: ValueKey('price-list-save-disabled'),
               onPressed: null,
               child: Text('Save Price List'))),
           ]),
