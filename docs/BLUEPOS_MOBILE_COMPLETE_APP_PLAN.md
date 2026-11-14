@@ -387,3 +387,10 @@
 
 - User confirmed all six mobile smoke checks for 34–38 PASS. The next mobile five-screen batch is 39–43, still **not started**.
 - User's previously stated priority is to fix pagination button placement on a separate Waqas ERP System web app (localhost:8000, extra charges and voucher registers) before progressing mobile design. Connected repositories do not expose Waqas ERP source under searched terms. No fix attempted or claimed without code access; hold unrelated BluePOS source changes.
+
+
+### 2026-11-14 — Accidental web-message correction and five-screen 39–43 continuation
+
+- User said Waqas ERP pagination screenshots were accidentally pasted from another chat; they are **not** part of BluePOS Mobile tasks. Earlier Waqas ERP hold is void. Screens 34–38 had 6/6 user mobile PASS.
+- Verified actual newer original individual PNGs 39 Sales Return Entry, 40 Purchase Returns, 41 Purchase Return Entry, 42 Purchase Return Details, 43 Expense Vouchers against SHA256 manifest and visually inspected. Implemented return list/form/detail heading and server-driven cards in existing secure return workflow; added expense list icons/search/status filter for first 100 loaded records, preserving original expense create API. No duplicated return posting, fake discount/refund/stock/accounting logic.
+- Added five offline widget checks in `test/catalog_reference_39_43_widget_test.dart`. GitHub commits/source structural checks complete; analyzer/tests/device acceptance pending. Next on PASS: newer five originals 44–48, with permanent QA/handoff updates.
