@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../core/api.dart';
 import '../core/session.dart';
 import '../widgets/common.dart';
+import 'customer_detail.dart';
 
 /// Exact party endpoint contract: server owns tenant context and linked accounts.
 Map<String, dynamic> partyPayload({
@@ -102,23 +103,33 @@ class _PartyDirectoryState extends State<PartyDirectory> {
     var saving = false;
     String? message;
     try {
-      final saved = await showModalBottomSheet<bool>(
-        context: context, showDragHandle: true, isScrollControlled: true,
-        useSafeArea: true,
-        builder: (sheet) => StatefulBuilder(
-          builder: (sheet, update) => Padding(
-            padding: EdgeInsets.fromLTRB(18, 12, 18,
-              MediaQuery.viewInsetsOf(sheet).bottom + 22),
-            child: SingleChildScrollView(child: Column(
+      final saved = await Navigator.of(context).push<bool>(
+        MaterialPageRoute(builder: (_) => StatefulBuilder(
+          builder: (sheet, update) => Scaffold(
+            appBar: AppBar(title: Text(updating ? 'Edit ${widget.type}' :
+              'Add ${widget.type}')),
+            body: SafeArea(child: Padding(
+              padding: EdgeInsets.fromLTRB(16, 12, 16,
+                MediaQuery.viewInsetsOf(sheet).bottom + 22),
+              child: SingleChildScrollView(child: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Text((updating ? 'Edit ' : 'New ') + widget.type,
+                const SizedBox(height: 12),
+                Center(child: Icon(Icons.person_add_alt_1_rounded,
+                  size: 54, color: Theme.of(sheet).colorScheme.primary)),
+                const SizedBox(height: 14),
+                Text(updating ? 'Edit ${widget.type}' : 'Add ${widget.type}',
                   style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w900)),
                 const SizedBox(height: 12),
                 TextField(controller: code, maxLength: 64,
+                  key: const ValueKey('party-editor-code'),
                   decoration: const InputDecoration(labelText: 'Code *')),
+                Text('The customer code is required by the BluePOS API.',
+                  style: TextStyle(fontSize: 11,
+                    color: Theme.of(sheet).colorScheme.onSurfaceVariant)),
                 TextField(controller: name, maxLength: 180,
+                  key: const ValueKey('party-editor-name'),
                   decoration: const InputDecoration(labelText: 'Name *')),
                 DropdownButtonFormField<String>(
                   isExpanded: true,
@@ -140,15 +151,21 @@ class _PartyDirectoryState extends State<PartyDirectory> {
                 ],
                 TextField(controller: address, maxLines: 2,
                   decoration: const InputDecoration(labelText: 'Address')),
-                SwitchListTile.adaptive(
-                  contentPadding: EdgeInsets.zero, value: active,
-                  title: const Text('Active'),
-                  onChanged: saving ? null : (value) =>
-                    update(() => active = value)),
+                const Text('Status *',
+                  style: TextStyle(fontWeight: FontWeight.w800)),
+                SegmentedButton<bool>(
+                  segments: const [
+                    ButtonSegment(value: true, label: Text('Active')),
+                    ButtonSegment(value: false, label: Text('Inactive')),
+                  ],
+                  selected: {active},
+                  onSelectionChanged: saving ? null :
+                    (values) => update(() => active = values.first)),
                 if (message != null) Text(message!, style: TextStyle(
                   color: Theme.of(sheet).colorScheme.error)),
                 const SizedBox(height: 10),
                 FilledButton.icon(
+                  key: const ValueKey('party-editor-save'),
                   icon: const Icon(Icons.check_rounded),
                   label: Text(saving ? 'Saving…' : updating ? 'Save changes' : 'Create'),
                   onPressed: saving ? null : () async {
@@ -176,10 +193,15 @@ class _PartyDirectoryState extends State<PartyDirectory> {
                       if (sheet.mounted) update(() => saving = false);
                     }
                   }),
+                const SizedBox(height: 10),
+                OutlinedButton(
+                  onPressed: saving ? null : () => Navigator.pop(sheet, false),
+                  child: const Text('Cancel')),
+                const SizedBox(height: 12),
               ],
             )),
           )),
-      );
+        )));
       if (saved == true && mounted) {
         await refresh();
         if (mounted) ScaffoldMessenger.of(context).showSnackBar(
