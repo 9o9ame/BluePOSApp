@@ -286,3 +286,15 @@ python3 -m unittest discover -s test -p 'test_mobile_mockup_manifest.py' -v
 - **Device verification pending:** safe FF pull on `feature/daily-entries`, `flutter analyze --no-fatal-infos`, `flutter test "C:\Projects\BluePOSApp\test\notifications_screen_widget_test.dart"`; `R` Hot Restart; check bell, filters, owner-only/device alerts, unread read callback, errors, and all-tab stability.
 - **Known parity gaps:** Image's purchase/low-stock/sales/backup cards are illustrative and lack verified notification backend; bottom navigation center Scanner and global art not yet matched; do not fake.
 - **Next batch on PASS:** Inspect actual newer Screen 11 Definition Home image, current permission-scoped module directory and API routes; implement smallest matching UI diff, tests, QA and updated handoff in same response without asking for a separate go-ahead. Preserve frozen login, stable tabs, live data and authorization.
+
+
+### 2026-11-14 — Screen 10 confirmed PASS; newer Screen 11 Definition Home implemented
+
+- User reported **all six** Screen 10 Notifications device checks PASS: bell, opening, filter tabs, real/empty/owner-only data state, refresh/back, and five-tab stability. Do not confuse with automated widget tests or screenshot parity.
+- User workflow requirement: **immediately complete next batch on previous batch PASS**, and update QA/handoff, not merely acknowledge.
+- Inspected actual newer `/mnt/data/bluepos_definition_modules_dashboard.png` reference, mapping Screen 11. Ordered vertical white rounded rows: Products, Customers, Suppliers, Categories, Subcategories, Brands, Units, Price Lists, Barcode Printing, Sale Schemes, Opening Stock, Stock Taking. Not the rejected generic 92-pack.
+- UPDATED `lib/screens/modules.dart`: dedicated `_definitionHome` list accessed via More/Main Menu Definition; uses existing `groups` and `ModuleAction.visible` permission/entitlement checks plus existing action.open callbacks. Image-order supported rows, Back to More and browse old directory. No fake business data or parallel authorization.
+- **Current known gap:** Price Lists and Barcode Printing do not have verified direct `ModuleAction` in existing groups, so no fabricated route has been added. Nav bar artwork and center scanner still differ from reference; do not claim full pixel parity.
+- NEW `test/definition_home_widget_test.dart`: visibility/order, unauthorized omission, navigation and back. **Testing pending user Flutter CLI**; tests not run in assistant environment.
+- USER QA: safely pull branch `feature/daily-entries`; run `flutter analyze --no-fatal-infos` and `flutter test "C:\Projects\BluePOSApp\test\definition_home_widget_test.dart"`; press `R` in still-running Flutter terminal; device test Definition, authorized rows/routes, back/browse, all-tab stability. Do not issue Save/Post on production.
+- NEXT on pass: inspect newer Screen 12 `bluepos_products_catalog.png` and existing Flutter Products data contracts and image; smallest visual alignment, focused tests and handoff. No branch merge, no release/APK, no frozen auth changes.
