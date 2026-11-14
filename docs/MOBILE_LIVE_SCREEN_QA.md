@@ -306,3 +306,38 @@ After successful pull and tests, press `R` in existing Flutter-run terminal for 
 6. Verify Home/POS/Products/Reports/Modules and Notifications remain stable without blanks/errors. **Never Save/Post** test transactions on live tenant for UI QA.
 
 **Status:** Code/tests/doc commits confirmed; new Screen 11 on-device acceptance and Flutter analyzer/test execution **pending**. No backend/database edit, no APK publishing, no branch switch/merge. Bottom navigation and image artwork are not yet pixel-identical.
+
+
+## 2026-11-14 — Screen 11 6/6 device PASS; newer Screen 12 Products Catalog batch
+
+**Previous batch confirmed:** User reported all six Screen 11 Definition Home checks PASS: More → Definition, ordered authorized vertical rows, correct existing route navigation, unauthorized hidden, Back/Browse works, and Home/POS/Products/Reports/Modules/Notifications remain stable. Functional device verification, not yet exact pixel visual approval or final widget-test output.
+
+**Newer source image:** inspected `/mnt/data/bluepos_products_catalog.png` (individual post-rejection Screen 12). Reference shows Products title, search + funnel button, large horizontal image-led rows with product name, SKU, stock pill and right-aligned rupee price, and floating Add Product action. Coca-Cola/Lays/etc are *illustrative*, not to be hardcoded.
+
+**Implementation in GitHub:**
+- UPDATED `lib/screens/products.dart`: `CatalogProductRow` displays actual authorized product name/image, SKU, server `sales_lookup.in_stock` and active retail price, or explicit unavailable labels. Standalone catalog layout adds separate filter button which toggles existing API-backed category chips; existing name/SKU/barcode search, pagination and refresh remain. Floating Add Product action only appears for `products.create`; edit only through previously authorized edit route. All sizes/themes use current Flutter appearance.
+- UPDATED `lib/screens/shell.dart`: pass explicit `catalogHome: true` for bottom Products tab and refresh path. Prior shell Products supplied `onAdd`; catalogHome prevents it from being mistaken for POS picker. Product tapping now opens details in Products tab; POS picker/inline grid still adds to sale via existing callback. No payment/stock posting behavior changed.
+- NEW `test/products_catalog_reference_widget_test.dart`: horizontal row values/callback and missing stock/price no-fake regressions. **Not yet run** on Flutter user's PC.
+
+**Commands:**
+```powershell
+Set-Location "C:\Projects\BluePOSApp"
+git status --short
+git pull --ff-only origin feature/daily-entries
+flutter analyze --no-fatal-infos
+flutter test "C:\Projects\BluePOSApp\test\products_catalog_reference_widget_test.dart"
+flutter test "C:\Projects\BluePOSApp\test\pos_catalog_card_widget_test.dart"
+```
+On successful pull + tests, in active `flutter run` terminal press capital `R` for new catalog state fields; preserve local Android files and `analysis_options.yaml`.
+
+**Phone QA:**
+1. Bottom **Products** tab: Products heading, search box and filter icon visible. Real product list appears as horizontal image/SKU/stock/price rows.
+2. Tap product row → authorized details open (not silently add to POS). Check missing price/stock show unavailable labels.
+3. Filter icon reveals API-backed categories; switching categories/search updates rows. Pull-to-refresh and Load more (if available) work.
+4. Authorized `products.create` users see Add Product floating action → existing ProductEditor opens; unauthorized users must **not** see this action. Do not submit test product changes against real tenant just for design review.
+5. POS tab still has its 2-column product-add catalog; tapping there still adds to cart; do not Save Invoice.
+6. Check long item names, portrait, light/dark theme, home/other tabs/Notifications stable, and no Flutter layout errors.
+
+**Known gaps:** Screenshot shows bespoke splash-style branding/wave decoration; shared shell branding/nav and Theme & Appearance remain authoritative until a separately scoped navigation/artwork alignment. Screenshot product photo, SKU, stock and rupee prices are mock examples; actual data may differ. Screen 12 not claimed pixel-perfect yet.
+
+**Status:** commits verified; targeted analyzer, widget tests, physical-device acceptance pending.
