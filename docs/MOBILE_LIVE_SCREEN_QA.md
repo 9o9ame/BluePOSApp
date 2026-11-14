@@ -568,3 +568,49 @@ If any error or widget test failure occurs, stop next screen implementation and 
 **Known gaps:** Screen 25 editing unsupported until full verified reward-product backend flow; Screen 27 financial opening balance/limit and customer group are not provided by simple party payload; Screen 28 receivable/recent ledger requires separate controlled read-only integration. Do not claim perfect screenshot parity or five fully functional screens; 24,26–28 are implemented UI/API with caveats and 25 is preview-only.
 
 **Status:** GitHub commits confirmed, Flutter analyze/focused tests and device QA for 24–28 **pending**. No backend/DB modifications, branch merge, or release APK.
+
+
+## 2026-11-14 — User mobile PASS 24–28; newer five-screen batch 29–33
+
+**Accepted prior batch:** User explicitly marked **all six** mobile checks PASS for Screens 24–28: real Sale Schemes/search/filter, disabled Add Scheme preview, actual Customers list/filter, Add Customer full-page Cancel, server-backed Customer Detail/authorized Edit and stability of all main tabs. This is device functional confirmation; no new CLI analyzer log or pixel-perfect sign-off implied.
+
+**Authoritative design references:** later individually generated original PNGs, **not rejected earlier mockups**; SHA256 verified against `BluePOS_Mobile_Design_Approval_Pack/SCREEN_MANIFEST.csv` and visually reviewed:
+- 29 `bluepos_supplier_directory.png` — Suppliers
+- 30 `bluepos_supplier_detail_dashboard.png` — Supplier Details
+- 31 `bluepos_supplier_form.png` — Supplier Form
+- 32 `bluepos_daily_entries_dashboard.png` — Daily Entries Home
+- 33 `bluepos_sales_invoice_dashboard.png` — Sales Invoice
+
+**Implementation:**
+- **29 Suppliers** — `lib/screens/parties.dart`: existing tenant-authorized `GET /api/parties?type=vendor` directory now has image-style rows showing actual supplier code/mobile/area and search + Active filter; Add Supplier action follows existing permission gates. No fake payables.
+- **30 Supplier Details** — NEW `lib/screens/supplier_detail.dart`: full-page detail loaded with public ULID through `GET /api/parties/{ulid}?type=vendor`; displays server supplier name, code, status, mobile, address, area, contact, email, account type; Edit permitted only by existing supplier edit permission. **No manufactured Payable Balance/Recent Purchases or live ledger movement.**
+- **31 Supplier Form** — existing shared `PartyDirectory.edit` now renders full-page `Add Supplier` / Edit with required code, name and real `account_type_ulid` selector, optional mobile/contact, City/Area, address and Active/Inactive. Uses existing `partyPayload(type: vendor)` and server POST/PATCH; no opening-balance write, no dummy group, no fake credit-days. Production Save is NOT part of design QA.
+- **32 Daily Entries Home** — `lib/screens/modules.dart` adds approved vertical launcher when More → Daily Entries, mapping ONLY to existing authorized `ModuleAction` routes: Sales Invoices history, Purchase Invoices, Sales/Purchase Returns, Vouchers (covers receipts/payments/journal), Expenses and Create Sales Invoice. Browse-all directory retained. Unsupported Stock Transfer/Delivery Challan mockup entries are NOT fabricated.
+- **33 Sales Invoice** — NEW `lib/screens/sales_invoice_entry.dart`: Create Sales Invoice opens existing `SaleScreen` inside Scaffold with title. Reuses current server-authoritative POS payment/invoice/stock logic; no parallel posting, calculations or fake invoice numbers. **Not pixel-identical** to Screen 33 invoice line editor; this is functional existing workflow routing, not a new financial implementation.
+- **Regression tests:** NEW `test/catalog_reference_29_33_widget_test.dart` (five widget tests + supplier payload), plus UPDATED `test/catalog_reference_24_28_widget_test.dart` for title case after shared Party form polish.
+
+**Required focused PC validation — NOT RUN by assistant (GitHub source/bracket readback only):**
+```powershell
+Set-Location "C:\Projects\BluePOSApp"
+git status --short
+git pull --ff-only origin feature/daily-entries
+flutter analyze --no-fatal-infos
+flutter test "C:\Projects\BluePOSApp\test\catalog_reference_29_33_widget_test.dart"
+flutter test "C:\Projects\BluePOSApp\test\catalog_reference_24_28_widget_test.dart"
+flutter test "C:\Projects\BluePOSApp\test\approved_navigation_menus_widget_test.dart"
+```
+If any failure, stop next batch and send FIRST actual analyzer/test exception; do not modify frozen login or reset local generated Android files.
+
+**Phone QA (after successful tests and Hot Restart capital R):**
+1. More → Definition → Suppliers: real supplier records, code/mobile/area, search/Active filter, permitted Add Supplier action.
+2. Tap Supplier → Supplier Detail loads authorized record. Check actual contact/address/account type, no mock payables/recent purchases, permitted Edit/back.
+3. Add Supplier: dedicated form with Code/Name/Account Type, optional mobile/city/address/status and Cancel; inspect only, **never Save live supplier** for design checking.
+4. More → Daily Entries: reference-style ordered rows open actual authorized Sales Invoices, Purchase Invoices, Returns, Vouchers, Expenses; Browse all works. No unauthorized options appear.
+5. Create Sales Invoice opens existing POS editor with product search/cart/payment flow. Do **not** press Save/Post invoice, since it writes real financial/stock records.
+6. Confirm all previous 5-tab screens/notifications remain stable in light/dark and narrow Redmi Note 10.
+
+**Status:** GitHub commits/source-structure verification complete. Actual Flutter analyzer/tests and new physical-device acceptance **PENDING**. No web/backend/DB modifications, no APK/release, no branch change/merge.
+
+**Known design parity gap:** Supplier contact artwork/illustrations and Live Payable/ledger panels lack verified customer-authorized summary integration. Screen 33's standalone invoice form geometry does not yet match approved PNG: existing safe POS flow reused intentionally. No financial domain refactor without SOL-level backend/API/security/testing work.
+
+**Next on PASS:** inspect newer individual **Screens 34–38** PNGs, current mobile modules and verified backend APIs before five-screen batch; update handoff and QA in same turn.
