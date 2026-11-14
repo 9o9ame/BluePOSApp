@@ -259,3 +259,11 @@
 - New device log after last patch: 4/4 product-card tests passed, but `RenderIndexedStack` still throws `!_debugDoingThisLayout` in POS active tab after hot reload. Prior infinite-width error may be related; precise independent cause not proven.
 - Applied targeted shell finite sizing via `LayoutBuilder` + `SizedBox` + `IndexedStack(sizing: StackFit.expand)` and added a layout-focused widget test. Local execution and physical-device verification pending.
 - Next: full Flutter debug process restart after safe git pull and focused test. Halt further premium UI work until all five main tabs are stable and user supplies first error if any remains.
+
+
+### 2026-11-14 — POS footer crash actual root cause
+
+- Full user device log identifies `BoxConstraints forces an infinite width` from the POS footer `FilledButton` as the **first** Flutter exception, leading to RenderIndexedStack and all-tab blanking.
+- Global AppAppearance FilledButton and ElevatedButton themes had minimumSize `Size.fromHeight(48/52)` (infinite width); replaced with finite `Size(0,48)` and `Size(0,52)` without changing button minimum heights or parent-directed full-width behavior.
+- Corrected three accidental `const ListView` usages that broke the newly added navigation test, and added theme-specific Row button regression test. New tests and phone recovery **pending execution**, not asserted fixed.
+- Next priority: verify Home/POS/Products/Reports/Modules after safe pull + focused widget tests + full fresh Flutter run before any more approved image-based design work.
