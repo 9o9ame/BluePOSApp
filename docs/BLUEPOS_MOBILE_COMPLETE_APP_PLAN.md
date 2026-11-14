@@ -287,3 +287,11 @@
 
 - User marked 6/6 device QA PASS: More real tenant, Main Menu toggle, authorized rows, Definition directory, Settings/full browse, and stable tab switching. Mark the menu **functional smoke test passed**; final visual pixel-fidelity and new focused Flutter test execution remain pending.
 - Resume from later individual PNG source; next candidate Screen 10 Notifications requires actual Flutter/API contract verification before implementation. Do not return to rejected generic design pack.
+
+
+### 2026-11-14 — Next batch on PASS: Screen 10 Notifications
+
+- Prior Screens 08–09: user provided 6/6 functional device PASS. User explicitly wants the **next batch implemented immediately whenever a previous batch passes**, without stopping at status-only responses.
+- Verified newer individual reference `bluepos_notifications_dashboard.png` and backend owner-only notification access/read contracts. Implemented `lib/screens/notifications.dart`, app shell bell entry and four focused `test/notifications_screen_widget_test.dart` cases.
+- No fake mockup notifications; real supported scope is tenant-owner device access. Activity/other illustrated types have explicit unsupported state. Pending Flutter analyzer, widget tests, physical device visual/permission checks.
+- Next approved PNG candidate: Screen 11 Definition Home; inspect real image and module/action contract before changes. No frozen pre-login changes, finance posting or branch merges.
