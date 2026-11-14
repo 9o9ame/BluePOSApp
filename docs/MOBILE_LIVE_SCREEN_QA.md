@@ -417,3 +417,43 @@ flutter test "C:\Projects\BluePOSApp\test\pos_catalog_card_widget_test.dart"
 ```
 - On green focused tests, press **capital R** in running Flutter terminal and check Products → details → Edit (do not save), POS add-to-cart, other tabs and no blank screen. If errors persist, send only first error and failing test block.
 - Future development batch size agreed: **five screens per batch**. Screens 14–18 are **planned only**, not implemented; do not expand before this build is stable.
+
+
+## 2026-11-14 — Five-screen implementation batch 14–18 (PC validation/device pending)
+
+**Gate cleared from user-provided Windows build:** `git pull --ff-only` successful to previous checkpoint; `flutter analyze --no-fatal-infos` reported **127 informational lints, zero errors or warnings**, and focused tests reported **Product Detail 4/4 PASS, Products Catalog 2/2 PASS, POS Catalog Card 4/4 PASS**. Total 10/10 passed. Physical device is temporarily unavailable: user will test these five new screens **together later**.
+
+**Newer design sources, visually inspected and SHA256 matched to SCREEN_MANIFEST.csv (not old rejected pack):**
+- 14 Categories — `bluepos_category_management_screen.png`
+- 15 Add Category — `bluepos_add_category_form.png`
+- 16 Subcategories — `clean_bluepos_subcategories_screen.png`
+- 17 Add Subcategory — `bluepos_add_subcategory_form.png`
+- 18 Brands — `premium_bluepos_brands_directory.png`
+
+**Implemented on `feature/daily-entries`:** `lib/screens/catalog_master.dart` now renders three themed, search/filter-driven vertical master lists (Categories, Subcategories with real parent category label, Brands) and separate full-screen Add/Edit Category and Add/Edit Subcategory forms instead of the old bottom sheet. Forms preserve existing permission-based create/edit APIs, server category selection, name, description and active state; any edit still uses the public ULID and existing PATCH endpoint. All changes reuse the same catalog master implementation, with no parallel service or backend/DB edits. The code-generator fields in the original images are represented by **read-only 'Automatically generated'** because backend controllers call `GenerateCategoryCodeAction`/`GenerateCatalogMasterCodeAction`; client must not submit code. The design image's icon/color chips are present as theme-based decoration only and are **not persisted** (no verified image/icon contract); branded example product counts are **not fabricated**.
+
+**Focused test added:** `test/catalog_master_reference_batch_widget_test.dart` includes tests for each of five screens, RBAC visibility, API-derived category/brand/subcategory fields, form code read-only and parent selection, and payload omitting server-generated code. **New tests NOT EXECUTED by assistant**; local Flutter CLI is unavailable. Do not report batch as tested or phone-approved.
+
+**Windows PC validation while phone is unavailable:**
+```powershell
+Set-Location "C:\Projects\BluePOSApp"
+git status --short
+git pull --ff-only origin feature/daily-entries
+flutter analyze --no-fatal-infos
+flutter test "C:\Projects\BluePOSApp\test\catalog_master_reference_batch_widget_test.dart"
+flutter test "C:\Projects\BluePOSApp\test\approved_navigation_menus_widget_test.dart"
+flutter test "C:\Projects\BluePOSApp\test\definition_home_widget_test.dart"
+```
+If a command fails, **STOP before continuing new batches** and paste the first meaningful error; don't reset/clean local `analysis_options.yaml` or generated Android files.
+
+**Combined future phone checklist — do not save to real tenant:**
+1. More → Definition → **Categories**: branded heading, search, funnel filter, rounded category rows from real tenant data, permitted **Add Category** action.
+2. **Add Category** opens a dedicated full-page form: name, read-only generated code, optional description, Active/Inactive, Cancel and Save Category. Inspect only; don't submit.
+3. **Subcategories** shows real subcategory names, actual server parent category labels, search/filter; **Add Subcategory** opens dedicated page with required parent Category dropdown fetched from server. Inspect only.
+4. **Brands** displays actual name and generated code, search/filter, permitted Add Brand action (pre-existing form workflow). No fake product totals; do not create test records on production.
+5. Verify unauthorized users cannot see Add/Edit controls; empty/loading/error states, long names, dark/light, narrow Redmi Note 10 layout; back navigation works across all five screens.
+6. Home, POS grid, Products Catalog, Product Detail, Reports, Modules, Notifications remain stable; no blank tabs. Never Save Invoice, Post Stock or submit live category changes merely for visual QA.
+
+**Visual gaps tracked:** exact illustration artwork/gradient footer waves and selectable persisted icon/color palettes from the PNGs are not reproduced because shared Theme & Appearance and actual backend contract take precedence. Final pixel-level comparison awaits phone screenshots. This is an implementation batch, **not full visual acceptance**.
+
+**Next handoff:** after PC tests and later device QA PASS, proceed with next five newer images **19–23** as one batch; inspect actual manifest/images and live API contract first, never reuse rejected generic set.
