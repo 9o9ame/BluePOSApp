@@ -8,6 +8,66 @@ import '../widgets/product_thumb.dart';
 import 'scanner.dart';
 import 'product_editor.dart';
 
+/// Product card for the authorized POS selection catalog.
+/// Prices and stock labels are read from the product lookup response only.
+class PosCatalogProductCard extends StatelessWidget {
+  const PosCatalogProductCard({
+    super.key,
+    required this.product,
+    required this.api,
+    required this.currency,
+    required this.onTap,
+  });
+
+  final Map<String, dynamic> product;
+  final BlueposApi api;
+  final String currency;
+  final VoidCallback? onTap;
+
+  String? get retailPrice {
+    for (final price in recordsOf(product['prices'])) {
+      if (price['price_type'] == 'retail' && price['is_active'] != false) {
+        return field(price['amount']);
+      }
+    }
+    return null;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final stock = objectOf(product['sales_lookup'])['in_stock'];
+    return InkWell(
+      key: ValueKey('pos-product-${field(product['ulid'])}'),
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(16),
+      child: Surface(padding: const EdgeInsets.all(11), child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Center(child: ProductThumb(
+            api: api, imageUrl: field(product['image_url']), size: 66)),
+          const SizedBox(height: 9),
+          Text(field(product['name'], 'Product'), maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w800)),
+          const SizedBox(height: 5),
+          Text(retailPrice == null ? 'Price unavailable'
+              : money(retailPrice, currency),
+            maxLines: 1, overflow: TextOverflow.ellipsis,
+            style: TextStyle(fontSize: 12, fontWeight: FontWeight.w900,
+              color: scheme.primary)),
+          const Spacer(),
+          Row(children: [
+            Expanded(child: Text(stock == null ? 'Stock not shown'
+                : 'Stock: ${field(stock)}', maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(color: scheme.onSurfaceVariant, fontSize: 10))),
+            Icon(Icons.add_circle_rounded, size: 21, color: scheme.primary),
+          ]),
+        ])),
+    );
+  }
+}
+
 class ProductsScreen extends StatefulWidget {
   const ProductsScreen({super.key, required this.app, this.onAdd});
   final AppController app;
@@ -183,6 +243,22 @@ class _ProductsScreenState extends State<ProductsScreen> {
       if (error != null) FailureState(message: error!, retry: load)
       else if (!busy && items.isEmpty) const EmptyState(title: 'No products found',
         subtitle: 'Try a product name, barcode or another category.')
+      else if (widget.onAdd != null) LayoutBuilder(builder: (context, constraints) {
+        final columns = constraints.maxWidth < 330 ? 2 : 3;
+        return GridView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          itemCount: items.length,
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: columns, crossAxisSpacing: 9, mainAxisSpacing: 9,
+            mainAxisExtent: 194),
+          itemBuilder: (context, index) {
+            final p = items[index];
+            return PosCatalogProductCard(
+              product: p, api: app.api, currency: app.currency,
+              onTap: () => widget.onAdd!(p));
+          });
+      })
       else ...items.map((p) => Padding(padding: const EdgeInsets.only(bottom: 9),
         child: InkWell(onTap: () => widget.onAdd != null ? widget.onAdd!(p) : showDetails(p),
           child: Surface(padding: const EdgeInsets.all(10), child: Row(children: [
