@@ -117,3 +117,44 @@ flutter test "C:\Projects\BluePOSApp\test\pos_product_entry_widget_test.dart"
 If pulling updates while `flutter run` is active, first check `git status --short` and use `git pull --ff-only origin feature/daily-entries` in a second PowerShell terminal; then press `r` in the running Flutter terminal. Restart only if necessary. Native build/config unchanged.
 
 **Validation status:** New grid and test code committed via GitHub; Flutter tests/analyzer and device visual checks for this batch **not executed in assistant environment**. Main POS page inline grid remains future work, not yet implemented.
+
+
+## 2026-11-14 — Approved image 07 compared; main POS inline catalog batch
+
+**Verified design source:** actual `BluePOS_Mobile_92_Screen_Reference_Pack.zip` image `07_Premium_Home_Dashboard.png`. Despite the filename, that image depicts **POS (Sales)**: top branded header, integrated barcode/search field, horizontal category chips, two-column image-led product cards, item prices/stock, docked cart estimate/checkout, and Home/POS/central Scan/Reports/More navigation. The image is a *reference*, not an API or source of fake Coca-Cola/Lays/Nestlé data.
+
+**User feedback:** Previous POS popup/grid tests were all reported PASS. The earlier POS entry six checks were also 6/6 PASS. Both are **user-reported functional checks**, not screenshot-based pixel parity acceptance.
+
+**This batch implemented:**
+- `lib/screens/products.dart`: `ProductsScreen.inlineCatalog` reuses the *same existing* authorized product search, category chips, server-side paging and actual image fetch directly within the main POS; inline catalog has a two-column, larger image-first card layout. Normal Products tab retains its original list; modal selection grid remains accessible where previously used. No duplicate endpoint/service.
+- `lib/screens/sale.dart`: main POS now embeds that catalog with live search, scan and categories, then price-mode/customer controls and existing cart lines. A docked estimate/cart footer holds `Proceed to Payment`, without touching payment posting. The amount is explicitly **estimate before tax**, not final payable.
+- `test/pos_catalog_card_widget_test.dart`: additional image-first narrow-width card regression.
+- **No** mock product names/prices/stock, no new finance/API/inventory logic, no web/backend/DB edits and no APK release.
+
+**Exact Windows commands (two PowerShell windows, Flutter already running in Terminal 1):**
+
+```powershell
+Set-Location "C:\Projects\BluePOSApp"
+git status --short
+git pull --ff-only origin feature/daily-entries
+flutter analyze --no-fatal-infos
+flutter test "C:\Projects\BluePOSApp\test\pos_catalog_card_widget_test.dart"
+flutter test "C:\Projects\BluePOSApp\test\pos_product_entry_widget_test.dart"
+```
+
+After a safe, successful fast-forward pull: in Terminal 1 with `flutter run` still active press `r` for hot reload; if new widget initialization or nesting is stale press `R` for hot restart. Do not rerun `flutter create` or delete local Android files for this UI-only batch. Pull errors require stopping for review; no forced actions.
+
+**Phone checklist (image 07):**
+1. **POS** bottom tab: POS (Sales) heading, and **search field plus scan icon on the main POS page**, not only a popup.
+2. Search by authorized product name/sku/barcode: results load inside the POS page. Horizontal category chips filter results; tapping product card adds that server product to cart.
+3. Product cards should display **two columns**, actual image/fallback, product name, retail reference price (or `Price unavailable`), and real stock when returned (`Stock not shown` otherwise). Mockup examples are never hardcoded.
+4. Scroll catalog independently and POS page; ensure no unresponsive nested scroll, clipping, overflow, stuck keyboard, scanner problem or stale category results.
+5. Cart footer stays at the bottom with `Estimated item net` and `Proceed to Payment`. Change quantity and price mode, verify the estimate uses current cart, and navigate back from Payment without posting.
+6. Test portrait on Redmi Note 10, a long product name, light/dark and empty/loading/network error. If a prior save is unconfirmed, **stop** (do not initiate another invoice).
+
+**Known design gaps — do not claim pixel parity:**
+- The reference bottom navigation is **Home / POS / central Scanner / Reports / More**. Current app still uses **Home / POS / Products / Reports / Modules**; changing navigation/routing needs a separate focused review to preserve existing routes and RBAC.
+- The reference includes favorites/heart and colored merchandising/product illustrations; no favorites server contract verified, so no fake favorites control has been implemented.
+- It depicts `Proceed to Invoice` with a sample final cart total. App intentionally retains real `Proceed to Payment` workflow and **estimated pre-tax** amounts.
+- User/device review and Flutter analysis/tests for this new batch remain **pending**; send a safe screenshot of main POS and the test output to record acceptance.
+
