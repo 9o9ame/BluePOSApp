@@ -396,3 +396,24 @@ flutter test "C:\Projects\BluePOSApp\test\products_catalog_reference_widget_test
 - Existing modified `analysis_options.yaml` and untracked `android/`, `.idea/`, `.metadata`, `bluepos_app.iml`, `widget_test.generated.bak` are local user work: **do not reset/clean/delete**. Pull was previously FF-safe with these files.
 - After green analyzer (no `error` or `warning`) and focused widget tests, use `R` Hot Restart in running Flutter terminal; verify Product Details and all five tabs. **Do not Save product/transaction** on production just for UI QA.
 - New development batches should target **five consecutive scoped screens** (next numbered 14–18 after Screen 13 acceptance) with source-image verification, safe reuse of backend APIs/RBAC, focused tests, QA and handoff. Do not claim five completed if blocked by actual design/API dependencies.
+
+
+## 2026-11-14 — Second user build log: duplicated Products source + lazy Edit test fix
+
+- User supplied a new Windows log after pulling the previous fixes. `flutter analyze --no-fatal-infos` still failed (309 findings; many follow-on errors); `products_catalog_reference_widget_test.dart` could not compile; `product_details_widget_test.dart` reached **3/4 tests passed**, with `Authorized edit action invokes existing editor callback` failing from `StateError: Bad state: No element` on `ensureVisible`.
+- **Confirmed actual source:** `lib/screens/products.dart` had an unterminated raw-regex string at line 260, followed by a **duplicated** end-of-file `showDetails/_price/build` section beginning after the proper class closing brace. This arose from the prior edit, not from Flutter environment or user code. The many `Navigator` ambiguous imports, `widget` undefined, and duplicate build errors were cascading parsing errors.
+- FIX commit `f6ca0cdf7468e92c8ce4ad02ec8b53bdaf56cbff`: repaired `RegExp(r'^[0-9A-HJKMNP-TV-Z]{26}$')`, removed the accidental duplicate tail (495 → 373 source lines); now exactly one `showDetails`, two card widgets plus one ProductsState `build`, no unused `_price`. GitHub read-back verified file ending and regex.
+- TEST FIX commit `c2fd7f2d83b185617a80a5535fec4c0ce7b4e139`: changed Edit widget regression to `tester.scrollUntilVisible(...)` instead of `ensureVisible` on a button not yet built by lazy `ListView`. No app runtime UI changes from the test fix.
+- **Still pending:** No Flutter installation on assistant runtime; user must rerun analyzer and the same focused tests. Never claim PASS until Windows CLI output confirms. Keep `analysis_options.yaml`, `android/`, `.idea/` and other generated local files untouched.
+- Windows:
+```powershell
+Set-Location "C:\Projects\BluePOSApp"
+git status --short
+git pull --ff-only origin feature/daily-entries
+flutter analyze --no-fatal-infos
+flutter test "C:\Projects\BluePOSApp\test\product_details_widget_test.dart"
+flutter test "C:\Projects\BluePOSApp\test\products_catalog_reference_widget_test.dart"
+flutter test "C:\Projects\BluePOSApp\test\pos_catalog_card_widget_test.dart"
+```
+- On green focused tests, press **capital R** in running Flutter terminal and check Products → details → Edit (do not save), POS add-to-cart, other tabs and no blank screen. If errors persist, send only first error and failing test block.
+- Future development batch size agreed: **five screens per batch**. Screens 14–18 are **planned only**, not implemented; do not expand before this build is stable.
