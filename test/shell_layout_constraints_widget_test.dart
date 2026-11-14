@@ -19,9 +19,9 @@ void main() {
             ])),
             const SizedBox(height: 70, child: Center(child: Text('Cart footer'))),
           ]),
-          const ListView(children: [Text('Products')]),
-          const ListView(children: [Text('Reports')]),
-          const ListView(children: [Text('Modules')]),
+          ListView(children: const [Text('Products')]),
+          ListView(children: const [Text('Reports')]),
+          ListView(children: const [Text('Modules')]),
         ]),
       )),
     ));
