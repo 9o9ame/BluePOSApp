@@ -15,7 +15,7 @@ Independent Flutter app in `9o9ame/BluePOSApp`, connecting to existing live Blue
 
 ## Server/API
 
-Fixed HTTPS origin: `https://bluepos.bluemarketing.com.pk`.
+Fixed HTTPS origin: `https://bluepos.pk`. Cookies from the retired domain are not reused; after updating, sign in again on the new domain. Verify live API connectivity with a safe unauthenticated GET before sending credentials.
 
 Browser-compatible Sanctum CSRF session with secure cookie storage. Only server-issued ULIDs are used in public API requests. Device and network approval remain backend-enforced. This app **does not** store passwords, biometric templates or facial images.
 
