@@ -4,6 +4,7 @@ import '../core/api.dart';
 import '../core/session.dart';
 import '../widgets/common.dart';
 import 'catalog_master.dart';
+import 'price_lists.dart';
 import 'parties.dart';
 import 'stock_status.dart';
 import 'cash_book.dart';
@@ -129,6 +130,11 @@ class _ModulesScreenState extends State<ModulesScreen> {
       ModuleAction('Units', 'Units and decimal quantities',
         Icons.straighten_outlined, () => _catalog(CatalogMasterConfig.units),
         permissions: const ['units.view', 'units.manage'], entitlement: 'catalog'),
+      // Read-only UI reference until a real Price Lists API/permission exists.
+      ModuleAction('Price Lists', 'Design reference — API not available',
+        Icons.sell_outlined, () => _open(const PriceListsScreen()),
+        permissions: const ['products.view', 'products.manage'],
+        entitlement: 'catalog'),
       ModuleAction('Sale Schemes', 'Existing pricing schemes',
         Icons.local_offer_outlined, () => _data('Sale Schemes',
           '/api/sale-schemes', subtitleKey: 'code'),
@@ -575,6 +581,8 @@ class _ModulesScreenState extends State<ModulesScreen> {
         icon: Icons.sell_outlined, tone: scheme.error),
       (group: 'Definition', title: 'Units',
         icon: Icons.straighten_outlined, tone: scheme.primary),
+      (group: 'Definition', title: 'Price Lists',
+        icon: Icons.sell_outlined, tone: scheme.secondary),
       (group: 'Definition', title: 'Sale Schemes',
         icon: Icons.local_offer_outlined, tone: scheme.tertiary),
       (group: 'Daily Entries', title: 'Opening Stock',
