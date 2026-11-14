@@ -350,3 +350,10 @@
 - 22–23 new Price Lists reference UI/navigation with pending integration state, no seeded price-list data, all form fields read-only and Save permanently disabled pending verified API/policies. Domain functionality **blocked**, not implemented.
 - Added `test/catalog_reference_19_23_widget_test.dart` (5 widgets + payload unit). Flutter analyzer/tests/device QA pending for this batch. No financial production writes, no branch merges, no frozen pre-login changes.
 - The next five-screen batch is 24–28, contingent on focused tests/phone feedback and verified newer PNG/backend contracts.
+
+
+### 2026-11-14 — Five-screen 19–23 PC QA follow-up
+
+- User PC log: 19–23 tests 5/6 passed and 1 failed (Screen 23 Save button below lazy ListView viewport); prior 14–18 six-test suite passed. Analyzer had one warning plus 127 info-only lints.
+- Fixed analyzer unnecessary null-aware expression, added stable key to still-disabled Price List Save, and modified regression to scroll to button before asserting null callback. Rerun pending; no claims of full green QA.
+- Only after focused tests pass proceed to new batch 24–28. Price Lists backend not implemented; 22/23 are UI reference only.
