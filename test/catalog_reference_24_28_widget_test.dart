@@ -90,6 +90,7 @@ void main() {
     expect(find.text('Add customer'), findsWidgets);
     expect(find.byKey(const ValueKey('party-editor-code')), findsOneWidget);
     expect(find.byKey(const ValueKey('party-editor-name')), findsOneWidget);
+    expect(find.byKey(const ValueKey('party-editor-area')), findsOneWidget);
     expect(find.byType(DropdownButtonFormField<String>), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
@@ -116,8 +117,9 @@ void main() {
     final payload = partyPayload(type: 'customer', code: ' c-101 ',
       name: 'Test Customer',
       accountTypeUlid: '01ARZ3NDEKTSV4RRFFQ69G5FAX',
-      isActive: true);
+      isActive: true, area: ' Lahore ');
     expect(payload['code'], 'C-101');
+    expect(payload['area'], 'Lahore');
     expect(payload.containsKey('opening_balance'), isFalse);
     expect(payload.containsKey('credit_limit_amount'), isFalse);
   });
