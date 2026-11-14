@@ -239,3 +239,11 @@ python3 -m unittest discover -s test -p 'test_mobile_mockup_manifest.py' -v
 - Fixed `const ListView` compile errors in `test/shell_layout_constraints_widget_test.dart`, and added `test/appearance_button_constraints_widget_test.dart` to reproduce Row-based button layouts under the actual app ThemeData.
 - **Validation pending on user Windows Flutter installation.** User should pull safely, analyze, run both focused tests, then full `flutter run -d d2b1f972` after `q`. No backend, auth, finance posting, mockup changes, APK release or branch switching.
 - Handoff rule: first confirm all tabs restored before further screen-image work. The approved Screen 07 POS inline grid stays present, but user/device approval and detailed visual parity remain pending.
+
+
+### 2026-11-14 — Device smoke tests PASS following layout crash correction
+
+- User confirmed **six of six** device checks PASS: Home, POS, Products, Reports, Modules all visible; navigating tabs causes no blank screen. Mark **rendering incident functionally resolved** after button minimum-width fix.
+- Do not confuse user device confirmation with Flutter analyzer or post-fix widget-test execution: the latter results were not provided. Last known pre-fix shell-layout test had a `const ListView` compilation problem, now corrected in GitHub; new appearance-button regression was added but run outcome unverified.
+- **Maintain strict design requirement:** implement screens per approved individual 92-screen reference images, especially Screen 07 POS layout. Preserve accepted Splash/Login/OTP/MFA/Recovery unchanged; real authenticated product data only, not mock samples.
+- **Next chat:** inspect latest source, approved `07_Premium_Home_Dashboard.png`, and `docs/MOBILE_LIVE_SCREEN_QA.md`; request sanitized current POS screenshot or user feedback as needed to identify specific parity gaps. Existing image-level gaps include bottom navigation Home/POS/central Scan/Reports/More vs Home/POS/Products/Reports/Modules; avoid changing routes without deliberate mapping and tests. Do not change payment/posting or make live invoices for UI testing.
