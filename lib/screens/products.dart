@@ -17,12 +17,14 @@ class PosCatalogProductCard extends StatelessWidget {
     required this.api,
     required this.currency,
     required this.onTap,
+    this.imageFirst = false,
   });
 
   final Map<String, dynamic> product;
   final BlueposApi api;
   final String currency;
   final VoidCallback? onTap;
+  final bool imageFirst;
 
   String? get retailPrice {
     for (final price in recordsOf(product['prices'])) {
@@ -44,17 +46,19 @@ class PosCatalogProductCard extends StatelessWidget {
       child: Surface(padding: const EdgeInsets.all(11), child: Column(
         crossAxisAlignment: CrossAxisAlignment.start, children: [
           Center(child: ProductThumb(
-            api: api, imageUrl: field(product['image_url']), size: 66)),
-          const SizedBox(height: 9),
+            api: api, imageUrl: field(product['image_url']),
+            size: imageFirst ? 100 : 66)),
+          SizedBox(height: imageFirst ? 11 : 9),
           Text(field(product['name'], 'Product'), maxLines: 2,
             overflow: TextOverflow.ellipsis,
-            style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w800)),
+            style: TextStyle(fontSize: imageFirst ? 13 : 12,
+              fontWeight: FontWeight.w800)),
           const SizedBox(height: 5),
           Text(retailPrice == null ? 'Price unavailable'
               : money(retailPrice, currency),
             maxLines: 1, overflow: TextOverflow.ellipsis,
-            style: TextStyle(fontSize: 12, fontWeight: FontWeight.w900,
-              color: scheme.primary)),
+            style: TextStyle(fontSize: imageFirst ? 15 : 12,
+              fontWeight: FontWeight.w900, color: scheme.primary)),
           const Spacer(),
           Row(children: [
             Expanded(child: Text(stock == null ? 'Stock not shown'
@@ -265,11 +269,12 @@ class _ProductsScreenState extends State<ProductsScreen> {
           itemCount: items.length,
           gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
             crossAxisCount: columns, crossAxisSpacing: 9, mainAxisSpacing: 9,
-            mainAxisExtent: widget.inlineCatalog ? 202 : 194),
+            mainAxisExtent: widget.inlineCatalog ? 244 : 194),
           itemBuilder: (context, index) {
             final p = items[index];
             return PosCatalogProductCard(
               product: p, api: app.api, currency: app.currency,
+              imageFirst: widget.inlineCatalog,
               onTap: () => widget.onAdd!(p));
           });
       })
