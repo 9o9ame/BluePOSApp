@@ -153,13 +153,15 @@ class CatalogProductRow extends StatelessWidget {
 
 class ProductsScreen extends StatefulWidget {
   const ProductsScreen({super.key, required this.app, this.onAdd,
-    this.inlineCatalog = false});
+    this.inlineCatalog = false, this.catalogHome = false});
   final AppController app;
   final ValueChanged<Map<String, dynamic>>? onAdd;
   /// Reuse the authorized search/category grid directly inside the POS page.
   // Nullable so pre-existing IndexedStack widgets survive a Flutter hot reload
   // that adds this field: old widget instances may have a null backing slot.
   final bool? inlineCatalog;
+  /// Explicit shell Products tab mode; distinct from POS product selection.
+  final bool? catalogHome;
   @override
   State<ProductsScreen> createState() => _ProductsScreenState();
 }
@@ -234,7 +236,7 @@ class _ProductsScreenState extends State<ProductsScreen> {
       if (field(product['ulid']).length != 26) {
         await showApiError(context, 'No matching authorized product.'); return;
       }
-      if (widget.onAdd != null) {
+      if (widget.onAdd != null && widget.catalogHome != true) {
         widget.onAdd!(product);
       } else {
         showDetails(product);
@@ -244,7 +246,7 @@ class _ProductsScreenState extends State<ProductsScreen> {
   }
 
   Future<void> openEditor({Map<String, dynamic>? product}) async {
-    if (widget.onAdd != null) return;
+    if (widget.onAdd != null && widget.catalogHome != true) return;
     final saved = await Navigator.push<bool>(context,
       MaterialPageRoute(builder: (_) => ProductEditor(
         app: widget.app, product: product)));
@@ -270,7 +272,8 @@ class _ProductsScreenState extends State<ProductsScreen> {
             Text('In stock: ${field(objectOf(product['sales_lookup'])['in_stock'], '—')}'),
             Text('Retail: ${money(_price(product), widget.app.currency)}'),
             const SizedBox(height: 12),
-            if (widget.onAdd == null && widget.app.hasPermission('products.edit'))
+            if ((widget.onAdd == null || widget.catalogHome == true) &&
+                widget.app.hasPermission('products.edit'))
               FilledButton.icon(
                 icon: const Icon(Icons.edit_outlined),
                 label: const Text('Edit Product'),
@@ -295,7 +298,7 @@ class _ProductsScreenState extends State<ProductsScreen> {
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final app = widget.app;
-    final standalone = widget.onAdd == null;
+    final standalone = widget.catalogHome == true || widget.onAdd == null;
     return Stack(children: [
       RefreshIndicator(onRefresh: load, child: ListView(
         padding: const EdgeInsets.all(16), children: [
@@ -355,7 +358,7 @@ class _ProductsScreenState extends State<ProductsScreen> {
       if (error != null) FailureState(message: error!, retry: load)
       else if (!busy && items.isEmpty) const EmptyState(title: 'No products found',
         subtitle: 'Try a product name, barcode or another category.')
-      else if (widget.onAdd != null) LayoutBuilder(builder: (context, constraints) {
+      else if (widget.onAdd != null && !standalone) LayoutBuilder(builder: (context, constraints) {
         // The approved POS reference uses two image-first product columns.
         final columns = (widget.inlineCatalog == true) ? 2 :
           (constraints.maxWidth < 330 ? 2 : 3);
