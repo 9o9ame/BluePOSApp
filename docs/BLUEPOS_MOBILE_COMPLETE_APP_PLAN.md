@@ -228,3 +228,11 @@
 - POS post-login UI pass now includes `PosProductEntry` search/scan controls, heading, price mode and customer selection in `lib/screens/sale.dart`, without changing existing cart/payment/posting semantics.
 - Focused POS widget tests were added but must run on the user's Flutter setup before claiming validated. See `docs/MOBILE_LIVE_SCREEN_QA.md` for the authoritative commands and safe tap-by-tap phone test.
 - Next: collect live device screenshot/results and implement read-only inline catalog product cards as a separate scoped change only after inspecting actual Products screen/API contracts. Never use real tenant posts for visual QA.
+
+
+### 2026-11-14 — POS catalog grid batch and user live checks
+
+- First post-login POS UI pass: user marked **six of six on-device checks PASS** for the header, search, scan, price mode, customer and cart/estimate. This does not cover full visual fidelity, permission-denial checks, or real posting.
+- Added responsive card grid to the existing authenticated product picker (`lib/screens/products.dart`, gated by `onAdd != null`); reuse original server-driven search, category filter, pagination, product thumbnails and cart callback. Main POS screen remains cart-led; inline catalog grid not yet implemented.
+- Added `test/pos_catalog_card_widget_test.dart` for product selection and unavailable reference price/stock. Pending Flutter analyzer + focused test + device review by user.
+- Continuation/live QA: `docs/MOBILE_LIVE_SCREEN_QA.md` and `docs/MOBILE_92_MOCKUP_IMPLEMENTATION_HANDOFF.md`. No APK publishing or finance/stock writes authorized as part of design QA.
