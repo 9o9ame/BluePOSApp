@@ -51,6 +51,49 @@ class CartLine {
   };
 }
 
+/// Touch-friendly catalog entry matching the approved post-login POS reference.
+///
+/// Search and scan delegate to the existing authorized product flows; no local
+/// prices, inventory, or product records are fabricated here.
+class PosProductEntry extends StatelessWidget {
+  const PosProductEntry({
+    super.key,
+    required this.onSearch,
+    required this.onScan,
+    this.enabled = true,
+  });
+
+  final VoidCallback onSearch;
+  final VoidCallback onScan;
+  final bool enabled;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return Row(children: [
+      Expanded(child: OutlinedButton.icon(
+        key: const ValueKey('pos-search-products'),
+        onPressed: enabled ? onSearch : null,
+        icon: const Icon(Icons.search_rounded),
+        label: const Text('Search products or barcode',
+          maxLines: 1, overflow: TextOverflow.ellipsis),
+        style: OutlinedButton.styleFrom(
+          alignment: Alignment.centerLeft,
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 15),
+        ),
+      )),
+      const SizedBox(width: 8),
+      IconButton.filledTonal(
+        key: const ValueKey('pos-scan-barcode'),
+        onPressed: enabled ? onScan : null,
+        icon: const Icon(Icons.qr_code_scanner_rounded),
+        color: scheme.primary,
+        tooltip: 'Scan barcode',
+      ),
+    ]);
+  }
+}
+
 class SaleScreen extends StatefulWidget {
   const SaleScreen({super.key, required this.app});
   final AppController app;
@@ -343,31 +386,51 @@ class SaleScreenState extends State<SaleScreen> {
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final app = widget.app;
-    return ListView(padding: const EdgeInsets.all(16), children: [
+    return ListView(padding: EdgeInsets.all(app.appearance.spacing), children: [
       Row(children: [
-        const Expanded(child: SectionHeading('Sales Invoice')),
-        IconButton(onPressed: attempted ? null : scan, tooltip: 'Scan barcode',
-          icon: Icon(Icons.qr_code_scanner_rounded, color: scheme.primary)),
+        Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('POS (Sales)', style: Theme.of(context).textTheme.titleLarge
+              ?.copyWith(fontWeight: FontWeight.w900)),
+            Text('Build a sale using your authorized product catalog',
+              style: TextStyle(color: scheme.onSurfaceVariant, fontSize: 12)),
+          ],
+        )),
+        Icon(Icons.shopping_cart_checkout_rounded, color: scheme.primary),
       ]),
-      Surface(child: Column(children: [
-        SegmentedButton<String>(segments: const [
-          ButtonSegment(value:'default', label:Text('Default')),
-          ButtonSegment(value:'retail', label:Text('Retail')),
-          ButtonSegment(value:'wholesale', label:Text('Wholesale')),
-        ], selected: {priceMode}, onSelectionChanged: attempted ? null :
-          (mode) => setState(() => priceMode = mode.first)),
-        const SizedBox(height: 11),
-        ListTile(contentPadding: EdgeInsets.zero,
-          leading: Icon(Icons.person_outline, color: scheme.primary),
-          title: Text(selectedCustomer == null ? 'Walk-in customer' : field(selectedCustomer!['name']),
-            style: const TextStyle(fontWeight: FontWeight.w800)),
-          subtitle: const Text('Customer · Tap to change'),
-          trailing: const Icon(Icons.chevron_right_rounded),
-          onTap: attempted ? null : pickCustomer),
-        OutlinedButton.icon(onPressed: attempted ? null : pickProducts,
-          icon: const Icon(Icons.search),
-          label: const SizedBox(width: double.infinity, child: Text('Search product name or barcode'))),
-      ])),
+      const SizedBox(height: 13),
+      Surface(padding: const EdgeInsets.all(13), child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+          PosProductEntry(
+            onSearch: pickProducts,
+            onScan: scan,
+            enabled: !attempted,
+          ),
+          const SizedBox(height: 12),
+          Text('Price mode', style: TextStyle(
+            color: scheme.onSurfaceVariant, fontWeight: FontWeight.w700,
+            fontSize: 12)),
+          const SizedBox(height: 7),
+          SegmentedButton<String>(segments: const [
+            ButtonSegment(value:'default', label:Text('Default')),
+            ButtonSegment(value:'retail', label:Text('Retail')),
+            ButtonSegment(value:'wholesale', label:Text('Wholesale')),
+          ], selected: {priceMode}, onSelectionChanged: attempted ? null :
+            (mode) => setState(() => priceMode = mode.first)),
+          const SizedBox(height: 8),
+          ListTile(contentPadding: EdgeInsets.zero,
+            leading: CircleAvatar(
+              backgroundColor: scheme.primaryContainer,
+              child: Icon(Icons.person_outline_rounded, color: scheme.primary)),
+            title: Text(selectedCustomer == null ? 'Walk-in customer'
+                : field(selectedCustomer!['name']),
+              maxLines: 1, overflow: TextOverflow.ellipsis,
+              style: const TextStyle(fontWeight: FontWeight.w800)),
+            subtitle: const Text('Tap to select customer'),
+            trailing: const Icon(Icons.chevron_right_rounded),
+            onTap: attempted ? null : pickCustomer),
+        ],
+      )),
       const SizedBox(height: 18),
       SectionHeading('Cart (${lines.length})', trailing:
         TextButton.icon(onPressed: attempted ? null : pickProducts,
