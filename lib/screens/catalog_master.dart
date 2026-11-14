@@ -179,7 +179,9 @@ class _CatalogMasterScreenState extends State<CatalogMasterScreen> {
                 Center(child: Icon(
                   widget.config.needsCategory ? Icons.layers_outlined
                     : widget.config.apiPath == '/api/brands'
-                      ? Icons.sell_outlined : Icons.category_outlined,
+                      ? Icons.sell_outlined
+                      : widget.config.isUnit ? Icons.inventory_2_outlined
+                      : Icons.category_outlined,
                   size: 56, color: Theme.of(sheetContext).colorScheme.primary)),
                 const SizedBox(height: 22),
                 Text(formTitle, style: const TextStyle(
@@ -193,7 +195,8 @@ class _CatalogMasterScreenState extends State<CatalogMasterScreen> {
                     labelText: '$singular Name *',
                     hintText: 'Enter name')),
                 if (widget.config.apiPath == '/api/categories' ||
-                    widget.config.needsCategory) ...[
+                    widget.config.needsCategory ||
+                    widget.config.apiPath == '/api/brands') ...[
                   const SizedBox(height: 8),
                   InputDecorator(
                     decoration: const InputDecoration(labelText: 'Code'),
@@ -215,8 +218,15 @@ class _CatalogMasterScreenState extends State<CatalogMasterScreen> {
                 ],
                 if (widget.config.isUnit) ...[
                   const SizedBox(height: 8),
-                  TextField(controller: symbol, maxLength: 16,
-                    decoration: const InputDecoration(labelText: 'Symbol *')),
+                  TextField(
+                    key: const ValueKey('catalog-editor-unit-symbol'),
+                    controller: symbol, maxLength: 16,
+                    decoration: const InputDecoration(
+                      labelText: 'Unit Code / Short Name *')),
+                  const SizedBox(height: 6),
+                  Text('A base conversion factor is not supported by the current Units API.',
+                    style: TextStyle(fontSize: 11, color:
+                      Theme.of(sheetContext).colorScheme.onSurfaceVariant)),
                   SwitchListTile.adaptive(
                     contentPadding: EdgeInsets.zero,
                     title: const Text('Allow decimal quantities'),
@@ -439,6 +449,13 @@ class _CatalogMasterScreenState extends State<CatalogMasterScreen> {
                               Text('Code: ${field(row['code'])}',
                                 style: TextStyle(fontSize: 11,
                                   color: scheme.onSurfaceVariant)),
+                            ],
+                            if (config.isUnit && field(row['symbol']).isNotEmpty) ...[
+                              const SizedBox(height: 4),
+                              Text(field(row['symbol']),
+                                style: TextStyle(fontSize: 12,
+                                  color: scheme.primary,
+                                  fontWeight: FontWeight.w800)),
                             ],
                             if (isSub) ...[
                               const SizedBox(height: 4),
