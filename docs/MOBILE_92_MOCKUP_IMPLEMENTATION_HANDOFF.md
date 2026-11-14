@@ -178,3 +178,14 @@ python3 -m unittest discover -s test -p 'test_mobile_mockup_manifest.py' -v
 - Updated `README.md` and added `test/api_origin_test.dart` to check canonical HTTPS origin and auth/CSRF path resolution.
 - No changes to pre-login screen designs, web/backend, financial posting, Git branches or APK publishing.
 - **Validation still pending:** the public connectivity probe could not reach `bluepos.pk` from this tool environment; user should run a safe unauthenticated `Invoke-WebRequest` GET and `flutter test test/api_origin_test.dart` plus `flutter run -d d2b1f972` on their Windows machine. Distinguish domain connectivity failures from backend/API auth responses. Never ask for passwords, cookies or tokens in logs.
+
+
+### 2026-11-14 — First POS post-login screen batch
+
+- **User feedback:** Android debug app now opens and login succeeds against `https://bluepos.pk`. Pre-login screens remain frozen and unchanged.
+- **Implemented:** `lib/screens/sale.dart` premium POS entry layout: distinct search/scan buttons, styled POS title, authorized price-mode segmented control and customer selection card. `PosProductEntry` is a reusable presentation widget; search and scanner still call the existing server-backed product workflows.
+- **Added focused test:** `test/pos_product_entry_widget_test.dart` verifies search/scan callback routing and both disabled during a pending unconfirmed sale.
+- **Added per-batch mobile QA handbook:** `docs/MOBILE_LIVE_SCREEN_QA.md`, with Windows path `C:\Projects\BluePOSApp`, Git safety checks, focused Flutter commands, Dashboard/POS tap-by-tap acceptance and explicit **DO NOT SAVE** live financial warning.
+- **No payment/stock calculation or posting code changed**, no backend/web/DB edits, no APK release. The real/mockup inline POS product grid and richer product cards are still **not implemented**; existing picker is used. Mark this as **first UI pass**, not final approved screen.
+- **Validation:** GitHub changes verified through fetching source. Flutter analyzer, new POS focused widget tests, on-device screenshots and final acceptance **pending user execution**. Prior logs provided by user show 2/2 Dashboard widget tests passed and analyzer had informational lints only; do not extrapolate to unrun POS tests.
+- **Next chat:** start by reading `docs/MOBILE_LIVE_SCREEN_QA.md`, then this handoff. Ask user for the POS screen screenshot/results, resolve any compile/runtime error from actual Flutter log, then proceed to inline product grid as a separate scoped batch without changing server-authoritative pricing or financial posting. Continue on existing `feature/daily-entries`.
