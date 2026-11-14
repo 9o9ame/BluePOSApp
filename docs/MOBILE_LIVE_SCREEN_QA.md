@@ -614,3 +614,49 @@ If any failure, stop next batch and send FIRST actual analyzer/test exception; d
 **Known design parity gap:** Supplier contact artwork/illustrations and Live Payable/ledger panels lack verified customer-authorized summary integration. Screen 33's standalone invoice form geometry does not yet match approved PNG: existing safe POS flow reused intentionally. No financial domain refactor without SOL-level backend/API/security/testing work.
 
 **Next on PASS:** inspect newer individual **Screens 34–38** PNGs, current mobile modules and verified backend APIs before five-screen batch; update handoff and QA in same turn.
+
+
+## 2026-11-14 — Screens 29–33 user device PASS; newer five-screen batch 34–38
+
+**Previous acceptance:** user explicitly confirmed **6/6 mobile checks PASS**: supplier directory/search/add, supplier details/edit, full-page Add Supplier/Cancel, Daily Entries navigation, existing POS invoice editor opening, and stable Home/POS/Products/Reports/Modules/Notifications. This proves user-reported functional smoke QA, not exact image pixel parity or Flutter CLI output.
+
+**Design references verified visually and by exact source SHA256 against newer individual SCREEN_MANIFEST.csv** (not the old rejected generic ZIP/PDF):
+- 34 Sales Invoice Details: `bluepos_sales_invoice_detail.png`
+- 35 Purchase Invoice: `bluepos_purchase_invoice_dashboard.png`
+- 36 Purchase Invoice Entry: `bluepos_purchase_invoice_screen.png`
+- 37 Purchase Invoice Details: `bluepos_purchase_invoice_detail.png`
+- 38 Sales Returns: `bluepos_sales_return_dashboard.png`
+
+**This batch implemented on `feature/daily-entries`:**
+- **34 — Sales Invoice Detail:** `lib/screens/receipt.dart` now presents the approved detail heading and status/document identification while reusing existing `GET /api/sales/{ulid}`, actual invoice line values, server-computed totals, and existing PDF Print/Share. No mock Coca-Cola lines or recalculated amounts. The existing ReceiptScreen remains the authorized entry; no parallel invoice posting.
+- **35 — Purchase Invoice list:** `lib/screens/transaction_widgets.dart` adds optional `referenceStyle` to the shared `TransactionDirectory`: theme-first leading icon tile, real supplier/customer name if available, date, status and real server amount, with search and existing paging. Only enabled for targeted Purchase Invoices and Sales Returns; other directories stay unchanged. `lib/screens/purchase_invoices.dart` enables it.
+- **36 — Purchase Invoice Entry:** existing `PurchaseInvoiceEditor` now uses reference **Create Purchase Invoice** section heading for new draft. All actual supplier, warehouse, product/line and financial values remain existing server-authoritative flow. Create Draft/Line Save/Post buttons still have their original permission, confirmation, idempotency/uncertain-state protections. No new payment/post endpoints.
+- **37 — Purchase Invoice Details:** existing server-loaded editor shows **Purchase Invoice Detail** section and real status header when opening a document. Existing item rows, server grand total, posted-only payment control, immutable posted behavior and protected Post action unchanged. No fake stock-received counts or purchase discount fields.
+- **38 — Sales Returns:** `lib/screens/returns.dart` enables reference-style real return directory cards (number, customer when supplied, status, date, server amount), maintaining existing `ReturnDocumentEditor` source-linked, idempotent return draft and server posting workflow.
+
+**Added:** `test/catalog_reference_34_38_widget_test.dart` with five offline stub-API widget cases: Sale details, Purchase list, Purchase entry, posted Purchase detail and Sales Return list. No test triggers Save/Post. Changed Dart files passed *basic source delimiter-balance check* on GitHub readback; this is NOT Flutter analyzer/test execution.
+
+**PC validation — REQUIRED before claiming this batch passed:**
+```powershell
+Set-Location "C:\Projects\BluePOSApp"
+git status --short
+git pull --ff-only origin feature/daily-entries
+flutter analyze --no-fatal-infos
+flutter test "C:\Projects\BluePOSApp\test\catalog_reference_34_38_widget_test.dart"
+flutter test "C:\Projects\BluePOSApp\test\catalog_reference_29_33_widget_test.dart"
+```
+If any test fails, share FIRST compiler error/test exception; do not force-pull, reset local Android files or change branches. Once clean, press capital `R` in running Flutter debug terminal.
+
+**Combined phone QA:**
+1. Open an existing Sales Invoice's receipt/detail (from authorized Sales/History): heading **Sales Invoice Detail**, real customer/number/date/lines/server totals, Print/Share availability. Do not create/post a sale just to obtain one.
+2. Daily Entries → Purchase Invoices: actual list has invoice numbers, supplied supplier names, dates, statuses, server amounts; search/pagination/row opening works.
+3. New Purchase Invoice: heading **Create Purchase Invoice**, actual supplier/warehouse and draft controls; inspect fields only, **do not Create Draft or Post Purchase** on real tenant for design QA.
+4. Existing Purchase Invoice: detail heading, real posted/draft server status, lines and grand total; posted documents don't expose draft edit/post actions.
+5. Daily Entries → Sales Returns: real return cards/search; source-linked details open. **Do not Create/Post Return** for visual QA.
+6. Regression: Home/POS/Products/Reports/Modules/Notifications, light/dark, narrow Redmi Note 10 all stable; no overflow or blank tabs.
+
+**Known reference gaps:** Exact illustration/pill placements, barcode-scan centered bottom navbar and artwork differ. Server may omit supplier/customer in list rows; no fake fallback values. Screen 36 screenshot's discount/freight calculations and Screen 37 freight/tax composition are not copied as new client calculations—existing purchase domain and server response are authoritative. Screen 34 PDF/print uses existing authenticated server sale, not illustrative sample receipt.
+
+**Validation status:** User prior 29–33 device PASS recorded; new 34–38 code committed with static source checks only, **Flutter analyzer/widget tests/device QA pending**. No backend/DB change, main merge, release, forced Git actions, real money posting or new branch.
+
+**Next on PASS:** inspect *newer original* Screens 39–43, current Flutter APIs/permissions and existing routes, then implement the next five-screen batch with focused tests, QA and handoff in same response. Prioritize compilation fixes before more work.
