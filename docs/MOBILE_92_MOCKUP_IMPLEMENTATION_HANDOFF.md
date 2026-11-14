@@ -322,3 +322,12 @@ python3 -m unittest discover -s test -p 'test_mobile_mockup_manifest.py' -v
 - Intentional gap: reference Print Barcode footer has no verified mobile route; no dummy control. Example 168 stock or branded images were never hardcoded.
 - **Validation** code committed to `feature/daily-entries`, but Flutter analyzer/tests and device Screen 13 review pending. Commands: `cd "C:\Projects\BluePOSApp"`, `git status --short`, `git pull --ff-only origin feature/daily-entries`, `flutter analyze --no-fatal-infos`, `flutter test "C:\Projects\BluePOSApp\test\product_details_widget_test.dart"`; capital R in running Flutter debug terminal. Keep local Android/generated files intact and don't switch branches.
 - Next on user PASS: inspect actual newer Screen 14 Categories image plus current `CatalogMasterScreen` categories implementation; implement small reference-based UI batch, focused tests and docs in the same response. Frozen pre-login UI and existing working navigation untouched.
+
+
+### 2026-11-14 — Build-breaking Screen 13 syntax/ULID fix and new batch-size rule
+
+- User explicitly wants **five screens in each future implementation batch**, not one. Implement them together only after current build/tests/device are stable. Newer individually generated reference PNGs are authoritative; old rejected generic ZIP/PDF are not.
+- User's pasted `flutter analyze --no-fatal-infos` showed 2 **compile errors** (plus 127 informational and 1 unused-element warning): `product_details.dart:182` extra closing bracket and `products.dart:260` undefined `validPublicUlid`. Both focused Screen 13/12 widget-test files failed at compile, so Screen 13 acceptance is **BLOCKED**.
+- Fixed `lib/screens/product_details.dart` (remove extra delimiter in product hero Row) and `lib/screens/products.dart` (use same strict 26-character ULID regex as ProductDetailsScreen; remove now-unused `_price` helper). Source commits `28c65d1c6d77cbcc7bfc7253d31e0e3b715c5261` and `ac3d203ebb9de796012dbd0addd1d8ad5f5baa9b`.
+- **Not tested on assistant host**; user must safe pull, analyzer and both focused widget tests, then Hot Restart in their running Flutter terminal and verify Products/Details navigation. No UI redesign, posting, auth, backend or branch change.
+- Next on PASS: **screens 14–18 as one batch** (Categories, Add Category, Subcategories, Add Subcategory, Brands) after checking real newer individual PNGs and current `CatalogMasterScreen`, its permission logic and supported API contracts. Five-screen plan is **pending**, not implemented.
