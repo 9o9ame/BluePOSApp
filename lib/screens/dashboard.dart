@@ -172,23 +172,16 @@ class _DashboardScreenState extends State<DashboardScreen> {
           ),
         ],
         if (canViewSales || canViewProducts) ...[
+          const SizedBox(height: 16),
           const SectionHeading('Business at a glance'),
           if (busy) pageLoading()
         else if (error != null) FailureState(message: error!, retry: reload)
         else Column(children: [
-          Row(children: [
-            if (canViewSales) Expanded(child: BpStatCard(
-              icon: Icons.today_outlined,
-              caption: "Today's invoices",
-              value: todayInvoices?.toString() ?? '—',
-              hint: 'Current branch')),
-            if (canViewSales && canViewProducts) const SizedBox(width: 9),
-            if (canViewProducts) Expanded(child: BpStatCard(
-              icon: Icons.inventory_2_outlined,
-              caption: 'Products',
-              value: productsCount?.toString() ?? '—',
-              hint: 'Authorized catalog')),
-          ]),
+          if (canViewProducts) BpStatCard(
+            icon: Icons.inventory_2_outlined,
+            caption: 'Products',
+            value: productsCount?.toString() ?? '—',
+            hint: 'Authorized catalog'),
           if (canViewSales) ...[
             const SizedBox(height: 9),
             BpStatCard(
