@@ -5,6 +5,7 @@ import 'package:bluepos_app/screens/parties.dart';
 import 'package:bluepos_app/screens/supplier_detail.dart';
 import 'package:bluepos_app/screens/modules.dart';
 import 'package:bluepos_app/screens/sales_invoice_entry.dart';
+import 'package:bluepos_app/screens/sale.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -63,6 +64,8 @@ void main() {
         'mobile': '0000000000', 'area': 'Lahore',
       }))));
     expect(find.text('Verified Supplier'), findsOneWidget);
+    await tester.scrollUntilVisible(find.text('Recent Purchases'), 160,
+      scrollable: find.byType(Scrollable).first);
     expect(find.text('Recent Purchases'), findsOneWidget);
     expect(find.text('Rs 278,900.00'), findsNothing);
     expect(find.byKey(const ValueKey('supplier-detail-edit')), findsNothing);
@@ -103,7 +106,7 @@ void main() {
       home: SalesInvoiceEntryScreen(app: app)));
     await tester.pump();
     expect(find.text('Create Sales Invoice'), findsOneWidget);
-    expect(find.text('POS (Sales)'), findsOneWidget);
+    expect(find.byType(SaleScreen), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 
