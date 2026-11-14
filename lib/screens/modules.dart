@@ -5,6 +5,7 @@ import '../core/session.dart';
 import '../widgets/common.dart';
 import 'catalog_master.dart';
 import 'sale_schemes.dart';
+import 'sales_invoice_entry.dart';
 import 'price_lists.dart';
 import 'parties.dart';
 import 'stock_status.dart';
@@ -157,6 +158,10 @@ class _ModulesScreenState extends State<ModulesScreen> {
       ModuleAction('New Sale', 'New POS invoice',
         Icons.point_of_sale_outlined, () => widget.navigate(1),
         permissions: const ['sales.view', 'sales.create'], entitlement: 'sales'),
+      ModuleAction('Create Sales Invoice', 'Existing POS invoice editor',
+        Icons.add_shopping_cart_rounded,
+        () => _open(SalesInvoiceEntryScreen(app: widget.app)),
+        permissions: const ['sales.create'], entitlement: 'sales'),
       ModuleAction('Sales Invoices', 'Sales history and receipts',
         Icons.receipt_long_outlined, () => _data('Sales Invoices',
           '/api/sales?per_page=25', nameKey: 'document_number',
@@ -564,6 +569,59 @@ class _ModulesScreenState extends State<ModulesScreen> {
   /// Newer approved reference 11: Definition uses ordered navigation rows,
   /// not the generic two-column directory. No authorization is inferred from
   /// the screenshot; only existing permission/entitlement-checked actions show.
+  /// Approved image 32: ordered Daily Entries launcher. Every target comes
+  /// from the existing RBAC/entitlement-gated action registry.
+  Widget _dailyEntriesHome() {
+    final scheme = Theme.of(context).colorScheme;
+    final items = <({String title, String label, IconData icon})>[
+      (title: 'Sales Invoices', label: 'Sales Invoices',
+        icon: Icons.receipt_long_outlined),
+      (title: 'Purchases', label: 'Purchase Invoices',
+        icon: Icons.shopping_bag_outlined),
+      (title: 'Sales Returns', label: 'Sales Return',
+        icon: Icons.assignment_return_outlined),
+      (title: 'Purchase Returns', label: 'Purchase Return',
+        icon: Icons.assignment_return_rounded),
+      (title: 'Vouchers', label: 'Receipts, Payments & Journal Vouchers',
+        icon: Icons.account_balance_wallet_outlined),
+      (title: 'Expenses', label: 'Expense Vouchers',
+        icon: Icons.payments_outlined),
+      (title: 'Create Sales Invoice', label: 'Create Sales Invoice',
+        icon: Icons.add_shopping_cart_rounded),
+    ];
+    final actions = groups['Daily Entries'] ?? const <ModuleAction>[];
+    return ListView(
+      key: const ValueKey('approved-daily-entries-home'),
+      padding: EdgeInsets.all(widget.app.appearance.spacing),
+      children: [
+        Row(children: [
+          IconButton(tooltip: 'Back to More',
+            onPressed: () => setState(() => activeGroup = null),
+            icon: const Icon(Icons.arrow_back_rounded)),
+          Expanded(child: Text('Daily Entries', style:
+            Theme.of(context).textTheme.headlineMedium?.copyWith(
+              fontWeight: FontWeight.w900))),
+        ]),
+        const SizedBox(height: 10),
+        for (final item in items)
+          for (final action in actions)
+            if (action.title == item.title && action.visible(widget.app))
+              _menuRow(
+                key: ValueKey('daily-entry-${item.title}'),
+                title: item.label, icon: item.icon,
+                tone: scheme.primary, onTap: action.open),
+        const SizedBox(height: 10),
+        TextButton.icon(
+          icon: const Icon(Icons.grid_view_outlined),
+          onPressed: () => setState(() {
+            activeGroup = 'Daily Entries';
+            showDirectory = true;
+          }),
+          label: const Text('Browse all Daily Entries')),
+      ],
+    );
+  }
+
   Widget _definitionHome() {
     final scheme = Theme.of(context).colorScheme;
     final specs = <({String group, String title, IconData icon, Color tone})>[
@@ -658,6 +716,9 @@ class _ModulesScreenState extends State<ModulesScreen> {
 
   @override
   Widget build(BuildContext context) {
+    if (activeGroup == 'Daily Entries' && !showDirectory) {
+      return _dailyEntriesHome();
+    }
     if (activeGroup == 'Definition' && !showDirectory) {
       return _definitionHome();
     }
