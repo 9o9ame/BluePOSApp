@@ -191,3 +191,12 @@ After a safe, successful fast-forward pull: in Terminal 1 with `flutter run` sti
 - **Added actual-theme regression** `test/appearance_button_constraints_widget_test.dart` for Row-based POS footer FilledButton and mixed Elevated/ Filled buttons. Note: no Flutter CLI in assistant environment; these newly committed tests **must be run on Windows** before claiming validation.
 - **Next steps:** `cd "C:\Projects\BluePOSApp"`, `git status --short`, `git pull --ff-only origin feature/daily-entries`, `flutter analyze --no-fatal-infos`, `flutter test "C:\Projects\BluePOSApp\test\appearance_button_constraints_widget_test.dart"`, `flutter test "C:\Projects\BluePOSApp\test\shell_layout_constraints_widget_test.dart"`. After success, stop running Flutter with `q` and launch `flutter run -d d2b1f972`. Check Home and every bottom tab; avoid any Save Invoice on live tenant.
 - **Status:** targeted source correction committed; analyzer/test/device validation **pending**. If another crash, collect the first exception block after a fresh launch.
+
+
+## 2026-11-14 — Device confirmation: infinite-width recovery PASS
+
+- User explicitly reported **6/6 PASS** after the finite-width button-theme fix: Home visible, POS visible, Products visible, Reports visible, Modules visible, and no blank screen while switching tabs.
+- Device-level **visual/render/navigation smoke test confirmed by user**; prior blank-screen incident can be marked **functionally resolved**. This does not assert pixel-perfect Screen 07 fidelity, complete POS workflow, authorization coverage, or invoice-posting validation.
+- Root correction in `lib/core/appearance.dart` replaced infinite-width button theme minimumSize with finite `Size(0, 48)` and `Size(0, 52)`. The accompanying app shell layout change remains in place.
+- **Focused test status:** Prior user logs showed the first added shell-layout test failed to compile due to `const ListView`; that was corrected. User has not supplied the final analyzer or new theme/shell test outputs, so do **not** claim those specific tests passed.
+- **Next:** capture sanitized screenshot of Screen 07 and compare against approved `07_Premium_Home_Dashboard.png` (actually POS Sales). Continue design fidelity with minimal UI changes; never modify frozen pre-login screens or run financial posting on live tenant for design QA.
