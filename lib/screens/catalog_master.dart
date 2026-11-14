@@ -201,7 +201,7 @@ class _CatalogMasterScreenState extends State<CatalogMasterScreen> {
                   InputDecorator(
                     decoration: const InputDecoration(labelText: 'Code'),
                     child: Text(isEdit
-                      ? field(item?['code'], 'Automatically generated')
+                      ? field(item['code'], 'Automatically generated')
                       : 'Automatically generated',
                       style: TextStyle(color:
                         Theme.of(sheetContext).colorScheme.onSurfaceVariant)),
