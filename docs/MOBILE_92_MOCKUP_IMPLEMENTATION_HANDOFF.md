@@ -309,3 +309,16 @@ python3 -m unittest discover -s test -p 'test_mobile_mockup_manifest.py' -v
 - NEW `test/products_catalog_reference_widget_test.dart`: row data/tap and missing-value tests. Not executed in assistant host; user runs analyzer and focused test with `C:\Projects\BluePOSApp` working directory. Hot restart capital `R` recommended due new widget fields. No native rebuild, API/database edits, sales posting changes or branch switches.
 - User QA: verify Products tab horizontal rows and real values, filter categories, row details, permitted Add Product only, POS still 2-column add-to-cart, no blank tabs. Do not issue live product Save or Sale Post for UI QA.
 - Next user PASS → inspect actual newer Screen 13 Product Details reference plus existing Flutter details view and contracts, implement next focused batch, tests and permanent handoff in same turn. Frozen pre-login remains untouched.
+
+
+### 2026-11-14 — Screen 12 6/6 PASS; newer Screen 13 Product Detail batch
+
+- User confirmed **6/6** Products Catalog checks PASS: standalone horizontal item rows; real data; item tap opens details, not cart; search/filter; authorized Add Product/editor; other tabs and POS grid stable. This is live device functional acceptance only, separate analyzer/test logs not provided.
+- Inspected actual newer individual `/mnt/data/bluepos_coca_cola_product_details.png` Screen 13 (manifest SHA256 `a63ed25eb751741048d60d9fb527926fd0d9a9516cd289a9ff1e2b9c79b423d9`). Rejected old 92-pack must not be used.
+- Confirmed backend `GET /api/products/{productUlid}` from ProductController::show with policy authorization and exact ProductResource fields; no guessed schema/stock.
+- NEW `lib/screens/product_details.dart`: full-page read-only details fetched by public ULID, server-driven image/name/SKU/active/price/stock, category/brand/unit/barcode/description, and Price & Stock including optional reorder level. Purchase Price and Edit gated to `products.edit`, Edit opens existing ProductEditor and refreshes after successful save.
+- UPDATED `lib/screens/products.dart`: standalone Product Catalog tap/scan opens details page, POS onAdd behavior unchanged. No sale/stock posting, auth or session changes.
+- NEW `test/product_details_widget_test.dart`: four focused widget tests for product values, permissions, missing-data states and edit callback.
+- Intentional gap: reference Print Barcode footer has no verified mobile route; no dummy control. Example 168 stock or branded images were never hardcoded.
+- **Validation** code committed to `feature/daily-entries`, but Flutter analyzer/tests and device Screen 13 review pending. Commands: `cd "C:\Projects\BluePOSApp"`, `git status --short`, `git pull --ff-only origin feature/daily-entries`, `flutter analyze --no-fatal-infos`, `flutter test "C:\Projects\BluePOSApp\test\product_details_widget_test.dart"`; capital R in running Flutter debug terminal. Keep local Android/generated files intact and don't switch branches.
+- Next on user PASS: inspect actual newer Screen 14 Categories image plus current `CatalogMasterScreen` categories implementation; implement small reference-based UI batch, focused tests and docs in the same response. Frozen pre-login UI and existing working navigation untouched.
