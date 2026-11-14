@@ -333,3 +333,11 @@
 - Latest user log after previous fix: Products source still failed parsing due to broken regex and duplicated `showDetails/build` tail; analyzer produced 309 cascading issues and Products Catalog test compilation failed. Product Details 3/4 tests passed; Edit callback test incorrectly used `ensureVisible` on unbuilt lazy ListView button.
 - Fixes committed: `lib/screens/products.dart` strict completed 26-char ULID regex and deleted duplicated tail; `test/product_details_widget_test.dart` uses `scrollUntilVisible`. Static GitHub readback verified expected structure; Flutter test execution and device recovery are **pending**.
 - Five-screen upcoming batch **14–18** remains pending until analyzer and current focused tests pass. Continue only from newer individual PNG source; avoid financial posting and frozen screen changes.
+
+
+### 2026-11-14 — Five-screen mobile batch 14–18 after PC gate
+
+- Prior user Windows verification: analyzer 127 info-only notices (0 errors/warnings) and 10/10 focused Flutter tests PASS (Product Detail 4, Products Catalog 2, POS cards 4). Mobile device temporarily unavailable; continue safe implementation without claiming device approval.
+- Verified later approved-source individual design PNGs 14 Categories, 15 Add Category, 16 Subcategories, 17 Add Subcategory, 18 Brands, each original SHA256 matching manifest. The rejected generic 92 pack is not the source.
+- Implemented coordinated master UI update in `lib/screens/catalog_master.dart`: separate themed list pages for Categories/Subcategories/Brands; full-page Category/Subcategory Add forms, existing brand Add/Edit flow reused; search and Active status filter; server category choices; permission gates and real ULIDs; no fake counts or client-supplied generated codes. Added five-screen + payload regression in `test/catalog_master_reference_batch_widget_test.dart`.
+- **New code test/build validation pending user PC**, five screen device review pending later; do not claim final pixel fidelity. Next after test passes: five newer screens 19–23. Continue permanent QA/handoff update per batch and avoid frozen pre-login, backend/DB/financial operations, main branch/merge/release.
