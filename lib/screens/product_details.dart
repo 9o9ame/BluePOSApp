@@ -178,8 +178,7 @@ class ProductDetailsView extends StatelessWidget {
                     : money(price, currency),
                   style: TextStyle(color: scheme.primary,
                     fontWeight: FontWeight.w900, fontSize: 16)),
-              ]),
-            )),
+              ])),
           ])),
         const SizedBox(height: 13),
         Surface(child: Column(children: [
