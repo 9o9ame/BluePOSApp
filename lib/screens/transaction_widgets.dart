@@ -200,10 +200,13 @@ class TransactionDirectory extends StatefulWidget {
     this.numberKey = 'document_number',
     this.dateKey = 'document_date',
     this.amountKey = 'grand_total',
+    this.referenceStyle = false,
   });
 
   final AppController app;
   final String title, endpoint, numberKey, dateKey, amountKey;
+  /// Approved mobile list card composition; only API data is rendered.
+  final bool referenceStyle;
   final String? createPermission;
   final Future<bool> Function(BuildContext context, Map<String, dynamic> row) onOpen;
   final Future<bool> Function(BuildContext context)? onCreate;
@@ -281,7 +284,7 @@ class _TransactionDirectoryState extends State<TransactionDirectory> {
       body: RefreshIndicator(onRefresh: load,
         child: ListView(padding: const EdgeInsets.all(16), children: [
           SectionHeading(widget.title),
-          TextField(controller: search,
+          TextField(key: const ValueKey('transaction-search'), controller: search,
             onChanged: (_) {
               delay?.cancel();
               delay = Timer(const Duration(milliseconds: 300), load);
@@ -298,6 +301,7 @@ class _TransactionDirectoryState extends State<TransactionDirectory> {
           else ...rows.map((item) => Padding(
             padding: const EdgeInsets.only(bottom: 9),
             child: InkWell(
+              key: ValueKey('transaction-${field(item['ulid'])}'),
               onTap: () async {
                 if (await widget.onOpen(context, item) && mounted) {
                   await load();
@@ -305,24 +309,43 @@ class _TransactionDirectoryState extends State<TransactionDirectory> {
               },
               child: Surface(padding: const EdgeInsets.all(13),
                 child: Row(children: [
-                  Icon(Icons.description_outlined, color: colors.primary),
-                  const SizedBox(width: 9),
+                  if (widget.referenceStyle)
+                    Container(width: 46, height: 46,
+                      decoration: BoxDecoration(
+                        color: colors.primaryContainer,
+                        borderRadius: BorderRadius.circular(12)),
+                      child: Icon(Icons.receipt_long_outlined,
+                        color: colors.primary))
+                  else
+                    Icon(Icons.description_outlined, color: colors.primary),
+                  const SizedBox(width: 11),
                   Expanded(child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start, children: [
                     Text(field(item[widget.numberKey], 'Document'),
+                      maxLines: 1, overflow: TextOverflow.ellipsis,
                       style: const TextStyle(fontWeight: FontWeight.w800)),
+                    if (widget.referenceStyle)
+                      Text(field(objectOf(item['supplier'])['name'],
+                        field(objectOf(item['customer'])['name'],
+                        field(item['supplier_name'],
+                        field(item['customer_name'])))),
+                        maxLines: 1, overflow: TextOverflow.ellipsis,
+                        style: TextStyle(fontSize: 11,
+                          color: colors.onSurfaceVariant)),
                     Text(field(item[widget.dateKey]),
                       style: TextStyle(fontSize: 11,
                         color: colors.onSurfaceVariant)),
-                    Text(field(item['status']),
-                      style: const TextStyle(fontSize: 11)),
                   ])),
+                  const SizedBox(width: 8),
                   Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
+                    Text(field(item['status'], 'Unknown'),
+                      style: TextStyle(fontSize: 11,
+                        color: colors.primary, fontWeight: FontWeight.w700)),
                     if (item[widget.amountKey] != null)
                       Text(money(item[widget.amountKey], widget.app.currency),
                         style: const TextStyle(fontSize: 12,
                           fontWeight: FontWeight.w800)),
-                    const Icon(Icons.chevron_right_rounded),
+                    const Icon(Icons.chevron_right_rounded, size: 19),
                   ]),
                 ])),
             ),
