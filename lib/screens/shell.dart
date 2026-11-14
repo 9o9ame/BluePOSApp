@@ -68,7 +68,18 @@ class _AppShellState extends State<AppShell> {
           const SizedBox(width: 7),
         ],
       ),
-      body: IndexedStack(index: selected, children: pages),
+      // The POS page contains an Expanded catalog and a docked footer.
+      // Give every preserved tab a finite, identical viewport; the default
+      // loose IndexedStack fit can measure inactive tabs at inconsistent sizes.
+      body: LayoutBuilder(builder: (context, bounds) => SizedBox(
+        width: bounds.maxWidth,
+        height: bounds.maxHeight,
+        child: IndexedStack(
+          sizing: StackFit.expand,
+          index: selected,
+          children: pages,
+        ),
+      )),
       bottomNavigationBar: SafeArea(top: false, child: Container(
         decoration: BoxDecoration(color: Theme.of(context).cardColor,
           boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: .045),
