@@ -50,6 +50,19 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
+  testWidgets('POS card tolerates legacy null image-first flag', (tester) async {
+    await tester.pumpWidget(MaterialApp(home: Scaffold(
+      body: SizedBox(width: 190, height: 194,
+        child: PosCatalogProductCard(
+          imageFirst: null,
+          product: const {'ulid': '01ARZ3NDEKTSV4RRFFQ69G5FAV',
+            'name': 'Legacy item'},
+          api: BlueposApi(), currency: 'Rs', onTap: null)),
+    )));
+    expect(find.text('Legacy item'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('POS catalog card does not fabricate missing prices or stock',
       (tester) async {
     await tester.pumpWidget(MaterialApp(home: Scaffold(
