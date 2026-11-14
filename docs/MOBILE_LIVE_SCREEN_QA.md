@@ -523,3 +523,48 @@ flutter test "C:\Projects\BluePOSApp\test\catalog_reference_19_23_widget_test.da
 flutter test "C:\Projects\BluePOSApp\test\catalog_master_reference_batch_widget_test.dart"
 ```
 Do not mark PASS until these logs confirm it. Price Lists 22–23 remain UI reference only with no verified backend endpoint; Save remains disabled. No branch switch, DB, live catalog Save or stock/financial posting.
+
+
+## 2026-11-14 — Prior 19–23 tests user PASS; new five-screen batch 24–28
+
+**User confirmation:** Prior Screen 19–23 corrections have **all tests PASS** per user. No raw new test log was supplied in this turn; treat this as user-reported automated validation, not mobile design approval. Previous 22–23 Price Lists screens remain UI-only with disabled Save and no backend contract.
+
+**Correct design sources:** Later individually generated premium PNGs, SHA256 confirmed against `BluePOS_Mobile_Design_Approval_Pack/SCREEN_MANIFEST.csv`; **not** rejected older generic pack:
+24 `bluepos_sale_schemes_dashboard.png` — Sale Schemes.
+25 `bluepos_add_sale_scheme_form.png` — Add Sale Scheme.
+26 `bluepos_customer_directory.png` — Customers.
+27 `bluepos_add_customer_form.png` — Add Customer.
+28 `bluepos_customer_detail_dashboard.png` — Customer Detail.
+All five were visually inspected and show a shared image-first card/search/form style, with illustrative names, financial figures and product promotions. Such mock business data is never inserted.
+
+**Implementation and verified contracts:**
+- **24 Sale Schemes — read-only authenticated API-connected:** NEW `lib/screens/sale_schemes.dart` uses `GET /api/sale-schemes` with real `name`, `scheme_type`, `apply_mode`, `starts_on`, `ends_on`, `is_active`; search and Active filter, loading/error/empty. `lib/screens/modules.dart` Definition Sale Schemes action now opens this screen, preserving `sale_schemes.view/manage` + catalog entitlement.
+- **25 Add Sale Scheme — UI-only non-submittable reference:** The screenshot's Scheme Code/Discount Value/Applies To does NOT match existing `StoreSaleSchemeRequest` contract: backend requires `name`, `apply_mode`, `min_sale_amount`, `reward_product_ulid`, `max_reward_qty`, etc. The reference form has read-only fields and disabled Save; never invent server promotion calculations or send incomplete requests.
+- **26 Customers — real tenant-scoped directory:** UPDATED `lib/screens/parties.dart` for customer row cards, search, active filter, actual code, area/mobile, RBAC-aware Add. Uses existing `GET /api/parties?type=customer`; no fabricated receivable balance or dummy rows. Other vendor/account directory flows preserved.
+- **27 Add Customer — full-page authorized existing form:** same `partyPayload`, real `GET /api/coa/account-types`, existing authorized create/edit POST/PATCH; required **Code**, Name, Account Type plus optional Mobile, Contact Person, City/Area and Address; Active status, Cancel. Unlike screenshot, Code and Account Type are required by `StorePartyRequest`; don't omit them. Mockup's Opening Balance/Customer Group/Price Type are not persisted, and Credit Limit editing is deferred to verified financial workflow. **Never submit live customer create for design QA.**
+- **28 Customer Detail — new authenticated fetch:** NEW `lib/screens/customer_detail.dart` loads `GET /api/parties/{ulid}?type=customer` with a strict public ULID, renders actual name/code/mobile/area/address/contact/email and server-supplied credit limit, no estimated receivables or fabricated recent invoices. Authorized Edit uses existing Party editor, Other tabs untouched. The backend `/api/parties/{ulid}/ledger` exists but is not yet wired as an unverified generalized transaction list. Safe refresh/error/empty states.
+- NEW `test/catalog_reference_24_28_widget_test.dart` includes five widget tests and one payload contract test: supplied scheme data only, disabled scheme Save, customer list, full-page form, details with no fake balances, actual ULID/account type rules. No remote writes in widget tests.
+
+**PC validation on Windows (new tests NOT run by assistant):**
+```powershell
+Set-Location "C:\Projects\BluePOSApp"
+git status --short
+git pull --ff-only origin feature/daily-entries
+flutter analyze --no-fatal-infos
+flutter test "C:\Projects\BluePOSApp\test\catalog_reference_24_28_widget_test.dart"
+flutter test "C:\Projects\BluePOSApp\test\catalog_reference_19_23_widget_test.dart"
+flutter test "C:\Projects\BluePOSApp\test\approved_navigation_menus_widget_test.dart"
+```
+If any error or widget test failure occurs, stop next screen implementation and share FIRST meaningful compiler/test failure. Do not reset `analysis_options.yaml`, Android-generated files or run tests against a production tenant. New Dart code received a static bracket-balance check only, **not** Dart analyzer or Flutter runtime validation.
+
+**Combined device QA after green CLI:**
+1. More → Definition → **Sale Schemes**: actual scheme names/type/mode/date and Active status, search/filter; no hardcoded Ramadan or gift offers.
+2. Tap **Add Scheme**: reference-only form displays expected hierarchy but all fields read-only, Save disabled, Cancel works. No promotions posted.
+3. More → Definition → **Customers**: authorized real customers, code, mobile/area, search, Active filter. Customer row opens full detail page, not edit modal.
+4. **Add Customer**: full-page name/code/account type, mobile, City/Area/address and status; Cancel/back works. No live Save for testing.
+5. **Customer Detail**: server data only, optional Credit Limit, no fabricated Receivable Balance/Recent Transactions; Edit permission-gated. Scroll/back refresh.
+6. Regression: Home/POS/Products/Reports/Modules/Notifications and previous Definitions remain stable; test Light/Dark and narrow Redmi Note 10. Don't Save Invoice, Post Stock, Create Customers or Apply live promotions for visual QA.
+
+**Known gaps:** Screen 25 editing unsupported until full verified reward-product backend flow; Screen 27 financial opening balance/limit and customer group are not provided by simple party payload; Screen 28 receivable/recent ledger requires separate controlled read-only integration. Do not claim perfect screenshot parity or five fully functional screens; 24,26–28 are implemented UI/API with caveats and 25 is preview-only.
+
+**Status:** GitHub commits confirmed, Flutter analyze/focused tests and device QA for 24–28 **pending**. No backend/DB modifications, branch merge, or release APK.
