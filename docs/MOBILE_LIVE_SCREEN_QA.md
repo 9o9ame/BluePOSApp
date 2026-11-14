@@ -200,3 +200,35 @@ After a safe, successful fast-forward pull: in Terminal 1 with `flutter run` sti
 - Root correction in `lib/core/appearance.dart` replaced infinite-width button theme minimumSize with finite `Size(0, 48)` and `Size(0, 52)`. The accompanying app shell layout change remains in place.
 - **Focused test status:** Prior user logs showed the first added shell-layout test failed to compile due to `const ListView`; that was corrected. User has not supplied the final analyzer or new theme/shell test outputs, so do **not** claim those specific tests passed.
 - **Next:** capture sanitized screenshot of Screen 07 and compare against approved `07_Premium_Home_Dashboard.png` (actually POS Sales). Continue design fidelity with minimal UI changes; never modify frozen pre-login screens or run financial posting on live tenant for design QA.
+
+
+## 2026-11-14 — Newer individual-image batch: Screen 08 Main Menu + 09 More
+
+**Design source is the newer 10-at-a-time premium image collection**, NOT the rejected generic mockups. Locally verified `/mnt/data/BluePOS_Mobile_Design_Approval_Pack/SCREEN_MANIFEST.csv` mapping to:
+- **08 Main Menu:** `bluepos_main_menu_dashboard.png`
+- **09 More Menu:** `bluepos_more_menu_dashboard.png`
+Both PNGs visually inspected. Their illustration assets and mock tenant names are references, not data.
+
+**Implemented:** `lib/screens/modules.dart` now defaults to **More**, with a real authenticated tenant/branch banner, large icon-backed vertical menu rows, and a top-right **Open Main Menu** toggle. **Main Menu** has the five top-level modules plus authorized shortcut rows for Products/Customers/Purchases/Sales. Uses the existing `groups` / `ModuleAction.visible` permission/entitlement checks and existing route callbacks. An available-module row opens that group's existing search/list; “Browse all available modules” retains prior generic directory access. Theme colors derive from `Theme.of(context).colorScheme`, not static mockup colors. Unverified Help & Support and Logout interactions are intentionally not faked.
+
+**Added:** `test/approved_navigation_menus_widget_test.dart` — tenant label, no forbidden Daily Entries with only products.view, Main Menu switch and Products route. **Validation pending**; cannot claim Flutter analyzer/phone test passed.
+
+**Local Windows commands:**
+```powershell
+Set-Location "C:\Projects\BluePOSApp"
+git status --short
+git pull --ff-only origin feature/daily-entries
+flutter analyze --no-fatal-infos
+flutter test "C:\Projects\BluePOSApp\test\approved_navigation_menus_widget_test.dart"
+```
+If successful, press `R` in existing Flutter debug terminal for fresh menu state (or `r` first; adding new State fields may require `R`). No native rebuild required.
+
+**Phone QA:**
+1. Tap bottom **Modules** tab; verify **More** title, real logged-in tenant and branch, authorized Definition/Daily Entries/Reports/Tools/Administration entries, Settings.
+2. Tap **Open Main Menu** (top-right apps icon): verify **Main Menu** title and card rows; only authorized shortcuts appear.
+3. Tap Definition: authorized categories/products/etc available via existing grid. Use back arrow to return.
+4. Tap Browse all available modules: prior searchable directory still works; back returns to menu.
+5. Tap Settings: existing settings opens; back returns. Test Light/Dark, scrolling, long real tenant name and Redmi Note 10 narrow width.
+6. Home/POS/Products/Reports tabs remain functional; no blank screens or Flutter layout errors. Do not Save Invoice as part of design QA.
+
+**Known non-parity items:** global bottom nav still Home/POS/Products/Reports/Modules rather than image Home/POS/central Scanner/Reports/More; global app bar unchanged to avoid unrelated navigation/security refactor; Help/Logout in image not wired because not scoped/verified; individual icon artwork differs from generated illustration. Do not describe this as pixel-perfect approved yet.
