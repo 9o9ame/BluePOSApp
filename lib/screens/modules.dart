@@ -74,6 +74,11 @@ class ModulesScreen extends StatefulWidget {
 
 class _ModulesScreenState extends State<ModulesScreen> {
   final search = TextEditingController();
+  // Approved references 08 (Main Menu) and 09 (More) share the existing
+  // permission-checked module directory; no new backend actions.
+  bool showMainMenu = false;
+  bool showDirectory = false;
+  String? activeGroup;
 
   @override
   void dispose() {
@@ -396,24 +401,193 @@ class _ModulesScreenState extends State<ModulesScreen> {
     ]);
   }
 
-  @override
-  Widget build(BuildContext context) {
+
+  bool _hasVisibleActions(String group) =>
+      groups[group]?.any((action) => action.visible(widget.app)) ?? false;
+
+  Widget _menuRow({
+    required String title,
+    required IconData icon,
+    required Color tone,
+    required VoidCallback onTap,
+    Key? key,
+  }) {
+    final scheme = Theme.of(context).colorScheme;
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 9),
+      child: Card(
+        margin: EdgeInsets.zero,
+        child: InkWell(
+          key: key,
+          borderRadius: BorderRadius.circular(widget.app.appearance.corner),
+          onTap: onTap,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
+            child: Row(children: [
+              Container(
+                height: 46, width: 46,
+                decoration: BoxDecoration(
+                  color: tone.withValues(alpha: .12),
+                  borderRadius: BorderRadius.circular(14)),
+                child: Icon(icon, color: tone, size: 25)),
+              const SizedBox(width: 14),
+              Expanded(child: Text(title,
+                style: const TextStyle(fontSize: 16,
+                  fontWeight: FontWeight.w800))),
+              Icon(Icons.chevron_right_rounded,
+                color: scheme.onSurfaceVariant),
+            ]),
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _showGroup(String group) => setState(() {
+    activeGroup = group;
+    showDirectory = false;
+  });
+
+  Widget _approvedMenu() {
+    final scheme = Theme.of(context).colorScheme;
+    final app = widget.app;
+    final main = showMainMenu;
+    final entries = <({String group, String label, IconData icon, Color color})>[
+      (group: 'Definition', label: 'Definition',
+        icon: Icons.layers_rounded, color: Colors.green),
+      (group: 'Daily Entries', label: 'Daily Entries',
+        icon: Icons.calendar_month_rounded, color: Colors.teal),
+      (group: 'Reports', label: 'Reports',
+        icon: Icons.bar_chart_rounded, color: Colors.deepPurple),
+      (group: 'Tools', label: 'Tools',
+        icon: Icons.handyman_rounded, color: Colors.orange),
+      (group: 'Administration', label: 'Administration',
+        icon: Icons.settings_suggest_rounded, color: scheme.primary),
+    ];
+    return ListView(
+      key: ValueKey(main ? 'approved-main-menu' : 'approved-more-menu'),
+      padding: EdgeInsets.all(app.appearance.spacing),
+      children: [
+        Row(children: [
+          Expanded(child: Text(main ? 'Main Menu' : 'More',
+            style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+              fontWeight: FontWeight.w900))),
+          IconButton(
+            tooltip: main ? 'Show More' : 'Open Main Menu',
+            onPressed: () => setState(() => showMainMenu = !main),
+            icon: Icon(main ? Icons.more_horiz_rounded
+              : Icons.apps_rounded, color: scheme.primary)),
+        ]),
+        const SizedBox(height: 12),
+        if (!main) ...[
+          Card(margin: EdgeInsets.zero, child: Padding(
+            padding: const EdgeInsets.all(17), child: Row(children: [
+              Container(width: 54, height: 54, decoration: BoxDecoration(
+                color: scheme.primaryContainer,
+                borderRadius: BorderRadius.circular(16)),
+                child: Icon(Icons.storefront_rounded,
+                  color: scheme.primary, size: 29)),
+              const SizedBox(width: 13),
+              Expanded(child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  Text(app.tenantName, maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(fontSize: 18,
+                      fontWeight: FontWeight.w900)),
+                  Text(app.branchName, maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(color: scheme.onSurfaceVariant)),
+                ])),
+            ]),
+          )),
+          const SizedBox(height: 16),
+        ],
+        for (final item in entries)
+          if (_hasVisibleActions(item.group))
+            _menuRow(title: item.label, icon: item.icon,
+              tone: item.color, onTap: () => _showGroup(item.group),
+              key: ValueKey('menu-${item.group}')),
+        if (main) ...[
+          if (_hasVisibleActions('Definition'))
+            _menuRow(title: 'Products', icon: Icons.inventory_2_rounded,
+              tone: scheme.primary, onTap: () => widget.navigate(2)),
+          if (groups['Definition']!.any((action) =>
+              action.title == 'Customers' && action.visible(app)))
+            _menuRow(title: 'Customers', icon: Icons.people_rounded,
+              tone: Colors.redAccent, onTap: () =>
+                groups['Definition']!.firstWhere((a) =>
+                  a.title == 'Customers').open()),
+          if (groups['Daily Entries']!.any((action) =>
+              action.title == 'Purchases' && action.visible(app)))
+            _menuRow(title: 'Purchases', icon: Icons.shopping_bag_rounded,
+              tone: Colors.orange, onTap: () =>
+                groups['Daily Entries']!.firstWhere((a) =>
+                  a.title == 'Purchases').open()),
+          if (groups['Daily Entries']!.any((action) =>
+              action.title == 'New Sale' && action.visible(app)))
+            _menuRow(title: 'Sales', icon: Icons.shopping_cart_rounded,
+              tone: Colors.green, onTap: () => widget.navigate(1)),
+        ] else ...[
+          const SizedBox(height: 8),
+          Divider(color: scheme.outlineVariant),
+          const SizedBox(height: 8),
+          if (groups['Administration']!.any((action) =>
+              action.title == 'Security Sessions' && action.visible(app)))
+            _menuRow(title: 'Device & Security',
+              icon: Icons.verified_user_rounded,
+              tone: Colors.green, onTap: () =>
+                groups['Administration']!.firstWhere((a) =>
+                  a.title == 'Security Sessions').open()),
+          _menuRow(title: 'Settings', icon: Icons.settings_rounded,
+            tone: scheme.primary, onTap: _settings),
+        ],
+        const SizedBox(height: 8),
+        TextButton.icon(
+          onPressed: () => setState(() {
+            showDirectory = true;
+            activeGroup = null;
+          }),
+          icon: const Icon(Icons.grid_view_rounded),
+          label: const Text('Browse all available modules'),
+        ),
+        const SizedBox(height: 18),
+      ],
+    );
+  }
+
+  Widget _directory() {
     final scheme = Theme.of(context).colorScheme;
     final query = search.text.trim().toLowerCase();
     return ListView(padding: const EdgeInsets.all(16), children: [
-      Text('Business modules',
-        style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-          fontWeight: FontWeight.w900)),
-      const SizedBox(height: 5),
-      Text('Your BluePOS workspace', style: TextStyle(
-        color: scheme.onSurfaceVariant)),
-      const SizedBox(height: 15),
+      Row(children: [
+        IconButton(
+          tooltip: 'Back to menu',
+          onPressed: () => setState(() {
+            activeGroup = null;
+            showDirectory = false;
+          }),
+          icon: const Icon(Icons.arrow_back_rounded)),
+        Expanded(child: Text(activeGroup ?? 'Business modules',
+          style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+            fontWeight: FontWeight.w900))),
+      ]),
+      const SizedBox(height: 12),
       TextField(controller: search, onChanged: (_) => setState(() {}),
         decoration: const InputDecoration(
           hintText: 'Search modules',
           prefixIcon: Icon(Icons.search_rounded))),
-      ...groups.entries.map((entry) => _group(entry.key, entry.value, query)),
+      if (activeGroup != null)
+        _group(activeGroup!, groups[activeGroup!] ?? const [], query)
+      else
+        ...groups.entries.map((entry) =>
+          _group(entry.key, entry.value, query)),
       const SizedBox(height: 28),
     ]);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (showDirectory || activeGroup != null) return _directory();
+    return _approvedMenu();
   }
 }
