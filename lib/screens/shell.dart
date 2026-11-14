@@ -10,6 +10,7 @@ import 'products.dart';
 import 'reports.dart';
 import 'sale.dart';
 import 'settings.dart';
+import 'notifications.dart';
 
 class AppShell extends StatefulWidget {
   const AppShell({super.key, required this.app});
@@ -52,6 +53,14 @@ class _AppShellState extends State<AppShell> {
             style: TextStyle(fontSize: 10, color: scheme.onSurfaceVariant)),
         ]),
         actions: [
+          IconButton(
+            key: const ValueKey('open-notifications'),
+            tooltip: 'Notifications',
+            icon: const Icon(Icons.notifications_none_rounded),
+            onPressed: () => Navigator.of(context).push(
+              MaterialPageRoute(builder: (_) =>
+                NotificationsScreen(app: app))),
+          ),
           IconButton(tooltip: 'Refresh page', icon: const Icon(Icons.refresh_outlined),
             onPressed: () => setState(() {
               pages[selected] = switch (selected) {
