@@ -266,3 +266,10 @@ python3 -m unittest discover -s test -p 'test_mobile_mockup_manifest.py' -v
 - Intentional design gaps: existing bottom nav still Modules/Products instead of More/center Scanner; no unsupported fake Help or Logout actions; app bar unchanged, so not a pixel-perfect claim. Further edits depend on source-image comparison and route/permission review, not guessed mockups.
 - User instructions: `cd "C:\Projects\BluePOSApp"`, `git status --short`, `git pull --ff-only origin feature/daily-entries`, `flutter analyze --no-fatal-infos`, `flutter test "C:\Projects\BluePOSApp\test\approved_navigation_menus_widget_test.dart"`; hot restart `R` in running Flutter terminal; check More/Main Menu, authorized rows, directory, Settings, all tabs. Do not invoke live financial posting.
 - Remain on `feature/daily-entries`, no main merge, no release/APK, no backend/API/DB work, and preserve accepted pre-login screens.
+
+### 2026-11-14 — User-approved functional QA for newer image Screens 08 and 09
+
+- User replied **6/6 PASS** to latest physical-device checklist: More shows actual tenant; Main Menu toggle; permission-aware rows; Definition directory; Settings and complete module browse; all five tabs remain visible/no blank pages.
+- This is device-confirmed *functional* acceptance, not evidence of exact screenshot pixel parity. Test/analysis results for `test/approved_navigation_menus_widget_test.dart` were not provided, so mark automated QA unverified.
+- Design source correction remains binding: use later individual 10-at-a-time PNG images, NOT rejected earlier generic 92 ZIP/PDF. Preserve frozen pre-login and stable tabs.
+- Next: inspect newer Screen 10 `bluepos_notifications_dashboard.png`, existing Flutter routes and actual server notification contract, then only implement a scoped UI if supported; update QA/handoff and ask user for device check. Avoid mock notification content or permission bypass.
