@@ -295,3 +295,11 @@
 - Verified newer individual reference `bluepos_notifications_dashboard.png` and backend owner-only notification access/read contracts. Implemented `lib/screens/notifications.dart`, app shell bell entry and four focused `test/notifications_screen_widget_test.dart` cases.
 - No fake mockup notifications; real supported scope is tenant-owner device access. Activity/other illustrated types have explicit unsupported state. Pending Flutter analyzer, widget tests, physical device visual/permission checks.
 - Next approved PNG candidate: Screen 11 Definition Home; inspect real image and module/action contract before changes. No frozen pre-login changes, finance posting or branch merges.
+
+
+### 2026-11-14 — Screens 10 → 11 continuous pass-to-next-batch flow
+
+- Screen 10 Notifications: **6/6** user on-device checks PASS. This is functional QA, not proof of all automated tests or pixel accuracy.
+- Based on actual newer individual image `bluepos_definition_modules_dashboard.png`, implemented Screen 11 Definition Home ordered vertical rows in existing `lib/screens/modules.dart`, preserving RBAC/entitlement visibility and old routes/directory. New `test/definition_home_widget_test.dart` targets order/denied items/back route.
+- Price Lists/Barcode Printing mockup entries currently have no verified direct route in module group and are intentionally omitted. No mocked data, posting, backend or schema changes.
+- Automated tests/device Screen 11 verification pending. Continue automatically from Screen 11 PASS to newer Screen 12 Products Catalog after inspecting its PNG and existing data contract.
