@@ -350,12 +350,18 @@ class ExpensesScreen extends StatefulWidget {
 }
 
 class _ExpensesScreenState extends State<ExpensesScreen> {
+  final search = TextEditingController();
+  bool showFilters = false;
+  String selectedStatus = 'all';
   List<Map<String, dynamic>> rows = const [];
   bool loading = true;
   String? error;
 
   @override
   void initState() { super.initState(); load(); }
+
+  @override
+  void dispose() { search.dispose(); super.dispose(); }
 
   Future<void> load() async {
     setState(() { loading = true; error = null; });
@@ -372,30 +378,88 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
   @override
   Widget build(BuildContext context) {
     final palette = Theme.of(context).colorScheme;
+    final query = search.text.trim().toLowerCase();
+    final visible = rows.where((row) {
+      if (selectedStatus != 'all' &&
+          field(row['status']).toLowerCase() != selectedStatus) return false;
+      if (query.isEmpty) return true;
+      return [
+        field(row['document_number']),
+        field(objectOf(row['expense_account'])['name']),
+        field(objectOf(row['payment_account'])['name']),
+        field(row['description']),
+        field(row['expense_date']),
+      ].join(' ').toLowerCase().contains(query);
+    }).toList();
     return Scaffold(
-      appBar: AppBar(title: const Text('Expenses'),
+      appBar: AppBar(title: const Text('Expense Vouchers'),
         actions: [IconButton(onPressed: loading ? null : load,
           icon: const Icon(Icons.refresh_rounded))]),
       floatingActionButton: widget.app.hasPermission('expenses.create')
         ? FloatingActionButton.extended(
+          key: const ValueKey('expense-create'),
           onPressed: () async {
             final saved = await Navigator.push<bool>(context,
               MaterialPageRoute(builder: (_) =>
                 MoneyActionScreen(app: widget.app, kind: MoneyActionKind.expense)));
             if (saved == true && mounted) await load();
           },
-          icon: const Icon(Icons.add_rounded), label: const Text('New Expense'))
+          icon: const Icon(Icons.add_rounded), label: const Text('Add Expense'))
         : null,
       body: RefreshIndicator(onRefresh: load, child: ListView(
+        key: const ValueKey('expense-vouchers-list'),
+        physics: const AlwaysScrollableScrollPhysics(),
         padding: const EdgeInsets.all(16), children: [
-          const SectionHeading('Recorded expenses'),
+          const SectionHeading('Expense Vouchers'),
+          Row(children: [
+            Expanded(child: TextField(
+              controller: search,
+              key: const ValueKey('expense-search'),
+              onChanged: (_) => setState(() {}),
+              decoration: const InputDecoration(
+                prefixIcon: Icon(Icons.search_rounded),
+                hintText: 'Search loaded expenses...'))),
+            const SizedBox(width: 8),
+            IconButton.filledTonal(
+              key: const ValueKey('expense-filter'),
+              tooltip: 'Filter loaded records by status',
+              onPressed: () => setState(() => showFilters = !showFilters),
+              icon: const Icon(Icons.filter_alt_outlined)),
+          ]),
+          if (showFilters) ...[
+            const SizedBox(height: 8),
+            Wrap(spacing: 7, children: [
+              for (final entry in const [
+                ('all', 'All'), ('draft', 'Draft'), ('posted', 'Posted'),
+                ('approved', 'Approved'), ('paid', 'Paid'),
+              ])
+                ChoiceChip(label: Text(entry.$2),
+                  selected: selectedStatus == entry.$1,
+                  onSelected: (_) => setState(
+                    () => selectedStatus = entry.$1)),
+            ]),
+          ],
+          const SizedBox(height: 10),
+          if (!loading && error == null)
+            Text('${visible.length} of ${rows.length} loaded expenses',
+              style: TextStyle(color: palette.onSurfaceVariant,
+                fontSize: 11)),
           if (loading) pageLoading()
           else if (error != null) FailureState(message: error!, retry: load)
-          else if (rows.isEmpty) const EmptyState(title: 'No expenses')
-          else for (final row in rows) Padding(
+          else if (visible.isEmpty) const EmptyState(title: 'No matching expenses')
+          else for (final row in visible) Padding(
             padding: const EdgeInsets.only(bottom: 8),
             child: Surface(padding: const EdgeInsets.all(13),
-              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              child: Row(children: [
+                Container(height: 48, width: 48,
+                  decoration: BoxDecoration(
+                    color: palette.primaryContainer,
+                    borderRadius: BorderRadius.circular(12)),
+                  child: Icon(Icons.receipt_long_outlined,
+                    color: palette.primary)),
+                const SizedBox(width: 12),
+                Expanded(child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start, children: [
                 Text(field(objectOf(row['expense_account'])['name'], 'Expense'),
                   style: const TextStyle(fontWeight: FontWeight.w900)),
                 Text(field(row['expense_date']),
@@ -403,8 +467,15 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
                 Text(field(row['description'])),
                 Text('Paid from: ${field(
                   objectOf(row['payment_account'])['name'])}'),
-                Text(money(row['amount'], widget.app.currency),
-                  style: const TextStyle(fontWeight: FontWeight.w800)),
+                ])),
+                const SizedBox(width: 8),
+                Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
+                  if (field(row['status']).isNotEmpty)
+                    Text(field(row['status']), style: TextStyle(
+                      color: palette.primary, fontSize: 11)),
+                  Text(money(row['amount'], widget.app.currency),
+                    style: const TextStyle(fontWeight: FontWeight.w900)),
+                ]),
               ]))),
           const SizedBox(height: 80),
         ])),
