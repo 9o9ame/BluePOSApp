@@ -230,3 +230,12 @@ python3 -m unittest discover -s test -p 'test_mobile_mockup_manifest.py' -v
 - Applied focused `lib/screens/shell.dart` change: bounded viewport from LayoutBuilder + SizedBox, `IndexedStack(sizing: StackFit.expand)`; preserved all five tabs and actual POS design. New test `test/shell_layout_constraints_widget_test.dart`.
 - **Do not claim resolution:** code and test committed, but no local Flutter execution or fresh-device validation in this assistant environment. User should pull, run analyze/focused test, then **fully stop** existing Flutter process with `q` and start a fresh `flutter run -d d2b1f972` (because repeated render object assertion may persist across hot reload/hot restart).
 - If clean launch still throws, inspect **first exception** and stack, consider simplifying POS nested ListViews/footer, not changing shared UI globally. No sales posting/API/login/backend or branch changes.
+
+
+### 2026-11-14 — Confirmed infinite-width theme-button root cause (Home blank)
+
+- Actual full fresh-launch log confirms the **primary** exception at `FilledButton:file:///C:/Projects/BluePOSApp/lib/screens/sale.dart:536`: `BoxConstraints forces an infinite width`. This is the POS docked cart footer button in a `Row`; `AppShell` eagerly lays out POS due to `IndexedStack`, causing even Home to blank.
+- Root CSS-equivalent Flutter theme flaw verified: `AppAppearance.data` sets `filledButtonTheme.minimumSize = Size.fromHeight(48)` (infinite min width), and `elevatedButtonTheme.minimumSize = Size.fromHeight(52)`. Fixed both in `lib/core/appearance.dart` to `Size(0, 48)`/`Size(0, 52)` while preserving height and parent-controlled full width.
+- Fixed `const ListView` compile errors in `test/shell_layout_constraints_widget_test.dart`, and added `test/appearance_button_constraints_widget_test.dart` to reproduce Row-based button layouts under the actual app ThemeData.
+- **Validation pending on user Windows Flutter installation.** User should pull safely, analyze, run both focused tests, then full `flutter run -d d2b1f972` after `q`. No backend, auth, finance posting, mockup changes, APK release or branch switching.
+- Handoff rule: first confirm all tabs restored before further screen-image work. The approved Screen 07 POS inline grid stays present, but user/device approval and detailed visual parity remain pending.
