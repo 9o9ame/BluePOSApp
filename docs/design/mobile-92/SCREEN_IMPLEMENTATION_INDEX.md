@@ -10,11 +10,11 @@ Working branch: `feature/daily-entries`. Design-only indexing: **not** an implem
 |---:|---|---|---|
 | 01 | Splash | Startup | Reference — functional contract to verify |
 | 02 | Login | Startup | Reference — functional contract to verify |
-| 03 | Connect Business | Startup | Reference — functional contract to verify |
+| 03 | Connect Business | Startup | **NOT REQUIRED** — tenant/mart code is entered in the existing Login; no separate tenant-selection route to implement |
 | 04 | Account Verification | Startup | Reference — functional contract to verify |
 | 05 | Password Recovery | Startup | Reference — functional contract to verify |
 | 06 | Dashboard | Navigation | Reference — functional contract to verify |
-| 07 | Premium Home Dashboard | Navigation | Reference — functional contract to verify |
+| 07 | POS Sales | Navigation | Premium reference PNG actually depicts POS Sales, not a second Home Dashboard |
 | 08 | Main Menu | Navigation | Reference — functional contract to verify |
 | 09 | More Menu | Navigation | Reference — functional contract to verify |
 | 10 | Notifications | Navigation | Reference — functional contract to verify |
@@ -114,3 +114,11 @@ Working branch: `feature/daily-entries`. Design-only indexing: **not** an implem
 ## Source and handoff
 
 See `docs/MOBILE_92_MOCKUP_IMPLEMENTATION_HANDOFF.md` and `docs/BLUEPOS_MOBILE_COMPLETE_APP_PLAN.md`. Once PNGs are uploaded under `docs/design/mobile-92/screens/`, verify all hashes with `tool/verify_mobile_mockups.py`; use `--require-unique` only once 79, 91, 92 are replaced and approved.
+
+## 2026-11-14 user-approved implementation scope correction
+
+- **Pre-login is frozen for this work:** Splash, Login, Tenant/Mart Code login field, OTP/MFA verification, Password Recovery and related already-approved authentication screens are implemented and visually accepted by user. **Do not redesign, reorder or recreate them.** Only fix a verified security defect if explicitly requested.
+- There is **no standalone tenant-selection or Connect Business screen** to build. The existing login accepts Tenant/Mart Code. Design slot 03 remains an archival reference only and is excluded from development scope; this does not change sequential image numbering.
+- Begin implementation with **post-login Home/Dashboard (design 06)**, then actual POS (design 07) and subsequent post-login flows. First check the actual image, not only the filename/index: design 07 is a POS catalog.
+- Approved mockup's Today’s Sales rupee amount, percentages, collections and expense totals are **illustrative**, not API-backed data. Implement only real permitted server metrics; do not fabricate a revenue chart or pretend invoice count equals sales amount.
+- Keep existing login/auth/session implementation untouched. Mobile visual polish must follow the authoritative web `PROJECT_UI_DESIGN_SYSTEM.md` and Flutter theme preferences.
