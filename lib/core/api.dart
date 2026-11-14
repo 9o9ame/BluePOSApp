@@ -5,7 +5,7 @@ import 'dart:typed_data';
 
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
-const apiOrigin = 'https://bluepos.bluemarketing.com.pk';
+const apiOrigin = 'https://bluepos.pk';
 
 class ApiFailure implements Exception {
   final String key;
@@ -28,7 +28,8 @@ class BlueposApi {
   bool _csrfReady = false;
   final Map<String, Uint8List> _productImageCache = {};
   bool get hasSavedSessionCookies => _cookies.isNotEmpty;
-  static const _cookieKey = 'bluepos_mobile_auth_cookies_v1';
+  // Cookies from the retired domain must not be sent to the new production host.
+  static const _cookieKey = 'bluepos_pk_mobile_auth_cookies_v1';
 
   Future<void> restore() async {
     try {
