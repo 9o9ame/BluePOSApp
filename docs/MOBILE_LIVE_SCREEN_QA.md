@@ -232,3 +232,9 @@ If successful, press `R` in existing Flutter debug terminal for fresh menu state
 6. Home/POS/Products/Reports tabs remain functional; no blank screens or Flutter layout errors. Do not Save Invoice as part of design QA.
 
 **Known non-parity items:** global bottom nav still Home/POS/Products/Reports/Modules rather than image Home/POS/central Scanner/Reports/More; global app bar unchanged to avoid unrelated navigation/security refactor; Help/Logout in image not wired because not scoped/verified; individual icon artwork differs from generated illustration. Do not describe this as pixel-perfect approved yet.
+
+## 2026-11-14 — User device result: newer Screens 08–09 PASS
+
+User explicitly confirmed **6/6 live checks PASS** for the new Main Menu and More screen batch: (1) Modules tab shows More and real tenant, (2) Open Main Menu works, (3) authorized module rows/shortcuts only, (4) Definition opens existing directory, (5) Settings and Browse all available modules work, and (6) Home/POS/Products/Reports/Modules all stay visible with no blank tabs.
+
+**Scope of acceptance:** physical device functional/navigation smoke check only. Exact pixel parity with newer individual `bluepos_main_menu_dashboard.png` / `bluepos_more_menu_dashboard.png` still needs separate visual signoff. New `test/approved_navigation_menus_widget_test.dart` analyzer/test run logs not supplied; do not claim automated test passed. No financial posting performed or requested. Next candidate reference in numbered pack is 10 Notifications; inspect the exact newer PNG and verify real notification API/permissions before implementing, no invented alert data.
