@@ -319,3 +319,10 @@
 - Verified newer approved-source manifest and original `bluepos_coca_cola_product_details.png` Screen 13; implemented dedicated Product Detail page with authorized API fresh fetch, server-driven fields, gated Edit/purchase value, Price & Stock, and explicit missing states. Products Catalog now opens details page; POS add-to-cart remains separate. New focused widget tests added.
 - No fake mockup product data, invented barcode printing, financial posting, auth or backend changes. New Screen 13 Flutter analyzer/widget tests and physical-device acceptance pending.
 - Next on PASS: visually inspect Screen 14 Categories original and align existing category list without violating frozen UI or RBAC; update QA/handoff in batch.
+
+
+### 2026-11-14 — User requests five-screen batches; Screen 13 build repaired
+
+- Future BluePOS Mobile batches must target **five screens at once** after the previous batch successfully compiles and passes focused device QA. Start with newer actual reference screens **14–18** once Screen 13's build has been revalidated.
+- Received actual Windows Flutter output: two compile errors in last Product Details work, at `product_details.dart:182` extra closing `)),` and `products.dart:260` undefined `validPublicUlid`; associated tests failed at compile. Removed extra delimiter, replaced ULID helper with local strict regex, removed unused `_price`.
+- Changes committed on `feature/daily-entries`; **testing pending on user's machine**. Do not mark Screen 13 passed until analyzer/tests/device checks complete. Preserve previous frozen screens, stable sales posting/tenant data, working tree and no merge/release.
