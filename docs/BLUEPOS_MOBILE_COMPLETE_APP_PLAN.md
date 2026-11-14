@@ -357,3 +357,11 @@
 - User PC log: 19–23 tests 5/6 passed and 1 failed (Screen 23 Save button below lazy ListView viewport); prior 14–18 six-test suite passed. Analyzer had one warning plus 127 info-only lints.
 - Fixed analyzer unnecessary null-aware expression, added stable key to still-disabled Price List Save, and modified regression to scroll to button before asserting null callback. Rerun pending; no claims of full green QA.
 - Only after focused tests pass proceed to new batch 24–28. Price Lists backend not implemented; 22/23 are UI reference only.
+
+
+### 2026-11-14 — Five-screen batch 24–28 (Sale Schemes + Customers)
+
+- User reported Screens 19–23 tests all pass after warning/lazy-scroll fix, so implementation continued in a 5-screen batch based on later individually generated premium PNGs (24 Sale Schemes, 25 Add Sale Scheme, 26 Customers, 27 Add Customer, 28 Customer Detail). Original files SHA256 matched manifest and were visually inspected.
+- New `lib/screens/sale_schemes.dart` + Definition navigation shows real authorized promotion list and non-submittable Add Scheme reference because actual required reward-product API differs from visual mock. Existing `lib/screens/parties.dart` now offers customer image-style directory and full-page Add Customer form reusing server party validation; new `lib/screens/customer_detail.dart` fetches public ULID and shows only actual response fields, no mock receivables or invoices. Test `test/catalog_reference_24_28_widget_test.dart` covers these workflows plus no unsupported client financial fields.
+- Screen 25 remains UI-only; customer opening balance/credit limit mutation and recent ledgers intentionally out of scope until verified financial workflows. Flutter analyzer/widget tests/device signoff pending; no backend/DB changes or main branch merge.
+- Next on green: five screens 29–33, only after newer reference PNGs/backend inspection. Continue exact changed file/test/handoff reporting every batch.
