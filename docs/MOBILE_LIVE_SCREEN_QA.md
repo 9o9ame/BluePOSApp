@@ -238,3 +238,38 @@ If successful, press `R` in existing Flutter debug terminal for fresh menu state
 User explicitly confirmed **6/6 live checks PASS** for the new Main Menu and More screen batch: (1) Modules tab shows More and real tenant, (2) Open Main Menu works, (3) authorized module rows/shortcuts only, (4) Definition opens existing directory, (5) Settings and Browse all available modules work, and (6) Home/POS/Products/Reports/Modules all stay visible with no blank tabs.
 
 **Scope of acceptance:** physical device functional/navigation smoke check only. Exact pixel parity with newer individual `bluepos_main_menu_dashboard.png` / `bluepos_more_menu_dashboard.png` still needs separate visual signoff. New `test/approved_navigation_menus_widget_test.dart` analyzer/test run logs not supplied; do not claim automated test passed. No financial posting performed or requested. Next candidate reference in numbered pack is 10 Notifications; inspect the exact newer PNG and verify real notification API/permissions before implementing, no invented alert data.
+
+
+## 2026-11-14 — Newer Screen 10: Notifications batch
+
+**Previous batch:** User confirmed 6/6 on-device checks PASS for newer Screens 08–09 (More, Main Menu, permission-scoped groups, Definition directory, settings, and stable tabs). This is user-reported functional QA; screenshot parity and automated tests remain distinct.
+
+**Verified design source:** actual newer generated individual image `bluepos_notifications_dashboard.png` (Screen 10), visually inspected. It shows title Notifications, All / Alerts / Activity segmented tabs, icon-backed notification cards, unread indicators, and a bell icon in the common app header.
+
+**Verified backend contract:** `GET /api/devices/access-notifications` returns `notifications`, `unread_count`, pagination and per-alert ULID, kind, timestamps, device_name and username. **Backend strictly limits this endpoint to tenant owner authority** and Device view policy. `POST /api/devices/access-notifications/{notificationUlid}/read` is owner-scoped, scoped to tenant/recipient, and marks read idempotently. Existing `lib/screens/device_admin.dart` already uses this response. No unified API exists in inspected API routes for mock purchase-posted, stock alerts, daily-sales summaries or backups.
+
+**Implemented:**
+- NEW `lib/screens/notifications.dart`: NotificationsScreen fetches real owner-scoped device access notices; responsive NotificationsView uses actual theme, icons and card layout, All/Alerts/Activity UI, unread count, explicit mark-read action, refresh, loading, non-owner (403), error and no-data states. Activity displays explicit not-available notice instead of fake activity feed. Neither server-supplied PII nor device identifiers are logged.
+- UPDATED `lib/screens/shell.dart`: bell icon in app header opens Notifications screen via existing Navigator; no change to five working tabs, product/financial routes or frozen login.
+- NEW `test/notifications_screen_widget_test.dart`: four widget regressions for server-provided card/read callback, Activity unsupported state, restricted owner state, and tab callback.
+
+**Phone QA — after successful Git pull and tests:**
+1. Home app header: bell icon should appear; tap to open Notifications.
+2. Owner account: real device access notification cards appear only if such alerts exist; unread indicator and Mark notification read call the existing endpoint. If no notices, see "No notifications". Do not create device approvals just to populate data.
+3. Non-owner account: "Device notifications are available to tenant owners only." with no private details.
+4. All/Alerts/Activity tabs tap; Activity says the general feed is not provided. Pull-to-refresh should be safe.
+5. Back to Home; POS, Products, Reports, Modules remain visible with no blank screens. Check both light/dark mode and narrow Redmi Note 10 width.
+6. Screenshot compare to actual newer Screen 10 image: structure/layout is implemented; mock alert data, top-bar artwork and central Scanner bottom nav intentionally differ pending feature/route support. Not pixel approved.
+
+**Windows commands:**
+```powershell
+Set-Location "C:\Projects\BluePOSApp"
+git status --short
+git pull --ff-only origin feature/daily-entries
+flutter analyze --no-fatal-infos
+flutter test "C:\Projects\BluePOSApp\test\notifications_screen_widget_test.dart"
+flutter test "C:\Projects\BluePOSApp\test\appearance_button_constraints_widget_test.dart"
+```
+If safe pull succeeds and focused tests pass, press `R` in running Flutter terminal for hot restart when required by new navigation/widgets. Do not destroy local Android scaffolding. No Save Invoice on live tenant for visual QA.
+
+**Validation:** GitHub code commits confirmed; analyzer/test execution and physical-device acceptance for Screen 10 **pending**. No backend/API/DB changes, extra branches, production posting or APK publishing.
