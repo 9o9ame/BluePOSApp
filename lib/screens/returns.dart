@@ -42,7 +42,7 @@ class ReturnDocumentsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) => TransactionDirectory(
     app: app, title: kind.title, endpoint: kind.path,
-    dateKey: 'return_date', referenceStyle: kind == ReturnDocumentKind.sale,
+    dateKey: 'return_date', referenceStyle: true,
     createPermission: kind.createPermission,
     onCreate: (ctx) async => await Navigator.push<bool>(ctx,
       MaterialPageRoute(builder: (_) =>
@@ -463,12 +463,19 @@ class _ReturnDocumentEditorState extends State<ReturnDocumentEditor> {
       (!created || draft && editable);
     return Scaffold(
       appBar: AppBar(title: Text(created
-        ? field(document?['document_number'], widget.kind.title)
-        : 'New ${widget.kind.title}'),
+        ? widget.kind == ReturnDocumentKind.purchase
+          ? 'Purchase Return Detail'
+          : field(document?['document_number'], widget.kind.title)
+        : widget.kind == ReturnDocumentKind.sale
+          ? 'Create Sales Return' : 'Create Purchase Return'),
         actions: [if (created) IconButton(onPressed: saving || loading
           ? null : refresh, icon: const Icon(Icons.refresh_rounded))]),
       body: ListView(padding: const EdgeInsets.all(16), children: [
-        SectionHeading(widget.kind.title),
+        SectionHeading(created
+          ? widget.kind == ReturnDocumentKind.purchase
+            ? 'Purchase Return Detail' : 'Sales Return Detail'
+          : widget.kind == ReturnDocumentKind.sale
+            ? 'Create Sales Return' : 'Create Purchase Return'),
         const SizedBox(height: 5),
         Text('Source-linked returns use server-authorized posted invoices.',
           style: TextStyle(color: palette.onSurfaceVariant, fontSize: 12)),
@@ -506,6 +513,23 @@ class _ReturnDocumentEditorState extends State<ReturnDocumentEditor> {
                 label: const Text('Save Header')),
           ])),
           if (created) ...[
+            if (widget.kind == ReturnDocumentKind.purchase) ...[
+              Surface(child: Row(children: [
+                Icon(Icons.assignment_return_outlined,
+                  color: palette.primary),
+                const SizedBox(width: 11),
+                Expanded(child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start, children: [
+                    Text(field(document?['document_number'], 'Purchase Return'),
+                      style: const TextStyle(fontWeight: FontWeight.w900)),
+                    Text('Status: ${field(document?['status'], 'Unknown')}',
+                      style: TextStyle(color: palette.onSurfaceVariant)),
+                    Text('Original: ${field(source?['document_number'], 'Not available')}',
+                      style: TextStyle(color: palette.onSurfaceVariant)),
+                  ])),
+              ])),
+              const SizedBox(height: 12),
+            ],
             const SizedBox(height: 12),
             Row(children: [
               Expanded(child: SectionHeading('Return lines (${lines.length})')),
@@ -524,6 +548,9 @@ class _ReturnDocumentEditorState extends State<ReturnDocumentEditor> {
                 Text(field(objectOf(line['product'])['name'], 'Product'),
                   style: const TextStyle(fontWeight: FontWeight.w800)),
                 Text('Quantity: ${field(line['quantity'])}'),
+                if (widget.kind == ReturnDocumentKind.purchase &&
+                    line['unit_cost'] != null)
+                  Text('Rate: ${money(line['unit_cost'], widget.app.currency)}'),
                 Text('Line total: ${money(line['line_total'], widget.app.currency)}'),
                 if (canEditNow) Row(
                   mainAxisAlignment: MainAxisAlignment.end, children: [
