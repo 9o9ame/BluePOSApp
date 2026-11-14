@@ -660,3 +660,10 @@ If any test fails, share FIRST compiler error/test exception; do not force-pull,
 **Validation status:** User prior 29–33 device PASS recorded; new 34–38 code committed with static source checks only, **Flutter analyzer/widget tests/device QA pending**. No backend/DB change, main merge, release, forced Git actions, real money posting or new branch.
 
 **Next on PASS:** inspect *newer original* Screens 39–43, current Flutter APIs/permissions and existing routes, then implement the next five-screen batch with focused tests, QA and handoff in same response. Prioritize compilation fixes before more work.
+
+
+## 2026-11-14 — Screens 34–38 physical-device result 6/6 PASS
+
+User explicitly confirmed **all six** mobile smoke checks PASS: (34) authorized Sales Invoice Detail with real amounts and Print/Share; (35) Purchase Invoices list shows real supplier/status/amount; (36) Create Purchase Invoice loads existing draft/line editor; (37) Purchase Invoice Detail shows server status/lines/total; (38) source-linked Sales Returns list opens; Home/POS/Products/Reports/Modules/Notifications are stable. This is user-reported **device functional acceptance**, not screenshot pixel parity or confirmation of a newly executed `catalog_reference_34_38_widget_test.dart` suite.
+
+**Explicit hold before Screens 39–43:** User also reported pagination-position problems in screenshots of a **separate localhost Waqas ERP System** at `/admin/extra_charge`, `/admin/journal-voucher`, `/admin/sales-voucher`, and `/admin/commision-voucher` and requested those resolved before the next mobile batch. Those screenshots are not BluePOS Flutter screens. The Waqas ERP repository/source was not found in connected installed GitHub repositories by search (`Waqas ERP`, `waqas`, `extra_charge`). Do **not** change BluePOS Flutter transaction pagination to fix an unrelated web project; obtain Waqas ERP repo/source access before claiming any web pagination fix. No mobile source change in this checkpoint.
