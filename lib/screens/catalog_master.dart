@@ -155,27 +155,56 @@ class _CatalogMasterScreenState extends State<CatalogMasterScreen> {
     }
     var saving = false;
     String? formError;
+    final singular = widget.config.title == 'Categories' ? 'Category'
+      : widget.config.title == 'Subcategories' ? 'Subcategory'
+      : widget.config.title == 'Brands' ? 'Brand'
+      : widget.config.title == 'Units' ? 'Unit'
+      : widget.config.title;
+    final formTitle = isEdit ? 'Edit $singular' : 'Add $singular';
     try {
-      final didSave = await showModalBottomSheet<bool>(
-        context: context,
-        useSafeArea: true,
-        showDragHandle: true,
-        isScrollControlled: true,
-        builder: (sheetContext) => StatefulBuilder(
-          builder: (sheetContext, updateSheet) => Padding(
-            padding: EdgeInsets.fromLTRB(18, 0, 18,
-              MediaQuery.viewInsetsOf(sheetContext).bottom + 24),
-            child: SingleChildScrollView(child: Column(
+      final didSave = await Navigator.of(context).push<bool>(
+        MaterialPageRoute(builder: (_) => StatefulBuilder(
+          builder: (sheetContext, updateSheet) => Scaffold(
+            appBar: AppBar(title: Text(formTitle)),
+            body: SafeArea(child: Padding(
+              padding: EdgeInsets.fromLTRB(16, 12, 16,
+                MediaQuery.viewInsetsOf(sheetContext).bottom + 20),
+              child: SingleChildScrollView(child: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Text(isEdit ? 'Edit ${widget.config.title}' :
-                  'Add ${widget.config.title}',
-                  style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w900)),
+                const SizedBox(height: 12),
+                Center(child: Icon(
+                  widget.config.needsCategory ? Icons.layers_outlined
+                    : widget.config.apiPath == '/api/brands'
+                      ? Icons.sell_outlined : Icons.category_outlined,
+                  size: 56, color: Theme.of(sheetContext).colorScheme.primary)),
+                const SizedBox(height: 22),
+                Text(formTitle, style: const TextStyle(
+                  fontSize: 21, fontWeight: FontWeight.w900)),
                 const SizedBox(height: 16),
-                TextField(controller: name, maxLength: 160,
+                TextField(
+                  key: const ValueKey('catalog-editor-name'),
+                  controller: name, maxLength: 160,
                   textInputAction: TextInputAction.next,
-                  decoration: const InputDecoration(labelText: 'Name *')),
+                  decoration: InputDecoration(
+                    labelText: '$singular Name *',
+                    hintText: 'Enter name')),
+                if (widget.config.apiPath == '/api/categories' ||
+                    widget.config.needsCategory) ...[
+                  const SizedBox(height: 8),
+                  InputDecorator(
+                    decoration: const InputDecoration(labelText: 'Code'),
+                    child: Text(isEdit
+                      ? field(item?['code'], 'Automatically generated')
+                      : 'Automatically generated',
+                      style: TextStyle(color:
+                        Theme.of(sheetContext).colorScheme.onSurfaceVariant)),
+                  ),
+                  Text('The BluePOS server generates this code.',
+                    style: TextStyle(fontSize: 11, color:
+                      Theme.of(sheetContext).colorScheme.onSurfaceVariant)),
+                ],
                 if (widget.config.hasDescription) ...[
                   const SizedBox(height: 8),
                   TextField(controller: description, maxLength: 255,
@@ -207,12 +236,19 @@ class _CatalogMasterScreenState extends State<CatalogMasterScreen> {
                       (next) => updateSheet(() => categoryUlid = next ?? ''),
                   ),
                 ],
-                SwitchListTile.adaptive(
-                  contentPadding: EdgeInsets.zero,
-                  title: const Text('Active'),
-                  value: active,
-                  onChanged: saving ? null :
-                    (value) => updateSheet(() => active = value)),
+                const SizedBox(height: 10),
+                const Text('Status *',
+                  style: TextStyle(fontWeight: FontWeight.w800)),
+                SegmentedButton<bool>(
+                  key: const ValueKey('catalog-editor-status'),
+                  segments: const [
+                    ButtonSegment(value: true, label: Text('Active')),
+                    ButtonSegment(value: false, label: Text('Inactive')),
+                  ],
+                  selected: {active},
+                  onSelectionChanged: saving ? null :
+                    (values) => updateSheet(() => active = values.first),
+                ),
                 if (formError != null) Padding(
                   padding: const EdgeInsets.symmetric(vertical: 10),
                   child: Text(formError!, style: TextStyle(
@@ -220,11 +256,11 @@ class _CatalogMasterScreenState extends State<CatalogMasterScreen> {
                 ),
                 const SizedBox(height: 10),
                 FilledButton.icon(
+                  key: const ValueKey('catalog-editor-save'),
                   icon: saving ? const SizedBox(width: 16, height: 16,
                     child: CircularProgressIndicator(strokeWidth: 2)) :
                     const Icon(Icons.check_rounded),
-                  label: Text(saving ? 'Saving…' :
-                    (isEdit ? 'Save changes' : 'Create')),
+                  label: Text(saving ? 'Saving…' : 'Save $singular'),
                   onPressed: saving ? null : () async {
                     final label = name.text.trim();
                     if (label.isEmpty || widget.config.isUnit &&
@@ -258,11 +294,18 @@ class _CatalogMasterScreenState extends State<CatalogMasterScreen> {
                     }
                   },
                 ),
+                const SizedBox(height: 12),
+                OutlinedButton(
+                  onPressed: saving ? null :
+                    () => Navigator.of(sheetContext).pop(false),
+                  child: const Text('Cancel'),
+                ),
+                const SizedBox(height: 12),
               ],
             )),
-          ),
+          )),
         ),
-      );
+      )));
       if (didSave == true && mounted) {
         await reload();
         if (mounted) ScaffoldMessenger.of(context).showSnackBar(
