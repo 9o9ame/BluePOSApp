@@ -303,3 +303,11 @@
 - Based on actual newer individual image `bluepos_definition_modules_dashboard.png`, implemented Screen 11 Definition Home ordered vertical rows in existing `lib/screens/modules.dart`, preserving RBAC/entitlement visibility and old routes/directory. New `test/definition_home_widget_test.dart` targets order/denied items/back route.
 - Price Lists/Barcode Printing mockup entries currently have no verified direct route in module group and are intentionally omitted. No mocked data, posting, backend or schema changes.
 - Automated tests/device Screen 11 verification pending. Continue automatically from Screen 11 PASS to newer Screen 12 Products Catalog after inspecting its PNG and existing data contract.
+
+
+### 2026-11-14 — Continuous next screen: 12 Products Catalog
+
+- Previous Screen 11 Definition Home: user confirmed 6/6 physical-device tests PASS, no blank tabs. Automated results for `test/definition_home_widget_test.dart` not supplied.
+- Inspected newer `bluepos_products_catalog.png` reference, implemented Products tab horizontal image/SKU/stock/price rows, search/funnel toggling existing server category filter, and permission-gated Add Product FAB using existing editor. `catalogHome` mode keeps POS separate and handles old shell onAdd route.
+- Added `test/products_catalog_reference_widget_test.dart` for API-derived values/tap/no-fake missing states. New batch Flutter analyzer and device checks pending. Never use rejected older design pack, fabricate stock, or change server-authoritative payment/posting.
+- Next on PASS: Screen 13 Product Details reference verification and scoped update.
