@@ -96,9 +96,12 @@ void main() {
     await tester.pumpWidget(const MaterialApp(
       home: AddPriceListReferenceScreen()));
     expect(find.text('Add Price List'), findsOneWidget);
+    final save = find.byKey(const ValueKey('price-list-save-disabled'));
+    // ListView lazily mounts its footer only after scrolling into view.
+    await tester.scrollUntilVisible(save, 160,
+      scrollable: find.byType(Scrollable).first);
     expect(find.text('Save Price List'), findsOneWidget);
-    final button = tester.widget<FilledButton>(
-      find.widgetWithText(FilledButton, 'Save Price List'));
+    final button = tester.widget<FilledButton>(save);
     expect(button.onPressed, isNull);
     expect(tester.takeException(), isNull);
   });
