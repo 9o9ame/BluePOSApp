@@ -84,9 +84,36 @@ Record: screen ID, device/Android version, Light/Dark theme, screen width, steps
 | 2026-11-14 | Login against `bluepos.pk` | User-reported working | Reported in chat; not independently device-verified |
 | 2026-11-14 | Dashboard permission tests | Previously reported 2/2 passed by user | User's Flutter terminal logs |
 | 2026-11-14 | POS entry search/scan presentation | Code committed; tests written, **not yet executed in this session** | `lib/screens/sale.dart`, `test/pos_product_entry_widget_test.dart` |
-| Pending | POS visual comparison / phone behavior | **Not approved** | User screenshot and interactive checks |
+| 2026-11-14 | POS first-pass interaction checklist | **6/6 user-reported PASS**: heading, search, separate scanner, price mode, customer card, cart & estimate | User chat results; screenshot/comprehensive acceptance not yet provided |
+| Pending | POS product-picker card grid | **New implementation / not yet device-tested** | `lib/screens/products.dart`, `test/pos_catalog_card_widget_test.dart` |
+| Pending | POS visual comparison to approved reference | **Not approved** | User screenshot and detailed visual check pending |
 | Pending | Final 92 mockups / binary pack upload | **Not complete** | 79,91,92 provisional; PNGs not in repository |
 
 ## Next development step
 
 After the user reports POS results and sends a safe screenshot, inspect actual `ProductsScreen` and its product API schema, then consider a **read-only inline POS catalog grid** with search/category chips that reuses existing product permissions and selection. That change must be bounded and cannot modify payment/posting services. If it requires more than seven files, stop and report scope before proceeding. Keep the handoff and this QA document updated at every batch.
+
+## 2026-11-14 — Next POS batch: actual product-card grid in picker
+
+**Previous batch:** User explicitly marked all six POS first-pass checks **PASS** (heading, Product Search, separate Scanner, Price Mode, Customer card, Cart/estimated total). This is interaction-level confirmation, **not** mockup-perfect visual sign-off or authorization/posting acceptance.
+
+**New work:** When user taps POS → `Search products or barcode`, the existing authorized Products picker now shows a responsive two-/three-column product-card grid with actual product image fallback, product name, server-supplied *retail reference price*, and `sales_lookup.in_stock` when supplied. Missing prices/stock display `Price unavailable` and `Stock not shown` respectively; no invented values. The original search, barcode scan, category chips, 25-item pagination and Add callbacks remain. Normal standalone Products tab still uses the original detailed list, not the POS grid.
+
+**Phone check after Git pull / hot reload:** 
+1. Open POS → `Search products or barcode`. See product cards arranged in columns (not previous full-width list).
+2. Check image/fallback, product name, retail price or unavailable label; stock label only if server supplied.
+3. Type search query, switch category chips, tap `Load more products` where available. Check only authorized items.
+4. Tap one real test item: picker closes; cart includes same product, quantity 1. Change price mode: **card price is retail reference; cart estimate follows selected mode**.
+5. Repeat in light/dark and narrow phone orientation. Do not Save Invoice or post financial records.
+6. Share sanitized screenshot and any visible overflow or mismatch.
+
+**Focused tests to run locally:**
+```powershell
+Set-Location "C:\Projects\BluePOSApp"
+flutter analyze --no-fatal-infos
+flutter test "C:\Projects\BluePOSApp\test\pos_catalog_card_widget_test.dart"
+flutter test "C:\Projects\BluePOSApp\test\pos_product_entry_widget_test.dart"
+```
+If pulling updates while `flutter run` is active, first check `git status --short` and use `git pull --ff-only origin feature/daily-entries` in a second PowerShell terminal; then press `r` in the running Flutter terminal. Restart only if necessary. Native build/config unchanged.
+
+**Validation status:** New grid and test code committed via GitHub; Flutter tests/analyzer and device visual checks for this batch **not executed in assistant environment**. Main POS page inline grid remains future work, not yet implemented.
