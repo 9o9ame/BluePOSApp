@@ -245,3 +245,10 @@
 - Added a narrow product-card test in `test/pos_catalog_card_widget_test.dart`; Flutter tests and real-device screenshot are pending. Docked estimate is intentionally pre-tax and opens the existing Payment screen.
 - Known parity gap: shell tab geometry and names differ from image; current routes must be reconciled safely before changing navigation. Unsupported mock favorites and sample product names/prices are not implemented as real features.
 - See `docs/MOBILE_LIVE_SCREEN_QA.md` and `docs/MOBILE_92_MOCKUP_IMPLEMENTATION_HANDOFF.md` for exact full-path Windows commands and next-chat continuation. No APK release, backend/database changes or branch switch.
+
+
+### 2026-11-14 — Post-image-07 hot reload crash triage
+
+- User's physical phone reported blank non-Home tabs. Runtime log identified `ProductsScreen.inlineCatalog` null-to-bool TypeError in old IndexedStack widget instances after hot reload, then layout exceptions. Local analyzer had only informational lint findings and 3/3 prior product-card tests passed.
+- Patched optional inlineCatalog/imageFirst widget flags to tolerate null during hot reload and added a regression widget test. **Not yet validated** locally/on phone, and independent infinite-width layout issue not ruled out.
+- Next: pull safely, focused tests and Hot Restart (capital R). Confirm all main tabs; if failure persists capture first runtime exception. No main merge, backend, authentication, posting or release changes.
