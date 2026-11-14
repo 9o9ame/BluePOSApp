@@ -341,3 +341,12 @@
 - Verified later approved-source individual design PNGs 14 Categories, 15 Add Category, 16 Subcategories, 17 Add Subcategory, 18 Brands, each original SHA256 matching manifest. The rejected generic 92 pack is not the source.
 - Implemented coordinated master UI update in `lib/screens/catalog_master.dart`: separate themed list pages for Categories/Subcategories/Brands; full-page Category/Subcategory Add forms, existing brand Add/Edit flow reused; search and Active status filter; server category choices; permission gates and real ULIDs; no fake counts or client-supplied generated codes. Added five-screen + payload regression in `test/catalog_master_reference_batch_widget_test.dart`.
 - **New code test/build validation pending user PC**, five screen device review pending later; do not claim final pixel fidelity. Next after test passes: five newer screens 19–23. Continue permanent QA/handoff update per batch and avoid frozen pre-login, backend/DB/financial operations, main branch/merge/release.
+
+
+### 2026-11-14 — 5-screen batch 19–23 (partial API-supported scope)
+
+- Previous 14–18: **all five device checks PASS** per user. New batch follows later (non-rejected) reference originals 19 Add Brand, 20 Units, 21 Add Unit, 22 Price Lists, 23 Add Price List (SHA256 matched and visually inspected).
+- 19–21 now share authorized existing Catalog Master create/list flows. Brand code stays server-generated read-only, Unit symbol displayed in real list and form, and no fabricated unit base conversion factor. No backend/DB changes.
+- 22–23 new Price Lists reference UI/navigation with pending integration state, no seeded price-list data, all form fields read-only and Save permanently disabled pending verified API/policies. Domain functionality **blocked**, not implemented.
+- Added `test/catalog_reference_19_23_widget_test.dart` (5 widgets + payload unit). Flutter analyzer/tests/device QA pending for this batch. No financial production writes, no branch merges, no frozen pre-login changes.
+- The next five-screen batch is 24–28, contingent on focused tests/phone feedback and verified newer PNG/backend contracts.
