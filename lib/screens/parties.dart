@@ -41,6 +41,7 @@ class _PartyDirectoryState extends State<PartyDirectory> {
   final search = TextEditingController();
   List<Map<String, dynamic>> rows = const [];
   bool loading = true;
+  bool activeOnly = false;
   String? error;
 
   String get permission => switch (widget.type) {
@@ -213,44 +214,111 @@ class _PartyDirectoryState extends State<PartyDirectory> {
     }
   }
 
+  Future<void> openCustomerDetails(Map<String, dynamic> record) async {
+    if (widget.type != 'customer' || !can('view')) return;
+    final ulid = field(record['ulid']);
+    if (!RegExp(r'^[0-9A-HJKMNP-TV-Z]{26}$').hasMatch(ulid)) return;
+    await Navigator.of(context).push(MaterialPageRoute(builder: (_) =>
+      CustomerDetailScreen(app: widget.app, customerUlid: ulid,
+        onEdit: can('edit') ? () {
+          Navigator.of(context).pop();
+          edit(record: record);
+        } : null)));
+    if (mounted) await refresh();
+  }
+
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
+    final isCustomer = widget.type == 'customer';
     final query = search.text.trim().toLowerCase();
-    final filtered = rows.where((row) => query.isEmpty ||
-      (field(row['name']) + ' ' + field(row['code']))
-        .toLowerCase().contains(query));
+    final filtered = rows.where((row) =>
+      (!activeOnly || row['is_active'] != false) &&
+      (query.isEmpty ||
+        ('${field(row['name'])} ${field(row['code'])} ${field(row['mobile'])}')
+          .toLowerCase().contains(query))).toList();
     return Scaffold(
       appBar: AppBar(title: Text(title),
-        actions: [IconButton(onPressed: refresh, icon: const Icon(Icons.refresh))]),
+        actions: [IconButton(onPressed: refresh, tooltip: 'Refresh',
+          icon: const Icon(Icons.refresh))]),
       floatingActionButton: can('create') ? FloatingActionButton.extended(
+        key: const ValueKey('party-add'),
         onPressed: () => edit(),
         icon: const Icon(Icons.person_add_alt_1_rounded),
-        label: Text('Add ' + widget.type)) : null,
+        label: Text(isCustomer ? 'Add Customer' : 'Add $title')) : null,
       body: RefreshIndicator(onRefresh: refresh, child: ListView(
+        key: const ValueKey('party-directory-list'),
+        physics: const AlwaysScrollableScrollPhysics(),
         padding: const EdgeInsets.all(16), children: [
-          SectionHeading(title),
-          TextField(controller: search, onChanged: (_) => setState(() {}),
-            decoration: const InputDecoration(
-              prefixIcon: Icon(Icons.search),
-              hintText: 'Search by name or code')),
+          Text(title, style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+            fontWeight: FontWeight.w900)),
+          const SizedBox(height: 14),
+          Row(children: [
+            Expanded(child: TextField(
+              key: const ValueKey('party-search'),
+              controller: search, onChanged: (_) => setState(() {}),
+              decoration: InputDecoration(
+                prefixIcon: const Icon(Icons.search),
+                hintText: 'Search ${title.toLowerCase()}...'))),
+            if (isCustomer) ...[
+              const SizedBox(width: 8),
+              IconButton.filledTonal(
+                tooltip: 'Active customers filter',
+                key: const ValueKey('party-filter'),
+                onPressed: () => setState(() => activeOnly = !activeOnly),
+                icon: Icon(activeOnly ? Icons.filter_alt
+                  : Icons.filter_alt_outlined)),
+            ],
+          ]),
           const SizedBox(height: 12),
           if (loading) pageLoading()
           else if (error != null) FailureState(message: error!, retry: refresh)
-          else if (filtered.isEmpty) const EmptyState(title: 'No matching records')
+          else if (filtered.isEmpty)
+            const EmptyState(title: 'No matching records')
           else ...filtered.map((row) => Padding(
             padding: const EdgeInsets.only(bottom: 9),
-            child: Surface(padding: EdgeInsets.zero, child: ListTile(
-              leading: CircleAvatar(backgroundColor: scheme.primaryContainer,
-                child: Icon(Icons.person_outline, color: scheme.primary)),
-              title: Text(field(row['name'], 'Unnamed'),
-                style: const TextStyle(fontWeight: FontWeight.w800)),
-              subtitle: Text(field(row['code'])),
-              trailing: can('edit') ? const Icon(Icons.chevron_right) : null,
-              onTap: can('edit') ? () => edit(record: row) : null,
-            )),
+            child: Surface(padding: EdgeInsets.zero,
+              child: InkWell(
+                key: ValueKey('party-row-${field(row['ulid'])}'),
+                onTap: isCustomer ? () => openCustomerDetails(row)
+                  : can('edit') ? () => edit(record: row) : null,
+                child: Padding(padding: const EdgeInsets.all(12),
+                  child: Row(children: [
+                    Container(height: 49, width: 49,
+                      decoration: BoxDecoration(
+                        color: scheme.primaryContainer,
+                        borderRadius: BorderRadius.circular(12)),
+                      child: Icon(Icons.storefront_outlined,
+                        color: scheme.primary)),
+                    const SizedBox(width: 12),
+                    Expanded(child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start, children: [
+                        Text(field(row['name'], 'Unnamed'),
+                          maxLines: 2, overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(fontWeight: FontWeight.w900)),
+                        Text(field(row['code']), style: TextStyle(
+                          fontSize: 11, color: scheme.onSurfaceVariant)),
+                        if (isCustomer && field(row['area']).isNotEmpty)
+                          Text(field(row['area']), maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(color: scheme.onSurfaceVariant,
+                              fontSize: 11)),
+                        if (isCustomer && field(row['mobile']).isNotEmpty)
+                          Text(field(row['mobile']), maxLines: 1,
+                            style: TextStyle(color: scheme.onSurfaceVariant,
+                              fontSize: 11)),
+                      ])),
+                    if (isCustomer && row['credit_limit_amount'] != null)
+                      Text('Limit: ${field(row['credit_limit_amount'])}',
+                        style: TextStyle(fontSize: 11,
+                          color: scheme.primary, fontWeight: FontWeight.w800)),
+                    const SizedBox(width: 6),
+                    const Icon(Icons.chevron_right_rounded),
+                  ]),
+                ),
+              )),
           )),
-          const SizedBox(height: 85),
+          const SizedBox(height: 100),
         ]),
       ),
     );
