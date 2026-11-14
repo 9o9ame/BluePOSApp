@@ -4,6 +4,7 @@ import '../core/api.dart';
 import '../core/session.dart';
 import '../widgets/common.dart';
 import 'catalog_master.dart';
+import 'sale_schemes.dart';
 import 'price_lists.dart';
 import 'parties.dart';
 import 'stock_status.dart';
@@ -136,8 +137,7 @@ class _ModulesScreenState extends State<ModulesScreen> {
         permissions: const ['products.view', 'products.manage'],
         entitlement: 'catalog'),
       ModuleAction('Sale Schemes', 'Existing pricing schemes',
-        Icons.local_offer_outlined, () => _data('Sale Schemes',
-          '/api/sale-schemes', subtitleKey: 'code'),
+        Icons.local_offer_outlined, () => _open(SaleSchemesScreen(app: widget.app)),
         permissions: const ['sale_schemes.view', 'sale_schemes.manage'],
         entitlement: 'catalog'),
       ModuleAction('Customers', 'Manage customer records',
