@@ -87,7 +87,7 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const ValueKey('party-add')));
     await tester.pumpAndSettle();
-    expect(find.text('Add customer'), findsWidgets);
+    expect(find.text('Add Customer'), findsWidgets);
     expect(find.byKey(const ValueKey('party-editor-code')), findsOneWidget);
     expect(find.byKey(const ValueKey('party-editor-name')), findsOneWidget);
     expect(find.byKey(const ValueKey('party-editor-area')), findsOneWidget);
