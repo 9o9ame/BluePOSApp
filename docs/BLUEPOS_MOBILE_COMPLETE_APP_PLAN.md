@@ -236,3 +236,12 @@
 - Added responsive card grid to the existing authenticated product picker (`lib/screens/products.dart`, gated by `onAdd != null`); reuse original server-driven search, category filter, pagination, product thumbnails and cart callback. Main POS screen remains cart-led; inline catalog grid not yet implemented.
 - Added `test/pos_catalog_card_widget_test.dart` for product selection and unavailable reference price/stock. Pending Flutter analyzer + focused test + device review by user.
 - Continuation/live QA: `docs/MOBILE_LIVE_SCREEN_QA.md` and `docs/MOBILE_92_MOCKUP_IMPLEMENTATION_HANDOFF.md`. No APK publishing or finance/stock writes authorized as part of design QA.
+
+### 2026-11-14 — Approved image 07 POS fidelity batch
+
+- User reports all 5 previously requested POS picker-grid checks PASS; prior first pass had 6/6 PASS. This does **not** equal screenshot visual approval.
+- The actual approved `07_Premium_Home_Dashboard.png` is a **POS Sales** screenshot. Main page must have search/scan, category chips, two-column image-first product cards and a docked cart bar. Previous implementation had the grid only in a secondary picker, so another focused UI batch was required.
+- Implemented inline catalog by reusing `ProductsScreen(inlineCatalog: true, onAdd: addProduct)` in `lib/screens/sale.dart` and adding inline mode/large cards in `lib/screens/products.dart`. Search, category filters, product image, pagination and product selection still use existing authorized APIs, with no duplicate service, mocked products, client-authoritative stock or posting calculations.
+- Added a narrow product-card test in `test/pos_catalog_card_widget_test.dart`; Flutter tests and real-device screenshot are pending. Docked estimate is intentionally pre-tax and opens the existing Payment screen.
+- Known parity gap: shell tab geometry and names differ from image; current routes must be reconciled safely before changing navigation. Unsupported mock favorites and sample product names/prices are not implemented as real features.
+- See `docs/MOBILE_LIVE_SCREEN_QA.md` and `docs/MOBILE_92_MOCKUP_IMPLEMENTATION_HANDOFF.md` for exact full-path Windows commands and next-chat continuation. No APK release, backend/database changes or branch switch.
