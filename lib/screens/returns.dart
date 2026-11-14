@@ -42,7 +42,8 @@ class ReturnDocumentsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) => TransactionDirectory(
     app: app, title: kind.title, endpoint: kind.path,
-    dateKey: 'return_date', createPermission: kind.createPermission,
+    dateKey: 'return_date', referenceStyle: kind == ReturnDocumentKind.sale,
+    createPermission: kind.createPermission,
     onCreate: (ctx) async => await Navigator.push<bool>(ctx,
       MaterialPageRoute(builder: (_) =>
         ReturnDocumentEditor(app: app, kind: kind))) ?? false,
