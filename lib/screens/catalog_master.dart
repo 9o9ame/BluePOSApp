@@ -75,6 +75,8 @@ class CatalogMasterScreen extends StatefulWidget {
 class _CatalogMasterScreenState extends State<CatalogMasterScreen> {
   final search = TextEditingController();
   bool loading = true;
+  bool showFilters = false;
+  bool activeOnly = false;
   String? error;
   List<Map<String, dynamic>> rows = const [];
 
@@ -322,62 +324,147 @@ class _CatalogMasterScreenState extends State<CatalogMasterScreen> {
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final query = search.text.trim().toLowerCase();
-    final filtered = rows.where((row) =>
-      query.isEmpty || '${field(row['name'])} ${field(row['code'])}'
-        .toLowerCase().contains(query)).toList();
+    final config = widget.config;
+    final filtered = rows.where((row) {
+      if (activeOnly && row['is_active'] == false) return false;
+      return query.isEmpty || '${field(row['name'])} ${field(row['code'])}'
+          .toLowerCase().contains(query);
+    }).toList();
+    final isSub = config.needsCategory;
+    final isBrand = config.apiPath == '/api/brands';
+    final icon = isSub ? Icons.layers_outlined
+      : isBrand ? Icons.sell_outlined : config.isUnit
+      ? Icons.straighten_rounded : Icons.category_outlined;
+    final singular = config.title == 'Categories' ? 'Category'
+      : config.title == 'Subcategories' ? 'Subcategory'
+      : config.title == 'Brands' ? 'Brand' : config.title;
     return Scaffold(
-      appBar: AppBar(title: Text(widget.config.title), actions: [
-        IconButton(onPressed: reload, tooltip: 'Refresh',
-          icon: const Icon(Icons.refresh_rounded)),
-      ]),
+      appBar: AppBar(
+        title: Text(config.title),
+        actions: [
+          IconButton(onPressed: reload, tooltip: 'Refresh',
+            icon: const Icon(Icons.refresh_rounded)),
+        ],
+      ),
       floatingActionButton: canCreate ? FloatingActionButton.extended(
+        key: const ValueKey('catalog-add'),
         onPressed: () => openEditor(),
         icon: const Icon(Icons.add_rounded),
-        label: const Text('Add')) : null,
-      body: RefreshIndicator(onRefresh: reload,
-        child: ListView(padding: const EdgeInsets.all(16), children: [
-          SectionHeading(widget.config.title),
-          TextField(controller: search, onChanged: (_) => setState(() {}),
-            decoration: const InputDecoration(
-              prefixIcon: Icon(Icons.search_rounded),
-              hintText: 'Search by name or code')),
-          const SizedBox(height: 12),
-          if (loading) pageLoading()
-          else if (error != null) FailureState(message: error!, retry: reload)
-          else if (filtered.isEmpty) EmptyState(
-            title: rows.isEmpty ? 'No records yet' : 'No matching records',
-            subtitle: 'Use a different search term.')
-          else ...filtered.map((row) => Padding(
-            padding: const EdgeInsets.only(bottom: 9),
-            child: Surface(padding: EdgeInsets.zero,
-              child: ListTile(
-                leading: CircleAvatar(
-                  backgroundColor: scheme.primaryContainer,
-                  child: Icon(widget.config.isUnit
-                    ? Icons.straighten_rounded
-                    : widget.config.needsCategory
-                      ? Icons.layers_outlined : Icons.folder_open_outlined,
-                    color: scheme.primary)),
-                title: Text(field(row['name'], '—'),
-                  style: const TextStyle(fontWeight: FontWeight.w800)),
-                subtitle: Text([
-                  field(row['code']),
-                  if (widget.config.isUnit) field(row['symbol']),
-                  if (widget.config.needsCategory)
-                    field(objectOf(row['category'])['name']),
-                ].where((part) => part.isNotEmpty).join('  •  ')),
-                trailing: Row(mainAxisSize: MainAxisSize.min, children: [
-                  Icon(row['is_active'] == false
-                    ? Icons.remove_circle_outline : Icons.check_circle_outline,
-                    size: 18, color: row['is_active'] == false
-                      ? scheme.error : scheme.primary),
-                  if (canEdit) const Icon(Icons.chevron_right_rounded),
-                ]),
-                onTap: canEdit ? () => openEditor(item: row) : null,
+        label: Text('Add $singular')) : null,
+      body: RefreshIndicator(
+        onRefresh: reload,
+        child: ListView(
+          key: const ValueKey('catalog-master-list'),
+          physics: const AlwaysScrollableScrollPhysics(),
+          padding: const EdgeInsets.all(16),
+          children: [
+            Row(children: [
+              Expanded(child: Text(config.title,
+                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                  fontWeight: FontWeight.w900))),
+              Icon(icon, color: scheme.primary, size: 26),
+            ]),
+            const SizedBox(height: 14),
+            Row(children: [
+              Expanded(child: TextField(
+                key: const ValueKey('catalog-search'),
+                controller: search,
+                onChanged: (_) => setState(() {}),
+                decoration: InputDecoration(
+                  prefixIcon: const Icon(Icons.search_rounded),
+                  hintText: 'Search ${config.title.toLowerCase()}...'))),
+              const SizedBox(width: 8),
+              IconButton.filledTonal(
+                key: const ValueKey('catalog-status-filter'),
+                tooltip: 'Filter status',
+                onPressed: () => setState(() => showFilters = !showFilters),
+                icon: const Icon(Icons.filter_alt_outlined)),
+            ]),
+            if (showFilters) ...[
+              const SizedBox(height: 8),
+              Wrap(spacing: 8, children: [
+                ChoiceChip(
+                  label: const Text('All'),
+                  selected: !activeOnly,
+                  onSelected: (_) => setState(() => activeOnly = false)),
+                ChoiceChip(
+                  label: const Text('Active'),
+                  selected: activeOnly,
+                  onSelected: (_) => setState(() => activeOnly = true)),
+              ]),
+            ],
+            const SizedBox(height: 13),
+            if (!loading && error == null)
+              Text('${filtered.length} ${config.title.toLowerCase()}',
+                style: TextStyle(fontSize: 12,
+                  color: scheme.onSurfaceVariant)),
+            const SizedBox(height: 10),
+            if (loading) pageLoading()
+            else if (error != null)
+              FailureState(message: error!, retry: reload)
+            else if (filtered.isEmpty)
+              EmptyState(
+                title: rows.isEmpty ? 'No records yet' : 'No matching records',
+                subtitle: 'Try a different search or status filter.')
+            else
+              ...filtered.map((row) => Padding(
+                padding: const EdgeInsets.only(bottom: 10),
+                child: Surface(
+                  padding: EdgeInsets.zero,
+                  child: InkWell(
+                    key: ValueKey('catalog-row-${field(row['ulid'])}'),
+                    onTap: canEdit ? () => openEditor(item: row) : null,
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12, vertical: 12),
+                      child: Row(children: [
+                        Container(
+                          height: 49, width: 49,
+                          decoration: BoxDecoration(
+                            color: scheme.primaryContainer,
+                            borderRadius: BorderRadius.circular(13)),
+                          child: Icon(icon, size: 26,
+                            color: scheme.primary)),
+                        const SizedBox(width: 12),
+                        Expanded(child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(field(row['name'], '—'),
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                fontSize: 15, fontWeight: FontWeight.w800)),
+                            if (field(row['code']).isNotEmpty) ...[
+                              const SizedBox(height: 3),
+                              Text('Code: ${field(row['code'])}',
+                                style: TextStyle(fontSize: 11,
+                                  color: scheme.onSurfaceVariant)),
+                            ],
+                            if (isSub) ...[
+                              const SizedBox(height: 4),
+                              Text('Parent: ${field(objectOf(row['category'])['name'], 'Not available')}',
+                                maxLines: 1, overflow: TextOverflow.ellipsis,
+                                style: TextStyle(fontSize: 11,
+                                  color: scheme.onSurfaceVariant)),
+                            ],
+                          ],
+                        )),
+                        const SizedBox(width: 8),
+                        if (row['is_active'] == false)
+                          Icon(Icons.remove_circle_outline,
+                            color: scheme.error, size: 18),
+                        if (canEdit)
+                          Icon(Icons.chevron_right_rounded,
+                            color: scheme.onSurfaceVariant),
+                      ]),
+                    ),
+                  ),
+                ),
               )),
-          )),
-          const SizedBox(height: 90),
-        ])),
+            const SizedBox(height: 100),
+          ],
+        ),
+      ),
     );
   }
 }
