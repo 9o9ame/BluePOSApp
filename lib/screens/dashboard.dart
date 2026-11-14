@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../core/api.dart';
+import '../core/appearance.dart';
 import '../core/session.dart';
 import '../widgets/common.dart';
 import 'history.dart';
@@ -25,6 +26,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   @override
   void initState() { super.initState(); reload(); }
+
+  String _greeting(int hour) => hour < 12
+      ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening';
 
   String _date(DateTime date) =>
     date.year.toString().padLeft(4, '0') + '-' +
@@ -115,58 +119,58 @@ class _DashboardScreenState extends State<DashboardScreen> {
       padding: EdgeInsets.all(app.appearance.spacing), children: [
         const SizedBox(height: 9),
         Row(children: [
+          Container(width: 52, height: 52,
+            decoration: BoxDecoration(color: scheme.tertiaryContainer,
+              borderRadius: BorderRadius.circular(app.appearance.corner)),
+            child: Icon(Icons.storefront_rounded,
+              color: scheme.onTertiaryContainer, size: 28)),
+          const SizedBox(width: 12),
           Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('GOOD MORNING', style: TextStyle(
-                color: scheme.primary, fontWeight: FontWeight.w800,
-                letterSpacing: 1.5, fontSize: 10)),
-              const SizedBox(height: 3),
-              Text(app.userName, maxLines: 1, overflow: TextOverflow.ellipsis,
-                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+              Text(_greeting(DateTime.now().hour), style: TextStyle(
+                color: scheme.onSurfaceVariant, fontSize: 12)),
+              const SizedBox(height: 2),
+              Text(app.tenantName, maxLines: 1, overflow: TextOverflow.ellipsis,
+                style: Theme.of(context).textTheme.titleLarge?.copyWith(
                   fontWeight: FontWeight.w900)),
-              const SizedBox(height: 3),
-              Text(app.branchName + ' • ' + app.warehouseName,
+              Text('${app.branchName} • ${app.warehouseName}',
                 maxLines: 1, overflow: TextOverflow.ellipsis,
-                style: TextStyle(fontSize: 12, color: scheme.onSurfaceVariant)),
+                style: TextStyle(fontSize: 11,
+                  color: scheme.onSurfaceVariant)),
             ],
           )),
-          CircleAvatar(radius: 25, backgroundColor: scheme.primaryContainer,
-            child: Text(app.userName.isEmpty ? 'B' :
-              app.userName.substring(0, 1).toUpperCase(),
-              style: TextStyle(color: scheme.primary,
-                fontSize: 20, fontWeight: FontWeight.w900))),
         ]),
-        const SizedBox(height: 16),
-        GradientHero(appearance: app.appearance,
-          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Row(children: [
-              const Icon(Icons.storefront_outlined, color: Colors.white, size: 25),
-              const Spacer(),
-              const Icon(Icons.verified_user_outlined,
-                color: Colors.white70, size: 19),
-            ]),
-            const SizedBox(height: 10),
-            Text(app.tenantName, maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: const TextStyle(color: Colors.white,
-                fontSize: 23, fontWeight: FontWeight.w900)),
-            const Text('Your secure business workspace',
-              style: TextStyle(color: Colors.white70, fontSize: 12)),
-            if (canCreateSale) ...[
-              const SizedBox(height: 16),
-              Row(children: [
-                Expanded(child: FilledButton.icon(
-                  onPressed: () => widget.navigate(1),
-                  style: FilledButton.styleFrom(
-                    backgroundColor: Colors.white,
-                    foregroundColor: app.appearance.accent),
-                  icon: const Icon(Icons.add_shopping_cart_rounded),
-                  label: const Text('New Sale')),
-                ),
+        if (canViewSales) ...[
+          const SizedBox(height: 18),
+          Container(width: double.infinity,
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [app.appearance.accent,
+                  Color.lerp(app.appearance.accent,
+                    AppAppearance.palette['emerald']!, .70)!],
+                begin: Alignment.topLeft, end: Alignment.bottomRight),
+              borderRadius: BorderRadius.circular(app.appearance.corner + 8)),
+            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              const Row(children: [
+                Icon(Icons.receipt_long_outlined, color: Colors.white),
+                SizedBox(width: 9),
+                Expanded(child: Text("Today's invoices",
+                  style: TextStyle(color: Colors.white, fontSize: 16,
+                    fontWeight: FontWeight.w700))),
               ]),
-            ],
-          ])),
-        const SizedBox(height: 16),
+              const SizedBox(height: 14),
+              if (busy)
+                const CircularProgressIndicator(color: Colors.white)
+              else Text(error != null ? '—' : todayInvoices?.toString() ?? '—',
+                style: const TextStyle(color: Colors.white, fontSize: 34,
+                  fontWeight: FontWeight.w900)),
+              const SizedBox(height: 4),
+              const Text('Current branch • live invoice count',
+                style: TextStyle(color: Colors.white, fontSize: 11)),
+            ]),
+          ),
+        ],
         if (canViewSales || canViewProducts) ...[
           const SectionHeading('Business at a glance'),
           if (busy) pageLoading()
@@ -199,8 +203,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
         const SizedBox(height: 16),
         const SectionHeading('Quick actions'),
         GridView.count(
-          crossAxisCount: 4,
-          childAspectRatio: .78,
+          crossAxisCount: MediaQuery.sizeOf(context).width < 355 ? 2 : 4,
+          childAspectRatio: MediaQuery.sizeOf(context).width < 355 ? 1.45 : .78,
           mainAxisSpacing: 8, crossAxisSpacing: 8,
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
