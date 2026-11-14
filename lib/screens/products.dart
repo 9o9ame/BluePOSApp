@@ -257,7 +257,121 @@ class _ProductsScreenState extends State<ProductsScreen> {
   void showDetails(Map<String, dynamic> product) {
     if (widget.onAdd != null && widget.catalogHome != true) return;
     final ulid = field(product['ulid']);
-    if (!validPublicUlid(ulid)) {
+    if (!RegExp(r'^[0-9A-HJKMNP-TV-Z]{26}
+      showApiError(context, 'Invalid product reference.');
+      return;
+    }
+    Navigator.of(context).push(MaterialPageRoute(
+      builder: (_) => ProductDetailsScreen(
+        app: widget.app, productUlid: ulid)));
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final app = widget.app;
+    final standalone = widget.catalogHome == true || widget.onAdd == null;
+    return Stack(children: [
+      RefreshIndicator(onRefresh: load, child: ListView(
+        padding: const EdgeInsets.all(16), children: [
+      if (!(widget.inlineCatalog == true))
+        SectionHeading(standalone ? 'Products' : 'Add a product',
+          trailing: IconButton(
+            tooltip: 'Scan barcode', onPressed: scanBusy ? null : scan,
+            icon: Icon(Icons.qr_code_scanner_rounded, color: scheme.primary))),
+      if (standalone)
+        Row(children: [
+          Expanded(child: TextField(
+            controller: search, onChanged: queryChanged,
+            decoration: const InputDecoration(
+              prefixIcon: Icon(Icons.search),
+              hintText: 'Search products...'))),
+          const SizedBox(width: 9),
+          IconButton.filledTonal(
+            key: const ValueKey('catalog-filter'),
+            tooltip: 'Filter categories',
+            onPressed: () => setState(() =>
+              showCatalogFilters = !showCatalogFilters),
+            icon: const Icon(Icons.filter_alt_outlined)),
+        ])
+      else
+        TextField(controller: search, onChanged: queryChanged,
+          decoration: InputDecoration(
+            prefixIcon: const Icon(Icons.search),
+            hintText: (widget.inlineCatalog == true)
+              ? 'Scan barcode or search product...' : 'Search product, SKU or barcode',
+            suffixIcon: (widget.inlineCatalog == true)
+              ? IconButton(
+                  key: const ValueKey('inline-pos-scan'),
+                  tooltip: 'Scan barcode', onPressed: scanBusy ? null : scan,
+                  icon: const Icon(Icons.qr_code_scanner_rounded))
+              : (search.text.isEmpty ? null : IconButton(
+                  icon: const Icon(Icons.close),
+                  onPressed: () { search.clear(); load(); })))),
+      if (categories.isNotEmpty && (!standalone || showCatalogFilters)) ...[
+        const SizedBox(height: 12),
+        SizedBox(height: 42, child: ListView(scrollDirection: Axis.horizontal, children: [
+          Padding(padding: const EdgeInsets.only(right: 8), child: ChoiceChip(
+            label: const Text('All'), selected: categoryUlid == null,
+            onSelected: (_) { setState(() => categoryUlid = null); load(); })),
+          ...categories.map((c) => Padding(padding: const EdgeInsets.only(right: 8),
+            child: ChoiceChip(label: Text(field(c['name'])),
+              selected: categoryUlid == c['ulid'],
+              onSelected: (_) { setState(() => categoryUlid = field(c['ulid'])); load(); }))),
+        ])),
+      ],
+      const SizedBox(height: 12),
+      Row(children: [Text('$total matching products', style: TextStyle(fontSize: 12,
+        color: scheme.onSurfaceVariant)), const Spacer(),
+        if (busy || loadingMore) const SizedBox(width: 16, height: 16,
+          child: CircularProgressIndicator(strokeWidth: 2)),
+      ]),
+      const SizedBox(height: 12),
+      if (error != null) FailureState(message: error!, retry: load)
+      else if (!busy && items.isEmpty) const EmptyState(title: 'No products found',
+        subtitle: 'Try a product name, barcode or another category.')
+      else if (widget.onAdd != null && !standalone) LayoutBuilder(builder: (context, constraints) {
+        // The approved POS reference uses two image-first product columns.
+        final columns = (widget.inlineCatalog == true) ? 2 :
+          (constraints.maxWidth < 330 ? 2 : 3);
+        return GridView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          itemCount: items.length,
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: columns, crossAxisSpacing: 9, mainAxisSpacing: 9,
+            mainAxisExtent: (widget.inlineCatalog == true) ? 244 : 194),
+          itemBuilder: (context, index) {
+            final p = items[index];
+            return PosCatalogProductCard(
+              product: p, api: app.api, currency: app.currency,
+              imageFirst: (widget.inlineCatalog == true),
+              onTap: () => widget.onAdd!(p));
+          });
+      })
+      else ...items.map((p) => Padding(
+        padding: const EdgeInsets.only(bottom: 11),
+        child: CatalogProductRow(
+          product: p, api: app.api, currency: app.currency,
+          onTap: () => showDetails(p)),
+      )),
+      if (items.length < total && !busy) Padding(padding: const EdgeInsets.all(12),
+        child: OutlinedButton(onPressed: loadingMore ? null : () => load(more: true),
+          child: Text(loadingMore ? 'Loading…' : 'Load more products'))),
+      SizedBox(height: standalone && app.hasPermission('products.create') ? 96 : 16),
+    ])),
+      if (standalone && app.hasPermission('products.create'))
+        Positioned(right: 18, bottom: 18,
+          child: FloatingActionButton.extended(
+            key: const ValueKey('catalog-add-product'),
+            onPressed: () => openEditor(),
+            icon: const Icon(Icons.add_rounded),
+            label: const Text('Add Product'),
+          )),
+    ]);
+  }
+}
+).hasMatch(ulid)) {
       showApiError(context, 'Invalid product reference.');
       return;
     }
