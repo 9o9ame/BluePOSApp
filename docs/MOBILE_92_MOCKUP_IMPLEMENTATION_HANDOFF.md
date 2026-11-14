@@ -221,3 +221,12 @@ python3 -m unittest discover -s test -p 'test_mobile_mockup_manifest.py' -v
 - Patched `lib/screens/products.dart`: nullable `inlineCatalog` and `imageFirst` field declarations with `== true` default-safe checks for hot reload. Added one legacy-null card regression test in `test/pos_catalog_card_widget_test.dart`.
 - **Immediate recovery:** latest Git pull from `C:\Projects\BluePOSApp`, run analyzer + focused test, then **capital R** Hot Restart in existing Flutter terminal. This is not a full APK rebuild; Flutter Hot Reload may not initialize newly added instance fields.
 - Device confirmation **pending** for POS/Products/Reports/Modules and POS inline grid. No pre-login changes, API changes, DB writes, release, or branch switching. Handoff next chat: inspect first exception if any remains and fix only confirmed layout source; continue screen 07 approved-image fidelity after all tabs render.
+
+
+### 2026-11-14 — IndexedStack layout failure follow-up
+
+- Latest user logs: fast-forward pull to `776f009`; Flutter analyzer 125 info only, product-card tests 4/4 passed; Android still displays `!_debugDoingThisLayout` at `IndexedStack` in shell.dart, selected index 1 (POS), after prior hot-reload-driven null-field error.
+- Inspected shell, POS, Products and shared `Surface` code. New POS is a `Column + Expanded(ListView) + bottom footer`; shell retained five tabs via default loose-sized `IndexedStack`.
+- Applied focused `lib/screens/shell.dart` change: bounded viewport from LayoutBuilder + SizedBox, `IndexedStack(sizing: StackFit.expand)`; preserved all five tabs and actual POS design. New test `test/shell_layout_constraints_widget_test.dart`.
+- **Do not claim resolution:** code and test committed, but no local Flutter execution or fresh-device validation in this assistant environment. User should pull, run analyze/focused test, then **fully stop** existing Flutter process with `q` and start a fresh `flutter run -d d2b1f972` (because repeated render object assertion may persist across hot reload/hot restart).
+- If clean launch still throws, inspect **first exception** and stack, consider simplifying POS nested ListViews/footer, not changing shared UI globally. No sales posting/API/login/backend or branch changes.
