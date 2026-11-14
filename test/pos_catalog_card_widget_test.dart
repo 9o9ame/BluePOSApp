@@ -29,6 +29,27 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
+  testWidgets('approved POS image-first card fits a narrow grid cell',
+      (tester) async {
+    await tester.pumpWidget(MaterialApp(home: Scaffold(
+      body: SizedBox(width: 155, height: 244,
+        child: PosCatalogProductCard(
+          imageFirst: true,
+          product: const {
+            'ulid': '01ARZ3NDEKTSV4RRFFQ69G5FAV',
+            'name': 'A realistically long product name 500 ml bottle',
+            'prices': [
+              {'price_type': 'retail', 'amount': '120.0000', 'is_active': true},
+            ],
+            'sales_lookup': {'in_stock': '168'},
+          },
+          api: BlueposApi(), currency: 'Rs', onTap: () {})),
+    )));
+    expect(find.textContaining('120.00'), findsOneWidget);
+    expect(find.text('Stock: 168'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('POS catalog card does not fabricate missing prices or stock',
       (tester) async {
     await tester.pumpWidget(MaterialApp(home: Scaffold(
