@@ -311,3 +311,11 @@
 - Inspected newer `bluepos_products_catalog.png` reference, implemented Products tab horizontal image/SKU/stock/price rows, search/funnel toggling existing server category filter, and permission-gated Add Product FAB using existing editor. `catalogHome` mode keeps POS separate and handles old shell onAdd route.
 - Added `test/products_catalog_reference_widget_test.dart` for API-derived values/tap/no-fake missing states. New batch Flutter analyzer and device checks pending. Never use rejected older design pack, fabricate stock, or change server-authoritative payment/posting.
 - Next on PASS: Screen 13 Product Details reference verification and scoped update.
+
+
+### 2026-11-14 — Screen 12 to 13 continuous reference implementation
+
+- User device QA **6/6 PASS** for Screen 12 Products Catalog; record as functional acceptance, not exact visual-pixel proof or analyzer/test execution.
+- Verified newer approved-source manifest and original `bluepos_coca_cola_product_details.png` Screen 13; implemented dedicated Product Detail page with authorized API fresh fetch, server-driven fields, gated Edit/purchase value, Price & Stock, and explicit missing states. Products Catalog now opens details page; POS add-to-cart remains separate. New focused widget tests added.
+- No fake mockup product data, invented barcode printing, financial posting, auth or backend changes. New Screen 13 Flutter analyzer/widget tests and physical-device acceptance pending.
+- Next on PASS: visually inspect Screen 14 Categories original and align existing category list without violating frozen UI or RBAC; update QA/handoff in batch.
