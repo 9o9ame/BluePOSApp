@@ -219,3 +219,12 @@
 - `lib/screens/modules.dart`: Daily Entries now navigates to the proper dashboard under `accounting.journal.view`.
 - Remaining accounting implementation: account ledger detail, payment/receiving/journal vouchers with existing draft/posting services, day-close, controlled payments, and full supporting administration flows.
 - **Validation deferred to the final user-approved phase.** No APK build/publish and no changes to the web repository.
+
+
+### 2026-11-14 — Live device and first post-login POS styling checkpoint
+
+- The user confirms the mobile app now signs in successfully to `bluepos.pk`. Do **not** revisit or redesign the accepted Splash/Login/OTP/MFA/Recovery flows, and do not build a standalone tenant selection page.
+- Dashboard premium UI pass remains subject to user screenshot/visual acceptance. User's local logs confirmed two dashboard focused widget tests passed, while analyzer had info-level lint notices.
+- POS post-login UI pass now includes `PosProductEntry` search/scan controls, heading, price mode and customer selection in `lib/screens/sale.dart`, without changing existing cart/payment/posting semantics.
+- Focused POS widget tests were added but must run on the user's Flutter setup before claiming validated. See `docs/MOBILE_LIVE_SCREEN_QA.md` for the authoritative commands and safe tap-by-tap phone test.
+- Next: collect live device screenshot/results and implement read-only inline catalog product cards as a separate scoped change only after inspecting actual Products screen/API contracts. Never use real tenant posts for visual QA.
