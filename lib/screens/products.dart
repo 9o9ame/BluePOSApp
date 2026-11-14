@@ -24,7 +24,8 @@ class PosCatalogProductCard extends StatelessWidget {
   final BlueposApi api;
   final String currency;
   final VoidCallback? onTap;
-  final bool imageFirst;
+  // Hot reload can retain cards instantiated before this optional field existed.
+  final bool? imageFirst;
 
   String? get retailPrice {
     for (final price in recordsOf(product['prices'])) {
@@ -47,17 +48,17 @@ class PosCatalogProductCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start, children: [
           Center(child: ProductThumb(
             api: api, imageUrl: field(product['image_url']),
-            size: imageFirst ? 100 : 66)),
-          SizedBox(height: imageFirst ? 11 : 9),
+            size: (imageFirst == true) ? 100 : 66)),
+          SizedBox(height: (imageFirst == true) ? 11 : 9),
           Text(field(product['name'], 'Product'), maxLines: 2,
             overflow: TextOverflow.ellipsis,
-            style: TextStyle(fontSize: imageFirst ? 13 : 12,
+            style: TextStyle(fontSize: (imageFirst == true) ? 13 : 12,
               fontWeight: FontWeight.w800)),
           const SizedBox(height: 5),
           Text(retailPrice == null ? 'Price unavailable'
               : money(retailPrice, currency),
             maxLines: 1, overflow: TextOverflow.ellipsis,
-            style: TextStyle(fontSize: imageFirst ? 15 : 12,
+            style: TextStyle(fontSize: (imageFirst == true) ? 15 : 12,
               fontWeight: FontWeight.w900, color: scheme.primary)),
           const Spacer(),
           Row(children: [
@@ -78,7 +79,9 @@ class ProductsScreen extends StatefulWidget {
   final AppController app;
   final ValueChanged<Map<String, dynamic>>? onAdd;
   /// Reuse the authorized search/category grid directly inside the POS page.
-  final bool inlineCatalog;
+  // Nullable so pre-existing IndexedStack widgets survive a Flutter hot reload
+  // that adds this field: old widget instances may have a null backing slot.
+  final bool? inlineCatalog;
   @override
   State<ProductsScreen> createState() => _ProductsScreenState();
 }
@@ -214,7 +217,7 @@ class _ProductsScreenState extends State<ProductsScreen> {
     final scheme = Theme.of(context).colorScheme;
     final app = widget.app;
     return RefreshIndicator(onRefresh: load, child: ListView(padding: const EdgeInsets.all(16), children: [
-      if (!widget.inlineCatalog)
+      if (!(widget.inlineCatalog == true))
       SectionHeading(widget.onAdd == null ? 'Products catalog' : 'Add a product',
         trailing: Row(mainAxisSize: MainAxisSize.min, children: [
           if (widget.onAdd == null && app.hasPermission('products.create'))
@@ -226,9 +229,9 @@ class _ProductsScreenState extends State<ProductsScreen> {
         ])),
       TextField(controller: search, onChanged: queryChanged,
         decoration: InputDecoration(prefixIcon: const Icon(Icons.search),
-          hintText: widget.inlineCatalog
+          hintText: (widget.inlineCatalog == true)
             ? 'Scan barcode or search product...' : 'Search product, SKU or barcode',
-          suffixIcon: widget.inlineCatalog
+          suffixIcon: (widget.inlineCatalog == true)
             ? IconButton(
                 key: const ValueKey('inline-pos-scan'),
                 tooltip: 'Scan barcode',
@@ -261,7 +264,7 @@ class _ProductsScreenState extends State<ProductsScreen> {
         subtitle: 'Try a product name, barcode or another category.')
       else if (widget.onAdd != null) LayoutBuilder(builder: (context, constraints) {
         // The approved POS reference uses two image-first product columns.
-        final columns = widget.inlineCatalog ? 2 :
+        final columns = (widget.inlineCatalog == true) ? 2 :
           (constraints.maxWidth < 330 ? 2 : 3);
         return GridView.builder(
           shrinkWrap: true,
@@ -269,12 +272,12 @@ class _ProductsScreenState extends State<ProductsScreen> {
           itemCount: items.length,
           gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
             crossAxisCount: columns, crossAxisSpacing: 9, mainAxisSpacing: 9,
-            mainAxisExtent: widget.inlineCatalog ? 244 : 194),
+            mainAxisExtent: (widget.inlineCatalog == true) ? 244 : 194),
           itemBuilder: (context, index) {
             final p = items[index];
             return PosCatalogProductCard(
               product: p, api: app.api, currency: app.currency,
-              imageFirst: widget.inlineCatalog,
+              imageFirst: (widget.inlineCatalog == true),
               onTap: () => widget.onAdd!(p));
           });
       })
