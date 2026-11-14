@@ -25,7 +25,7 @@ class _AppShellState extends State<AppShell> {
   late final List<Widget> pages = [
     DashboardScreen(app: widget.app, navigate: navigate),
     SaleScreen(key: saleKey, app: widget.app),
-    ProductsScreen(app: widget.app, onAdd: (product) {
+    ProductsScreen(app: widget.app, catalogHome: true, onAdd: (product) {
       saleKey.currentState?.addProduct(product);
       navigate(1);
     }),
@@ -65,7 +65,7 @@ class _AppShellState extends State<AppShell> {
             onPressed: () => setState(() {
               pages[selected] = switch (selected) {
                 0 => DashboardScreen(app: app, navigate: navigate),
-                2 => ProductsScreen(app: app, onAdd: (p) { saleKey.currentState?.addProduct(p); navigate(1); }),
+                2 => ProductsScreen(app: app, catalogHome: true, onAdd: (p) { saleKey.currentState?.addProduct(p); navigate(1); }),
                 3 => ReportsScreen(app: app),
                 _ => pages[selected],
               };
