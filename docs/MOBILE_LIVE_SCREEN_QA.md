@@ -273,3 +273,36 @@ flutter test "C:\Projects\BluePOSApp\test\appearance_button_constraints_widget_t
 If safe pull succeeds and focused tests pass, press `R` in running Flutter terminal for hot restart when required by new navigation/widgets. Do not destroy local Android scaffolding. No Save Invoice on live tenant for visual QA.
 
 **Validation:** GitHub code commits confirmed; analyzer/test execution and physical-device acceptance for Screen 10 **pending**. No backend/API/DB changes, extra branches, production posting or APK publishing.
+
+
+## 2026-11-14 — Screen 10 device PASS and newer Screen 11 Definition Home
+
+**User-confirmed Screen 10 Notifications:** all **6/6** phone checks passed: Home header bell, Notifications page opening, All/Alerts/Activity filters, actual device alerts or appropriate empty/owner-only state, refresh/back, and stability of all Home/POS/Products/Reports/Modules tabs. This is functional device confirmation; separate widget test execution and pixel-perfect design parity are not implied.
+
+**Design source for this batch:** original newer individual premium PNG `bluepos_definition_modules_dashboard.png` (Screen 11, Definition Home), visually inspected. It shows the Definition title and a vertical sequence: Products, Customers, Suppliers, Categories, Subcategories, Brands, Units, Price Lists, Barcode Printing, Sale Schemes, Opening Stock, Stock Taking.
+
+**Implementation:** `lib/screens/modules.dart` now opens a dedicated `Definition` list from More/Main Menu using existing permission-gated module actions. Image-order rows are offered only when a matching `ModuleAction` is visible: Products, Customers, Suppliers, Categories, Subcategories, Brands, Units, Sale Schemes, Opening Stock, Stock Taking. Existing routes and permission/entitlement checks are reused; no new endpoint, data, financial or stock writes. Back to More and Browse definition modules preserve prior directory behavior. Color and spacing use existing appearance/theme. **Price Lists and Barcode Printing** have no verified direct `ModuleAction` routing in this existing directory and are **not faked**; further implementation needs actual feature/route verification.
+
+**NEW focused tests:** `test/definition_home_widget_test.dart` covers UI order, authorization-based omission, product routing and back navigation. Assistant cannot run Flutter on user's Windows device; analyzer/test output and device visual check pending.
+
+**Run on PC (after checking status):**
+```powershell
+Set-Location "C:\Projects\BluePOSApp"
+git status --short
+git pull --ff-only origin feature/daily-entries
+flutter analyze --no-fatal-infos
+flutter test "C:\Projects\BluePOSApp\test\definition_home_widget_test.dart"
+flutter test "C:\Projects\BluePOSApp\test\notifications_screen_widget_test.dart"
+```
+
+After successful pull and tests, press `R` in existing Flutter-run terminal for fresh widget state.
+
+**Phone checks:**
+1. Modules → More → Definition. Dedicated **Definition** title and vertical rounded rows appear.
+2. Check authorized rows/order; compare to newer PNG. Missing unauthorized items are expected; do not infer every mockup row is available.
+3. Products opens same existing Products tab, Customers/Suppliers/Categories/etc their existing authorized destinations.
+4. Opening Stock/Stock Taking only appear if permitted and entitlement is present; opening their directories does not post any stock movement.
+5. Back to More works; Browse definition modules opens the old searchable definition directory; check light/dark and narrow screen.
+6. Verify Home/POS/Products/Reports/Modules and Notifications remain stable without blanks/errors. **Never Save/Post** test transactions on live tenant for UI QA.
+
+**Status:** Code/tests/doc commits confirmed; new Screen 11 on-device acceptance and Flutter analyzer/test execution **pending**. No backend/database edit, no APK publishing, no branch switch/merge. Bottom navigation and image artwork are not yet pixel-identical.
