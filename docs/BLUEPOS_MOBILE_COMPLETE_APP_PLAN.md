@@ -274,3 +274,11 @@
 - User confirmed **6/6 live smoke checks PASS** following the infinite-width button theme fix: Home, POS, Products, Reports, Modules all visible and tab switching stable. Mark this regression functionally resolved at the device smoke-test level.
 - Separate Flutter analyzer and focused appearance/shell layout tests after the fix still lack reported results; do not mark automated verification complete.
 - Next development can resume approved image-based Screen 07 fidelity after comparing a current screenshot with its reference. Maintain frozen pre-login screens, existing tenant/API isolation and server-authoritative financial posting; avoid unrelated changes.
+
+
+### 2026-11-14 — Newer 10-at-a-time premium designs: Menu screens 08/09
+
+- User instructed that implementation must follow **later individually generated images** (the earlier generic 92-screen pack was rejected).
+- Verified manifest + opened actual newer originals `bluepos_main_menu_dashboard.png` and `bluepos_more_menu_dashboard.png`.
+- Updated `lib/screens/modules.dart` to use reference-based Main Menu and More navigation while preserving authorized groups and old module directory. Added `test/approved_navigation_menus_widget_test.dart`; final analyzer, focused widget tests and device review pending.
+- Next: validate these two menus on Redmi Note 10. Then address other post-login references in sequence; do not claim pixel-level final acceptance, and do not modify pre-login frozen UI or production posting.
