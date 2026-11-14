@@ -457,3 +457,48 @@ If a command fails, **STOP before continuing new batches** and paste the first m
 **Visual gaps tracked:** exact illustration artwork/gradient footer waves and selectable persisted icon/color palettes from the PNGs are not reproduced because shared Theme & Appearance and actual backend contract take precedence. Final pixel-level comparison awaits phone screenshots. This is an implementation batch, **not full visual acceptance**.
 
 **Next handoff:** after PC tests and later device QA PASS, proceed with next five newer images **19–23** as one batch; inspect actual manifest/images and live API contract first, never reuse rejected generic set.
+
+
+## 2026-11-14 — User PASS for Screens 14–18; next 5-screen batch 19–23
+
+**Previous batch accepted by user:** User explicitly confirmed **all five Screens 14–18 PASS on their mobile device**. This is physical-device functional confirmation; latest CLI analyzer and Screen 14–18 dedicated widget-test output were not provided, and exact screenshot pixel parity was not separately established.
+
+**Verified newer reference images (SHA256 equals manifest; rejected old pack excluded):**
+- 19 **Add Brand**: `bluepos_add_brand_form.png`.
+- 20 **Units**: `bluepos_units_management_screen.png`.
+- 21 **Add Unit**: `bluepos_add_unit_form.png`.
+- 22 **Price Lists**: `bluepos_price_lists_dashboard.png`.
+- 23 **Add Price List**: `bluepos_add_price_list_form.png`.
+
+**API contract inspection:** `GET/POST/PATCH /api/brands` and `GET/POST/PATCH /api/units` exist in verified backend routes, guarded by existing policies. `StoreBrandRequest` supports `name`, optional `description`, `is_active` and server-generated `code`. `StoreUnitRequest` supports `name`, `symbol`, `allows_decimal`, `is_active`; the design's `base conversion factor` is NOT a verified Units API field. Neither `/api/price-lists` nor a corresponding controller/resource was found in inspected backend routes and expected paths. **DO NOT claim Price Lists is functional.** Do not invent names, prices, price-list types, effective dates, defaults, API endpoints or persistence.
+
+**Implementation in GitHub branch `feature/daily-entries`:**
+- **19 Add Brand — working authorized flow**: existing `CatalogMasterScreen` full-page Add Brand now includes server-generated **read-only code** and existing name/description/active controls. Mockup's brand icon/color and country-of-origin are not persisted because no contract was verified; icon uses Theme & Appearance.
+- **20 Units — working authorized list**: existing `CatalogMasterScreen(config: units)` now displays actual unit name and server-returned short symbol, search and active filter, authorized Add.
+- **21 Add Unit — working authorized flow**: full-page name, unit short-name/symbol, optional decimal quantities toggle, active state and backend POST; conversion-factor field is not fabricated, with a clearly worded limitation note.
+- **22 Price Lists — UI reference only**: new `lib/screens/price_lists.dart` page with actual reference heading/search/filter composition, an explicit **API integration pending** state and **no mock records/prices**. Navigation via permission-aware Definition → Price Lists (products.view/manage, catalog entitlement).
+- **23 Add Price List — UI reference only**: reachable preview with name, code, description, type, applies-to, effective date reference fields, all **read-only**, and **Save Price List disabled**. No client-side posting or invented backend writes.
+- `lib/screens/modules.dart`: safe Definition navigation entry for Price Lists; no navigation tab or permission architecture changes.
+- `test/catalog_reference_19_23_widget_test.dart`: five focused widget tests and one payload unit test. Assistant runtime cannot execute Flutter, so the new batch is **NOT analyzer/test verified**.
+
+**Exact PC checks:**
+```powershell
+Set-Location "C:\Projects\BluePOSApp"
+git status --short
+git pull --ff-only origin feature/daily-entries
+flutter analyze --no-fatal-infos
+flutter test "C:\Projects\BluePOSApp\test\catalog_reference_19_23_widget_test.dart"
+flutter test "C:\Projects\BluePOSApp\test\catalog_master_reference_batch_widget_test.dart"
+flutter test "C:\Projects\BluePOSApp\test\definition_home_widget_test.dart"
+```
+If tests or analyzer show errors, stop and share the FIRST meaningful error before device testing; do not reset/clean local generated Android files. Use capital `R` in the running Flutter terminal after a successful pull if state updates are stale.
+
+**Phone QA checklist for this five-screen batch:**
+1. More → Definition → Brands → Add Brand: full page, name/description, read-only generated code, Active/Inactive and Cancel; no Submit on production merely to review.
+2. Definition → Units: actual authorized unit names/symbols in list, search and filter; no invented prices/conversion counts.
+3. Units → Add Unit: full form name, unit short name/symbol, decimal toggle, Active/Inactive; no fake conversion factor; Cancel returns.
+4. Definition → Price Lists: explicit API unavailable state, no fake Retail/Wholesale/VIP rows. Preview opens Add Price List reference.
+5. Add Price List reference: visible form structure and **disabled Save**, Cancel/back work. No remote writes possible from this preview.
+6. Check correct RBAC for Brands/Units, no blank tabs, stable POS/Products/Notifications and light/dark/Redmi Note 10 scrolling.
+
+**Known parity/API blockers:** Screen 19 brand icon/color/country-of-origin persistence; Screen 21 conversion factors; Screens 22–23 entire domain API and authorization/persistence. The latter 2 screens are **NOT functional**. Design parity and real device QA remain pending. Once green, next batch 24–28 only after inspecting newer PNGs and backend contracts.
