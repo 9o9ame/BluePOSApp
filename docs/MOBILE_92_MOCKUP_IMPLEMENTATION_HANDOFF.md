@@ -273,3 +273,16 @@ python3 -m unittest discover -s test -p 'test_mobile_mockup_manifest.py' -v
 - This is device-confirmed *functional* acceptance, not evidence of exact screenshot pixel parity. Test/analysis results for `test/approved_navigation_menus_widget_test.dart` were not provided, so mark automated QA unverified.
 - Design source correction remains binding: use later individual 10-at-a-time PNG images, NOT rejected earlier generic 92 ZIP/PDF. Preserve frozen pre-login and stable tabs.
 - Next: inspect newer Screen 10 `bluepos_notifications_dashboard.png`, existing Flutter routes and actual server notification contract, then only implement a scoped UI if supported; update QA/handoff and ask user for device check. Avoid mock notification content or permission bypass.
+
+
+### 2026-11-14 — Screen 10 Notifications: newer individual PNG implementation batch
+
+- **Trigger:** User said do not stop at a previous batch's PASS report — proactively complete the **next development batch**. Prior Screens 08–09 user device QA 6/6 PASS documented.
+- **Correct visual source:** actual newer individual `bluepos_notifications_dashboard.png` inspected, not old rejected 92 ZIP/PDF.
+- Verified live backend source `backend/routes/api.php` and `backend/app/Http/Controllers/Api/DeviceController.php`: owner-only `GET /api/devices/access-notifications` and `POST /api/devices/access-notifications/{notificationUlid}/read`. Alert fields include ULID, kind, created_at, read_at, device_name, username, request_ulid; response includes unread_count. Tenant/membership and policy enforcement is server-side. No verified global notifications endpoint for sales/purchase/stock/backup example content.
+- NEW `lib/screens/notifications.dart`: reference-style All/Alerts/Activity filters, server-supplied cards, unread badge, explicit mark read, error/empty/403 states, refresh; Activity explicitly unavailable rather than invented. Owner-only response controls visibility, no client-authoritative tenant or fake alerts.
+- UPDATED `lib/screens/shell.dart`: Header bell opens Notifications using existing Navigator. No change to functioning main tab order/navigation or posting.
+- NEW `test/notifications_screen_widget_test.dart`: four targeted widget tests, not yet run on user host.
+- **Device verification pending:** safe FF pull on `feature/daily-entries`, `flutter analyze --no-fatal-infos`, `flutter test "C:\Projects\BluePOSApp\test\notifications_screen_widget_test.dart"`; `R` Hot Restart; check bell, filters, owner-only/device alerts, unread read callback, errors, and all-tab stability.
+- **Known parity gaps:** Image's purchase/low-stock/sales/backup cards are illustrative and lack verified notification backend; bottom navigation center Scanner and global art not yet matched; do not fake.
+- **Next batch on PASS:** Inspect actual newer Screen 11 Definition Home image, current permission-scoped module directory and API routes; implement smallest matching UI diff, tests, QA and updated handoff in same response without asking for a separate go-ahead. Preserve frozen login, stable tabs, live data and authorization.
