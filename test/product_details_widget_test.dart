@@ -70,7 +70,12 @@ void main() {
         product: item, api: BlueposApi(), currency: 'Rs',
         canEdit: true, onEdit: () => tapped = true),
     )));
-    await tester.ensureVisible(find.byKey(const ValueKey('product-detail-edit')));
+    // ListView builds children lazily: scroll until the footer is mounted.
+    await tester.scrollUntilVisible(
+      find.byKey(const ValueKey('product-detail-edit')),
+      220,
+      scrollable: find.byType(Scrollable).first,
+    );
     await tester.tap(find.byKey(const ValueKey('product-detail-edit')));
     expect(tapped, isTrue);
     expect(tester.takeException(), isNull);
