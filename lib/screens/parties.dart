@@ -4,6 +4,7 @@ import '../core/api.dart';
 import '../core/session.dart';
 import '../widgets/common.dart';
 import 'customer_detail.dart';
+import 'supplier_detail.dart';
 
 /// Exact party endpoint contract: server owns tenant context and linked accounts.
 Map<String, dynamic> partyPayload({
@@ -129,7 +130,7 @@ class _PartyDirectoryState extends State<PartyDirectory> {
                 TextField(controller: code, maxLength: 64,
                   key: const ValueKey('party-editor-code'),
                   decoration: const InputDecoration(labelText: 'Code *')),
-                Text('The customer code is required by the BluePOS API.',
+                Text('The party code is required by the BluePOS API.',
                   style: TextStyle(fontSize: 11,
                     color: Theme.of(sheet).colorScheme.onSurfaceVariant)),
                 TextField(controller: name, maxLength: 180,
@@ -153,7 +154,7 @@ class _PartyDirectoryState extends State<PartyDirectory> {
                     keyboardType: TextInputType.phone,
                     decoration: const InputDecoration(labelText: 'Mobile')),
                 ],
-                if (widget.type == 'customer')
+                if (widget.type == 'customer' || widget.type == 'vendor')
                   TextField(controller: area, maxLength: 120,
                     key: const ValueKey('party-editor-area'),
                     decoration: const InputDecoration(
@@ -235,10 +236,24 @@ class _PartyDirectoryState extends State<PartyDirectory> {
     if (mounted) await refresh();
   }
 
+  Future<void> openSupplierDetails(Map<String, dynamic> record) async {
+    if (widget.type != 'vendor' || !can('view')) return;
+    final ulid = field(record['ulid']);
+    if (!RegExp(r'^[0-9A-HJKMNP-TV-Z]{26}$').hasMatch(ulid)) return;
+    await Navigator.of(context).push(MaterialPageRoute(builder: (_) =>
+      SupplierDetailScreen(app: widget.app, supplierUlid: ulid,
+        onEdit: can('edit') ? () {
+          Navigator.of(context).pop();
+          edit(record: record);
+        } : null)));
+    if (mounted) await refresh();
+  }
+
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final isCustomer = widget.type == 'customer';
+    final isSupplier = widget.type == 'vendor';
     final query = search.text.trim().toLowerCase();
     final filtered = rows.where((row) =>
       (!activeOnly || row['is_active'] != false) &&
@@ -268,10 +283,10 @@ class _PartyDirectoryState extends State<PartyDirectory> {
               decoration: InputDecoration(
                 prefixIcon: const Icon(Icons.search),
                 hintText: 'Search ${title.toLowerCase()}...'))),
-            if (isCustomer) ...[
+            if (isCustomer || isSupplier) ...[
               const SizedBox(width: 8),
               IconButton.filledTonal(
-                tooltip: 'Active customers filter',
+                tooltip: 'Active records filter',
                 key: const ValueKey('party-filter'),
                 onPressed: () => setState(() => activeOnly = !activeOnly),
                 icon: Icon(activeOnly ? Icons.filter_alt
@@ -289,6 +304,7 @@ class _PartyDirectoryState extends State<PartyDirectory> {
               child: InkWell(
                 key: ValueKey('party-row-${field(row['ulid'])}'),
                 onTap: isCustomer ? () => openCustomerDetails(row)
+                  : isSupplier ? () => openSupplierDetails(row)
                   : can('edit') ? () => edit(record: row) : null,
                 child: Padding(padding: const EdgeInsets.all(12),
                   child: Row(children: [
@@ -306,12 +322,12 @@ class _PartyDirectoryState extends State<PartyDirectory> {
                           style: const TextStyle(fontWeight: FontWeight.w900)),
                         Text(field(row['code']), style: TextStyle(
                           fontSize: 11, color: scheme.onSurfaceVariant)),
-                        if (isCustomer && field(row['area']).isNotEmpty)
+                        if ((isCustomer || isSupplier) && field(row['area']).isNotEmpty)
                           Text(field(row['area']), maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             style: TextStyle(color: scheme.onSurfaceVariant,
                               fontSize: 11)),
-                        if (isCustomer && field(row['mobile']).isNotEmpty)
+                        if ((isCustomer || isSupplier) && field(row['mobile']).isNotEmpty)
                           Text(field(row['mobile']), maxLines: 1,
                             style: TextStyle(color: scheme.onSurfaceVariant,
                               fontSize: 11)),
