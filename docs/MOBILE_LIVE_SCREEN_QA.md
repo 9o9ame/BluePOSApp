@@ -341,3 +341,38 @@ On successful pull + tests, in active `flutter run` terminal press capital `R` f
 **Known gaps:** Screenshot shows bespoke splash-style branding/wave decoration; shared shell branding/nav and Theme & Appearance remain authoritative until a separately scoped navigation/artwork alignment. Screenshot product photo, SKU, stock and rupee prices are mock examples; actual data may differ. Screen 12 not claimed pixel-perfect yet.
 
 **Status:** commits verified; targeted analyzer, widget tests, physical-device acceptance pending.
+
+
+## 2026-11-14 — Screen 12 PASS; newer Screen 13 Product Detail implementation
+
+**Previous batch result:** user confirmed **all six Screen 12 Products Catalog on-device checks PASS**: horizontal rows, actual image/SKU/stock/price, row opens details (not POS cart), search and filter, permission-scoped Add Product/editor, and POS/Home/Reports/Modules/Notifications stability. This is *device functional* validation, not automated test execution or final pixel-perfect approval.
+
+**Newer actual design:** Screen 13 from `BluePOS_Mobile_Design_Approval_Pack/SCREEN_MANIFEST.csv`: `bluepos_coca_cola_product_details.png`, verified SHA256 `a63ed25eb751741048d60d9fb527926fd0d9a9516cd289a9ff1e2b9c79b423d9`; image visually inspected, **not** rejected generic pack. Layout has Product Detail header, product image/name/SKU/active/stock/sale price hero, item attribute rows (category/brand/unit/prices/barcode/description), Price & Stock summary and Edit / Print Barcode footer. Sample brand, figures and artwork are illustrative; never hardcode.
+
+**Backend verification:** `GET /api/products/{productUlid}` uses `ProductController::show`, product policy `authorize('view', $product)`, and ProductResource. Supported fields include ULID, name, SKU, is_active, image_url, category, brand, base_unit, primary_barcode, purchase_rate, reorder_level, description and active retail price. Stock appears only if server includes `sales_lookup.in_stock`; no fake quantity or reorder. Existing ProductEditor handles authorized product edits. Do not make barcode printing button until a verified mobile route and permissions exist.
+
+**This batch:**
+- NEW `lib/screens/product_details.dart`: `ProductDetailsScreen` fetches fresh authorized detail via public ULID only and handles loading/failure/refresh, uses `ProductDetailsView` for responsive image-first hero, attributes and Price & Stock summary, with server-available fields or explicit unavailable labels. Purchase rate displayed only for users with `products.edit`, and Edit button also requires permission, calling existing editor with reload on save.
+- UPDATED `lib/screens/products.dart`: Products tab product tap (or barcode lookup in catalog-home) pushes ProductDetailsScreen instead of the old small modal; POS picker continues adding to cart via `onAdd`, no financial flow changes.
+- NEW `test/product_details_widget_test.dart`: four regression tests for actual supplied values, permission-limited purchase/edit, unavailable fields and authorized edit callback.
+
+**Phone QA:**
+1. Bottom Products → select an authorized product. A full **Product Detail** screen opens, not old small sheet; product name, image, SKU, status/stock and price are populated from API.
+2. Scroll to Category, Brand, Unit, Sale Price, Barcode, Stock in Hand, Description (where supplied). Missing fields explicitly display 'Not available' or 'Stock not shown'.
+3. Check Price & Stock section; Reorder Level shows only if returned. Do not compare reference mockup's 168/50 or Coca-Cola branding to live products.
+4. With `products.edit` permission, **Edit Product** opens existing ProductEditor. Without permission, Edit and Purchase Price are not shown. For UI QA, do not Save any real product mutation.
+5. Back to Products preserves catalog. POS product tap must still add to cart, never open this read-only details screen.
+6. Light/dark, long names, narrow physical Redmi Note 10, Home/POS/Reports/Modules/Notifications remain stable. Do not Save Invoice or Post Stock movements on production just for testing.
+
+**Windows commands:**
+```powershell
+Set-Location "C:\Projects\BluePOSApp"
+git status --short
+git pull --ff-only origin feature/daily-entries
+flutter analyze --no-fatal-infos
+flutter test "C:\Projects\BluePOSApp\test\product_details_widget_test.dart"
+flutter test "C:\Projects\BluePOSApp\test\products_catalog_reference_widget_test.dart"
+```
+After a safe successful pull and tests, press capital `R` in already-running Flutter debug terminal to initialize the new route/widgets.
+
+**Known visual gap:** New details page approximates reference hierarchy with app Theme & Appearance, rather than embedded mockup gradients or exact product artwork; Print Barcode button is not faked pending verified mobile workflow. Full screenshot-level design acceptance and user Flutter tests for Screen 13 **pending**. No backend/db changes, APK release or branch switch.
