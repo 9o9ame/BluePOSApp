@@ -474,23 +474,24 @@ class _ModulesScreenState extends State<ModulesScreen> {
     final main = showMainMenu;
     final entries = <({String group, String label, IconData icon, Color color})>[
       (group: 'Definition', label: 'Definition',
-        icon: Icons.layers_rounded, color: scheme.tertiary),
+        icon: Icons.layers_rounded, color: const Color(0xFF0EB65F)),
       (group: 'Daily Entries', label: 'Daily Entries',
-        icon: Icons.calendar_month_rounded, color: scheme.secondary),
+        icon: Icons.calendar_month_rounded, color: const Color(0xFF04B9C5)),
       (group: 'Reports', label: 'Reports',
-        icon: Icons.bar_chart_rounded, color: scheme.primary),
+        icon: Icons.bar_chart_rounded, color: const Color(0xFF7B45EE)),
       (group: 'Tools', label: 'Tools',
-        icon: Icons.handyman_rounded, color: scheme.tertiary),
+        icon: Icons.handyman_rounded, color: const Color(0xFFF49808)),
       (group: 'Administration', label: 'Administration',
-        icon: Icons.settings_suggest_rounded, color: scheme.primary),
+        icon: Icons.settings_suggest_rounded, color: const Color(0xFF0486F8)),
     ];
     return ListView(
       key: ValueKey(main ? 'approved-main-menu' : 'approved-more-menu'),
-      padding: EdgeInsets.all(app.appearance.spacing),
+      padding: const EdgeInsets.fromLTRB(14, 8, 14, 12),
       children: [
         Row(children: [
           Expanded(child: Text(main ? 'Main Menu' : 'More',
-            style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+            style: const TextStyle(
+              color: Color(0xFF071943), fontSize: 23,
               fontWeight: FontWeight.w900))),
           IconButton(
             tooltip: main ? 'Show More' : 'Open Main Menu',
@@ -538,11 +539,11 @@ class _ModulesScreenState extends State<ModulesScreen> {
         if (main) ...[
           if (_hasVisibleActions('Definition'))
             _menuRow(title: 'Products', icon: Icons.inventory_2_rounded,
-              tone: scheme.primary, onTap: () => widget.navigate(2)),
+              tone: const Color(0xFF9155EC), onTap: () => widget.navigate(2)),
           if (groups['Definition']!.any((action) =>
               action.title == 'Customers' && action.visible(app)))
             _menuRow(title: 'Customers', icon: Icons.people_rounded,
-              tone: scheme.error, onTap: () =>
+              tone: const Color(0xFFEA4A72), onTap: () =>
                 groups['Definition']!.firstWhere((a) =>
                   a.title == 'Customers').open()),
           if (groups['Daily Entries']!.any((action) =>
