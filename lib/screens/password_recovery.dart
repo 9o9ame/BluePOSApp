@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../core/api.dart';
 import '../core/session.dart';
-import 'auth_reference_chrome.dart';
+import 'login_reference_visual.dart';
 
 /// Screen 05. Uses the verified public tenant-scoped reset endpoints.
 /// Does not assume email is the login identifier or reveal account existence.
@@ -90,26 +90,37 @@ class _PasswordRecoveryScreenState extends State<PasswordRecoveryScreen> {
     }
   }
 
+  Widget _recoveryField({required Widget child}) => Container(
+    decoration: BoxDecoration(
+      gradient: const LinearGradient(colors: [Colors.white, Color(0xFFEEF2FF)]),
+      border: Border.all(color: Colors.white, width: 1.8),
+      borderRadius: BorderRadius.circular(18),
+      boxShadow: const [BoxShadow(color: Color(0x305D78B8),
+        blurRadius: 12, offset: Offset(0, 6))],
+    ),
+    child: child,
+  );
+
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     return Scaffold(
-      backgroundColor: scheme.surface,
-      appBar: AppBar(backgroundColor: scheme.surface, title: const Text('')),
+      backgroundColor: const Color(0xFFF7F8FF),
+      appBar: AppBar(backgroundColor: const Color(0xFFF7F8FF), title: const Text('')),
       body: SafeArea(child: Stack(children: [
-        const Positioned(bottom: 0, left: 0, right: 0,
-          child: AuthReferenceWaves()),
+        const Positioned.fill(child: LoginReferenceBackground()),
         ListView(padding: const EdgeInsets.symmetric(horizontal: 23),
           children: [
-            const Center(child: AuthReferenceBrand()),
+            const Center(child: LoginReferenceBrand()),
             const SizedBox(height: 24),
             Center(child: Container(
               width: 76, height: 76,
               decoration: BoxDecoration(
-                color: scheme.primaryContainer,
+                gradient: const LinearGradient(colors: [
+                  Color(0xFFDEFFF9), Color(0xFFDEF0FF)]),
                 borderRadius: BorderRadius.circular(22)),
-              child: Icon(Icons.lock_reset_rounded,
-                color: scheme.primary, size: 42))),
+              child: const Icon(Icons.lock_reset_rounded,
+                color: Color(0xFF0872F6), size: 42))),
             const SizedBox(height: 18),
             Text(requested ? 'Reset Password' : 'Forgot Password',
               textAlign: TextAlign.center,
@@ -122,17 +133,17 @@ class _PasswordRecoveryScreenState extends State<PasswordRecoveryScreen> {
               textAlign: TextAlign.center,
               style: TextStyle(color: scheme.onSurfaceVariant)),
             const SizedBox(height: 22),
-            TextField(key: const ValueKey('recovery-tenant'),
+            _recoveryField(child: TextField(key: const ValueKey('recovery-tenant'),
               controller: tenant, enabled: !busy && !requested,
               decoration: const InputDecoration(
                 labelText: 'Tenant / Mart Code',
-                prefixIcon: Icon(Icons.storefront_outlined))),
+                prefixIcon: Icon(Icons.storefront_outlined)))),
             const SizedBox(height: 12),
-            TextField(key: const ValueKey('recovery-username'),
+            _recoveryField(child: TextField(key: const ValueKey('recovery-username'),
               controller: username, enabled: !busy && !requested,
               decoration: const InputDecoration(
                 labelText: 'Username',
-                prefixIcon: Icon(Icons.person_outline_rounded))),
+                prefixIcon: Icon(Icons.person_outline_rounded)))),
             if (requested) ...[
               const SizedBox(height: 12),
               TextField(controller: token,
@@ -159,14 +170,11 @@ class _PasswordRecoveryScreenState extends State<PasswordRecoveryScreen> {
                 style: TextStyle(color: scheme.onSurfaceVariant),
                 textAlign: TextAlign.center)),
             const SizedBox(height: 22),
-            SizedBox(height: 49, child: FilledButton.icon(
+            LoginReferenceGradientButton(
               key: const ValueKey('recovery-submit'),
               onPressed: busy ? null : submit,
-              icon: busy
-                ? const SizedBox(width: 15, height: 15,
-                    child: CircularProgressIndicator(strokeWidth: 2))
-                : const Icon(Icons.send_outlined),
-              label: Text(requested ? 'Reset Password' : 'Send Reset Link'))),
+              busy: busy,
+              label: requested ? 'Reset Password' : 'Send Reset Link'),
             const SizedBox(height: 8),
             TextButton.icon(
               onPressed: busy ? null : () => Navigator.of(context).pop(),
