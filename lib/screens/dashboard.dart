@@ -196,8 +196,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
         const SizedBox(height: 16),
         const SectionHeading('Quick actions'),
         GridView.count(
-          crossAxisCount: MediaQuery.sizeOf(context).width < 355 ? 2 : 4,
-          childAspectRatio: MediaQuery.sizeOf(context).width < 355 ? 1.45 : .78,
+          crossAxisCount: MediaQuery.sizeOf(context).width < 355 ? 2 : 3,
+          childAspectRatio: MediaQuery.sizeOf(context).width < 355 ? 1.45 : 1.0,
           mainAxisSpacing: 8, crossAxisSpacing: 8,
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
