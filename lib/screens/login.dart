@@ -454,13 +454,32 @@ class _LoginScreenState extends State<LoginScreen> {
                               boxShadow: const [BoxShadow(
                                 color: Color(0x205A79C0),
                                 blurRadius: 10, offset: Offset(0, 5))]),
-                            child: TextButton.icon(
+                            child: TextButton(
                               onPressed: busy ? null : biometricLogin,
-                              icon: const Icon(Icons.fingerprint_rounded,
-                                color: Color(0xFF135CFA), size: 24),
-                              label: const Text('Fingerprint / Face Unlock',
-                                style: TextStyle(color: Color(0xFF091A46),
-                                  fontWeight: FontWeight.w800, fontSize: 13)),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  const Icon(Icons.fingerprint_rounded,
+                                    color: Color(0xFF135CFA), size: 27),
+                                  const Padding(
+                                    padding: EdgeInsets.symmetric(horizontal: 5),
+                                    child: Text('/',
+                                      style: TextStyle(color: Color(0xFF1649BC),
+                                        fontSize: 19, fontWeight: FontWeight.w800))),
+                                  const Icon(Icons.face_rounded,
+                                    color: Color(0xFF135CFA), size: 23),
+                                  const SizedBox(width: 11),
+                                  Container(width: 1.2, height: 25,
+                                    color: const Color(0xFF9DAAC5)),
+                                  const SizedBox(width: 11),
+                                  const Flexible(child: Text(
+                                    'Fingerprint / Face Unlock',
+                                    maxLines: 1, overflow: TextOverflow.ellipsis,
+                                    style: TextStyle(color: Color(0xFF091A46),
+                                      fontWeight: FontWeight.w800, fontSize: 12.5))),
+                                ],
+                              ),
                             ),
                           ),
                         ],
