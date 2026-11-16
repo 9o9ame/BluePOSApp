@@ -4,6 +4,7 @@ import '../core/api.dart';
 import '../core/session.dart';
 import '../widgets/common.dart';
 import 'catalog_master.dart';
+import 'auth_reference_chrome.dart';
 import 'sale_schemes.dart';
 import 'sales_invoice_entry.dart';
 import 'price_lists.dart';
@@ -561,7 +562,8 @@ class _ModulesScreenState extends State<ModulesScreen> {
           icon: const Icon(Icons.grid_view_rounded),
           label: const Text('Browse all available modules'),
         ),
-        const SizedBox(height: 18),
+        const SizedBox(height: 12),
+        const AuthReferenceWaves(height: 68),
       ],
     );
   }
