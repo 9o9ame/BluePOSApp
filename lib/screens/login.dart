@@ -258,12 +258,14 @@ class _LoginScreenState extends State<LoginScreen> {
       key: ValueKey('login-field-$index'),
       height: faceHeight,
       decoration: BoxDecoration(
-        color: const Color(0xFFF9FAFF),
-        border: Border.all(color: Colors.white, width: 1.6),
-        borderRadius: BorderRadius.circular(17),
+        gradient: const LinearGradient(
+          begin: Alignment.topLeft, end: Alignment.bottomRight,
+          colors: [Color(0xFFFFFFFF), Color(0xFFEDF1FF)]),
+        border: Border.all(color: Colors.white, width: 1.8),
+        borderRadius: BorderRadius.circular(20),
         boxShadow: const [
-          BoxShadow(color: Color(0x1C5F75BB),
-            blurRadius: 11, offset: Offset(0, 5)),
+          BoxShadow(color: Color(0x335E7CC1),
+            blurRadius: 14, offset: Offset(0, 8)),
         ],
       ),
       child: TextField(
@@ -278,16 +280,17 @@ class _LoginScreenState extends State<LoginScreen> {
         onTap: challenge == null && (identical(controller, tenant) ||
           identical(controller, user)) ? _openSavedLogins : null,
         onSubmitted: isPassword ? (_) => submit() : null,
-        style: const TextStyle(fontSize: 13.5, color: Color(0xFF172848)),
+        style: const TextStyle(fontSize: 14.2, color: Color(0xFF172848)),
         decoration: InputDecoration(
+          filled: false,
           hintText: placeholder,
-          hintStyle: const TextStyle(color: Color(0xFF465471), fontSize: 13.5),
+          hintStyle: const TextStyle(color: Color(0xFF465471), fontSize: 14.2),
           border: InputBorder.none,
           enabledBorder: InputBorder.none,
           focusedBorder: InputBorder.none,
           contentPadding: EdgeInsets.symmetric(horizontal: 9,
             vertical: compact ? 11 : 13),
-          prefixIconConstraints: const BoxConstraints(minWidth: 70, minHeight: 43),
+          prefixIconConstraints: const BoxConstraints(minWidth: 77, minHeight: 43),
           prefixIcon: Row(mainAxisSize: MainAxisSize.min, children: [
             const SizedBox(width: 8),
             Container(
@@ -296,9 +299,9 @@ class _LoginScreenState extends State<LoginScreen> {
                 borderRadius: BorderRadius.circular(10)),
               child: Icon(icon, color: tones[index], size: 22),
             ),
-            const SizedBox(width: 11),
-            Container(width: 1, height: 23, color: const Color(0xFFB9C5DD)),
-            const SizedBox(width: 7),
+            const SizedBox(width: 12),
+            Container(width: 1.4, height: 24, color: const Color(0xFFB9C5DD)),
+            const SizedBox(width: 9),
           ]),
           suffixIcon: isPassword ? IconButton(
             tooltip: obscure ? 'Show password' : 'Hide password',
