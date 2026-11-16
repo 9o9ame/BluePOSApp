@@ -6,6 +6,7 @@ import '../core/api.dart';
 import '../core/saved_accounts.dart';
 import '../core/session.dart';
 import '../widgets/common.dart';
+import 'auth_reference_chrome.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key, required this.app});
@@ -282,169 +283,151 @@ class _LoginScreenState extends State<LoginScreen> {
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final accent = widget.app.appearance.accent;
+    final verifying = challenge != null;
     return Scaffold(
-      // Paint the entire viewport, including the area beside scrolling content.
       backgroundColor: scheme.surface,
       body: SizedBox.expand(
         key: const ValueKey('login-background'),
-        child: DecoratedBox(
-      decoration: BoxDecoration(gradient: LinearGradient(
-        begin: Alignment.topLeft, end: Alignment.bottomRight,
-        colors: [scheme.surface, scheme.primaryContainer.withValues(alpha: .28),
-          scheme.surface],
-      )),
-      child: ScrollConfiguration(
-        behavior: const MaterialScrollBehavior().copyWith(scrollbars: false),
-        child: SafeArea(child: LayoutBuilder(builder: (context, constraints) {
-        // Keep inputs readable on narrow Android phones; do not scale text.
-        final compact = constraints.maxHeight < 660 || constraints.maxWidth < 350;
-        final narrow = constraints.maxWidth < 350;
-        final diameter = math.min(constraints.maxWidth - 16,
-          math.min(440.0, math.max(320.0, constraints.maxHeight - 168)));
-        final formWidth = math.min(252.0, diameter - 94);
-        // The chord narrows near the circle's bottom. A full-width submit
-        // button would cross the rim on phones even when the form itself fits.
-        final submitWidth = math.min(formWidth,
-          math.max(112.0, diameter - 190.0));
-        return SingleChildScrollView(
-          keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-          child: ConstrainedBox(
-            constraints: BoxConstraints(
-              minWidth: constraints.maxWidth,
-              minHeight: constraints.maxHeight,
-            ),
-            child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-              const SizedBox(height: 22),
-              Text('BLUEPOS', style: TextStyle(
-                color: accent, fontWeight: FontWeight.w900,
-                fontSize: 21, letterSpacing: 4)),
-              const SizedBox(height: 5),
-              Text('POS & ERP', style: TextStyle(
-                color: scheme.onSurfaceVariant, fontSize: 13,
-                letterSpacing: 1.5)),
-              SizedBox(height: compact ? 14 : 23),
-              Container(
-                key: const ValueKey('login-circle'),
-                width: diameter, height: diameter,
-                padding: const EdgeInsets.all(9),
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  gradient: LinearGradient(colors: [
-                    Colors.white.withValues(alpha: .65),
-                    scheme.primaryContainer.withValues(alpha: .47),
-                  ]),
-                  border: Border.all(color: accent.withValues(alpha: .25), width: 2),
-                  boxShadow: [BoxShadow(color: accent.withValues(alpha: .16),
-                    blurRadius: 32, offset: const Offset(3, 14))],
-                ),
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: scheme.surface.withValues(alpha: .95),
-                    border: Border.all(color: scheme.outlineVariant.withValues(alpha: .55)),
-                  ),
-                  child: Center(child: SizedBox(width: formWidth,
-                    height: narrow ? diameter - 42 : null,
-                    child: SingleChildScrollView(
-                      physics: narrow ? const BouncingScrollPhysics()
-                        : const NeverScrollableScrollPhysics(),
-                      child: AutofillGroup(child: Column(
-                        mainAxisSize: MainAxisSize.min, children: [
-                          // At 320px the BLUEPOS wordmark above the circle
-                          // replaces the inner mark, leaving room for Login.
-                          if (narrow)
-                            const SizedBox(height: 9)
-                          else ...[
-                            BlueposBrandMark(size: compact ? 30 : 34),
-                            const SizedBox(height: 4),
-                          ],
-                          Text(challenge == null ? 'Welcome Back' : 'Verify Account',
-                            style: const TextStyle(
-                              fontSize: 18, fontWeight: FontWeight.w900)),
-                          const SizedBox(height: 6),
-                          if (challenge == null) ...[
-                            _input(tenant, 'Tenant / Mart Code',
-                              Icons.storefront_outlined, action: TextInputAction.next,
-                              compact: compact),
-                            SizedBox(height: compact ? 4 : 5),
-                            _input(user, 'Username',
-                              Icons.person_outline_rounded, action: TextInputAction.next,
-                              compact: compact),
-                            SizedBox(height: compact ? 4 : 5),
-                            _input(password, 'Password',
-                              Icons.lock_outline_rounded, isPassword: true,
-                              compact: compact),
-                          ] else ...[
-                            _input(code, '6-digit verification code',
-                              Icons.verified_user_outlined, keyboard: TextInputType.number,
-                              action: TextInputAction.done, compact: compact),
-                            if (hint?.isNotEmpty == true) Padding(
-                              padding: const EdgeInsets.only(top: 5),
-                              child: Text('Recovery hint: $hint',
-                                style: const TextStyle(fontSize: 11))),
-                            SizedBox(height: 32, child: Row(children: [
-                              Checkbox(value: trust,
-                                onChanged: busy ? null : (v) =>
-                                  setState(() => trust = v ?? false)),
-                              const Expanded(child: Text('Trust this device',
-                                style: TextStyle(fontSize: 11))),
-                            ])),
-                          ],
-                          SizedBox(height: compact ? 26 : 28, child: Row(children: [
-                            Checkbox(value: remember,
-                              onChanged: busy ? null : (v) =>
-                                setState(() => remember = v ?? false)),
+        child: SafeArea(child: LayoutBuilder(builder: (context, layout) {
+          final compact = layout.maxHeight < 700;
+          final maxWidth = math.min(385.0, layout.maxWidth - 34);
+          return Stack(children: [
+            const Positioned(left: 0, right: 0, bottom: 0,
+              child: AuthReferenceWaves(height: 109)),
+            SingleChildScrollView(
+              keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+              child: ConstrainedBox(
+                constraints: BoxConstraints(minHeight: layout.maxHeight),
+                child: Center(child: SizedBox(
+                  width: maxWidth,
+                  child: Padding(padding: EdgeInsets.only(
+                    top: compact ? 12 : 24,
+                    bottom: compact ? 22 : 38),
+                    child: AutofillGroup(child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        const Center(child: AuthReferenceBrand(iconSize: 52)),
+                        SizedBox(height: compact ? 20 : 31),
+                        Center(child: Container(
+                          width: compact ? 64 : 78,
+                          height: compact ? 64 : 78,
+                          decoration: BoxDecoration(
+                            color: scheme.tertiaryContainer,
+                            borderRadius: BorderRadius.circular(21)),
+                          child: Icon(verifying
+                            ? Icons.verified_user_rounded
+                            : Icons.storefront_rounded,
+                            color: scheme.onTertiaryContainer,
+                            size: compact ? 36 : 44),
+                        )),
+                        SizedBox(height: compact ? 12 : 19),
+                        Text(verifying ? 'Verify Your Account' : 'Welcome Back',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            color: scheme.onSurface,
+                            fontSize: compact ? 23 : 27,
+                            fontWeight: FontWeight.w900)),
+                        const SizedBox(height: 4),
+                        Text(verifying
+                          ? 'Enter the 6-digit code sent to your device'
+                          : 'Sign in to your business account',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(fontSize: 12,
+                            color: scheme.onSurfaceVariant)),
+                        SizedBox(height: compact ? 18 : 25),
+                        if (!verifying) ...[
+                          _input(tenant, 'Tenant / Mart Code',
+                            Icons.storefront_outlined,
+                            action: TextInputAction.next, compact: compact),
+                          const SizedBox(height: 9),
+                          _input(user, 'Username',
+                            Icons.person_outline_rounded,
+                            action: TextInputAction.next, compact: compact),
+                          const SizedBox(height: 9),
+                          _input(password, 'Password',
+                            Icons.lock_outline_rounded,
+                            isPassword: true, compact: compact),
+                          const SizedBox(height: 7),
+                          Row(children: [
+                            SizedBox(height: 38, width: 42,
+                              child: Checkbox(value: remember,
+                                onChanged: busy ? null : (value) =>
+                                  setState(() => remember = value ?? false))),
                             const Expanded(child: Text('Remember Me',
-                              style: TextStyle(fontSize: 11))),
-                          ])),
-                          const SizedBox(height: 3),
-                          SizedBox(height: compact ? 40 : 42, width: submitWidth,
-                            child: FilledButton.icon(
-                              key: const ValueKey('login-submit'),
-                              onPressed: busy ? null : submit,
-                              icon: busy ? const SizedBox(width: 14, height: 14,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2, color: Colors.white)) :
-                                const Icon(Icons.login_rounded, size: 18),
-                              label: Text(challenge == null ? 'Login' : 'Verify',
-                                style: const TextStyle(fontWeight: FontWeight.w800)),
-                            )),
-                          if (challenge != null) TextButton(
-                            onPressed: busy ? null : resend,
-                            child: const Text('Resend code')),
+                              style: TextStyle(fontSize: 12))),
+                          ]),
+                        ] else ...[
+                          _input(code, '6-digit verification code',
+                            Icons.verified_user_outlined,
+                            keyboard: TextInputType.number,
+                            action: TextInputAction.done, compact: compact),
+                          if (hint?.isNotEmpty == true)
+                            Padding(padding: const EdgeInsets.only(top: 7),
+                              child: Text('Recovery hint: $hint',
+                                style: TextStyle(fontSize: 11,
+                                  color: scheme.onSurfaceVariant))),
+                          Row(children: [
+                            SizedBox(height: 36, width: 42,
+                              child: Checkbox(value: trust,
+                                onChanged: busy ? null : (v) =>
+                                  setState(() => trust = v ?? false))),
+                            const Expanded(child: Text('Trust this device',
+                              style: TextStyle(fontSize: 12))),
+                          ]),
                         ],
-                      )))),
-                  )),
-                ),
-              if (error != null) Padding(
-                padding: const EdgeInsets.fromLTRB(24, 16, 24, 0),
-                child: Text(error!, textAlign: TextAlign.center,
-                  style: TextStyle(color: scheme.error, fontSize: 12.5)),
+                        const SizedBox(height: 12),
+                        SizedBox(height: 49, child: FilledButton.icon(
+                          key: const ValueKey('login-submit'),
+                          onPressed: busy ? null : submit,
+                          icon: busy
+                            ? const SizedBox(width: 16, height: 16,
+                                child: CircularProgressIndicator(strokeWidth: 2))
+                            : Icon(verifying
+                                ? Icons.verified_outlined
+                                : Icons.login_rounded, size: 18),
+                          label: Text(verifying ? 'Verify & Continue' : 'Login',
+                            style: const TextStyle(
+                              fontWeight: FontWeight.w800)),
+                        )),
+                        if (verifying) ...[
+                          TextButton(
+                            onPressed: busy ? null : resend,
+                            child: const Text('Resend Code')),
+                          TextButton(
+                            onPressed: busy ? null : () => setState(() {
+                              challenge = null;
+                              code.clear();
+                              error = null;
+                            }),
+                            child: const Text('Back to Login')),
+                        ] else ...[
+                          SizedBox(height: compact ? 9 : 13),
+                          Center(child: Text('or', style: TextStyle(
+                            color: scheme.onSurfaceVariant))),
+                          const SizedBox(height: 9),
+                          SizedBox(height: 48,
+                            child: OutlinedButton.icon(
+                              onPressed: busy ? null : biometricLogin,
+                              icon: Icon(Icons.fingerprint_rounded,
+                                color: accent, size: 22),
+                              label: const Text('Fingerprint / Face Unlock',
+                                style: TextStyle(fontWeight: FontWeight.w700)),
+                            )),
+                        ],
+                        if (error != null) Padding(
+                          padding: const EdgeInsets.only(top: 12),
+                          child: Text(error!, textAlign: TextAlign.center,
+                            style: TextStyle(color: scheme.error, fontSize: 12))),
+                      ],
+                    ))),
+                  ),
+                )),
               ),
-              if (challenge != null) TextButton(
-                onPressed: () => setState(() {
-                  challenge = null;
-                  code.clear();
-                  error = null;
-                }),
-                child: const Text('Back to password login')),
-              SizedBox(height: compact ? 27 : 39),
-              SizedBox(
-                width: math.min(constraints.maxWidth - 54, 305.0),
-                height: 49,
-                child: OutlinedButton.icon(
-                  onPressed: busy ? null : biometricLogin,
-                  icon: const Icon(Icons.fingerprint_rounded, size: 22),
-                  label: const Text('Fingerprint / Face Unlock',
-                    style: TextStyle(fontWeight: FontWeight.w700)),
-                ),
-              ),
-              SizedBox(height: compact ? 16 : 24),
-            ]),
-          ),
-        );
-      }))),
-    )));
+            ),
+          ]);
+        })),
+      ),
+    );
   }
 }
