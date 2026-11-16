@@ -1,4 +1,3 @@
-import 'dart:math' as math;
 import 'package:flutter/material.dart';
 
 /// Screen 02 approved mockup chrome. Purely decorative; never owns login state.
