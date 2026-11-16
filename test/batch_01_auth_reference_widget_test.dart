@@ -18,7 +18,7 @@ void main() {
     expect(find.byKey(const ValueKey('splash-wordmark')), findsOneWidget);
     expect(find.text('Complete Business Management'), findsOneWidget);
     expect(find.byKey(const ValueKey('splash-loading-dots')), findsOneWidget);
-    expect(find.byType(AuthReferenceWaves), findsOneWidget);
+    expect(find.byType(BlueposSplash), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 
@@ -32,6 +32,8 @@ void main() {
     expect(find.text('Tenant code and username are required.'), findsOneWidget);
     expect(find.byKey(const ValueKey('recovery-tenant')), findsOneWidget);
     expect(find.byKey(const ValueKey('recovery-username')), findsOneWidget);
+    expect(find.byKey(const ValueKey('recovery-lock-art')), findsOneWidget);
+    expect(find.byKey(const ValueKey('recovery-information')), findsOneWidget);
     expect(tester.takeException(), isNull);
     await app.api.close();
   });
