@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../core/api.dart';
 import '../core/session.dart';
 import '../widgets/common.dart';
+import 'auth_reference_chrome.dart';
 
 /// Reference screen 10: only owner-authorized device access notifications
 /// are currently exposed by the BluePOS API. Other mockup alert types are
@@ -207,6 +208,8 @@ class NotificationsView extends StatelessWidget {
               ),
             ),
           ),
+        const SizedBox(height: 12),
+        const AuthReferenceWaves(height: 68),
       ],
     );
   }
