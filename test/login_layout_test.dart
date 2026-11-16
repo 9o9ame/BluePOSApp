@@ -28,7 +28,7 @@ class _RememberedLogins extends SavedAccountsStore {
 }
 
 void main() {
-  testWidgets('circular login shows approved copy without extra footer lines',
+  testWidgets('reference Login shows approved copy and preserved controls',
       (tester) async {
     await tester.binding.setSurfaceSize(const Size(360, 780));
     addTearDown(() async => tester.binding.setSurfaceSize(null));
@@ -36,7 +36,8 @@ void main() {
       biometric: _NoBiometricHardware(), savedAccounts: _RememberedLogins());
     await tester.pumpWidget(MaterialApp(home: LoginScreen(app: app)));
     await tester.pumpAndSettle();
-    expect(find.text('POS & ERP'), findsOneWidget);
+    expect(find.text('P O S  &  E R P'), findsOneWidget);
+    expect(find.byKey(const ValueKey('login-storefront-hero')), findsOneWidget);
     expect(find.text('Welcome Back'), findsOneWidget);
     expect(find.text('Mobile POS & ERP'), findsNothing);
     expect(find.text('Sign in to your secure workspace'), findsNothing);
@@ -86,7 +87,7 @@ void main() {
     Size(360, 780),
     Size(393, 851),
   ]) {
-    testWidgets('login button corners stay within circle at ${size.width}px',
+    testWidgets('Login reference button fits viewport at ${size.width}px',
         (tester) async {
       await tester.binding.setSurfaceSize(size);
       addTearDown(() async => tester.binding.setSurfaceSize(null));
@@ -95,15 +96,10 @@ void main() {
       await tester.pumpWidget(MaterialApp(home: LoginScreen(app: app)));
       await tester.pumpAndSettle();
 
-      final circle = tester.getRect(find.byKey(const ValueKey('login-circle')));
       final button = tester.getRect(find.byKey(const ValueKey('login-submit')));
-      final radius = circle.width / 2 - 10;
-      for (final corner in [
-        button.topLeft, button.topRight, button.bottomLeft, button.bottomRight,
-      ]) {
-        expect((corner - circle.center).distance, lessThan(radius),
-          reason: 'Login button must stay within circular panel at ${size.width}px');
-      }
+      expect(button.left, greaterThanOrEqualTo(0));
+      expect(button.right, lessThanOrEqualTo(size.width));
+      expect(button.width, greaterThan(180));
       expect(tester.takeException(), isNull);
     });
   }
@@ -131,7 +127,7 @@ void main() {
     });
   }
 
-  testWidgets('circular form avoids overflow on compact Android phones',
+  testWidgets('reference form avoids overflow on compact Android phones',
       (tester) async {
     await tester.binding.setSurfaceSize(const Size(320, 680));
     addTearDown(() async => tester.binding.setSurfaceSize(null));
