@@ -7,6 +7,7 @@ import '../core/saved_accounts.dart';
 import '../core/session.dart';
 import '../widgets/common.dart';
 import 'auth_reference_chrome.dart';
+import 'password_recovery.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key, required this.app});
@@ -402,7 +403,17 @@ class _LoginScreenState extends State<LoginScreen> {
                             }),
                             child: const Text('Back to Login')),
                         ] else ...[
-                          SizedBox(height: compact ? 9 : 13),
+                          Align(alignment: Alignment.centerRight,
+                            child: TextButton(
+                              key: const ValueKey('login-forgot-password'),
+                              onPressed: busy ? null : () => Navigator.of(context).push(
+                                MaterialPageRoute(builder: (_) =>
+                                  PasswordRecoveryScreen(
+                                    app: widget.app,
+                                    initialTenant: tenant.text.trim(),
+                                    initialUsername: user.text.trim()))),
+                              child: const Text('Forgot Password?'))),
+                          SizedBox(height: compact ? 4 : 8),
                           Center(child: Text('or', style: TextStyle(
                             color: scheme.onSurfaceVariant))),
                           const SizedBox(height: 9),
