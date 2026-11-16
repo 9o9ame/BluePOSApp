@@ -484,9 +484,10 @@ class _ModulesScreenState extends State<ModulesScreen> {
       (group: 'Administration', label: 'Administration',
         icon: Icons.settings_suggest_rounded, color: const Color(0xFF0486F8)),
     ];
-    return ListView(
+    return Stack(children: [
+    ListView(
       key: ValueKey(main ? 'approved-main-menu' : 'approved-more-menu'),
-      padding: const EdgeInsets.fromLTRB(14, 8, 14, 12),
+      padding: const EdgeInsets.fromLTRB(14, 8, 14, 90),
       children: [
         Row(children: [
           Expanded(child: Text(main ? 'Main Menu' : 'More',
@@ -494,10 +495,16 @@ class _ModulesScreenState extends State<ModulesScreen> {
               color: Color(0xFF071943), fontSize: 23,
               fontWeight: FontWeight.w900))),
           IconButton(
-            tooltip: main ? 'Show More' : 'Open Main Menu',
-            onPressed: () => setState(() => showMainMenu = !main),
-            icon: Icon(main ? Icons.more_horiz_rounded
-              : Icons.apps_rounded, color: scheme.primary)),
+            tooltip: main ? 'Search modules' : 'Settings',
+            onPressed: main
+              ? () => setState(() {
+                  showDirectory = true;
+                  activeGroup = null;
+                })
+              : _settings,
+            icon: Icon(main ? Icons.search_rounded
+              : Icons.settings_outlined,
+              color: const Color(0xFF0C275B))),
         ]),
         const SizedBox(height: 12),
         if (!main) ...[
@@ -523,7 +530,7 @@ class _ModulesScreenState extends State<ModulesScreen> {
                     overflow: TextOverflow.ellipsis,
                     style: const TextStyle(fontSize: 18,
                       fontWeight: FontWeight.w900)),
-                  Text(app.branchName, maxLines: 1,
+                  Text('Branch: ${app.branchName}', maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(color: scheme.onSurfaceVariant)),
                 ])),
@@ -557,9 +564,9 @@ class _ModulesScreenState extends State<ModulesScreen> {
             _menuRow(title: 'Sales', icon: Icons.shopping_cart_rounded,
               tone: scheme.tertiary, onTap: () => widget.navigate(1)),
         ] else ...[
-          const SizedBox(height: 8),
+          const SizedBox(height: 2),
           Divider(color: scheme.outlineVariant),
-          const SizedBox(height: 8),
+          const SizedBox(height: 2),
           if (groups['Administration']!.any((action) =>
               action.title == 'Security Sessions' && action.visible(app)))
             _menuRow(title: 'Device & Security',
@@ -568,7 +575,50 @@ class _ModulesScreenState extends State<ModulesScreen> {
                 groups['Administration']!.firstWhere((a) =>
                   a.title == 'Security Sessions').open()),
           _menuRow(title: 'Settings', icon: Icons.settings_rounded,
-            tone: scheme.primary, onTap: _settings),
+            tone: const Color(0xFF087CF7), onTap: _settings),
+          _menuRow(title: 'Help & Support', icon: Icons.support_agent_rounded,
+            tone: const Color(0xFF7B4DE8),
+            onTap: () => setState(() {
+              showDirectory = true;
+              activeGroup = 'Help';
+            })),
+          Padding(
+            padding: const EdgeInsets.only(top: 7, bottom: 7),
+            child: Material(
+              color: const Color(0xFFFFEDF0),
+              borderRadius: BorderRadius.circular(15),
+              child: ListTile(
+                key: const ValueKey('more-logout'),
+                leading: const Icon(Icons.logout_rounded,
+                  color: Color(0xFFE62845)),
+                title: const Text('Logout',
+                  style: TextStyle(
+                    color: Color(0xFFCC183A),
+                    fontWeight: FontWeight.w800)),
+                trailing: const Icon(Icons.chevron_right_rounded,
+                  color: Color(0xFFE62845)),
+                onTap: () async {
+                  final confirm = await showDialog<bool>(
+                    context: context,
+                    builder: (dialog) => AlertDialog(
+                      title: const Text('Log out?'),
+                      content: const Text(
+                        'You will need to sign in again to access BluePOS.'),
+                      actions: [
+                        TextButton(
+                          onPressed: () => Navigator.pop(dialog, false),
+                          child: const Text('Cancel')),
+                        FilledButton(
+                          onPressed: () => Navigator.pop(dialog, true),
+                          child: const Text('Log out')),
+                      ]));
+                  if (confirm == true && mounted) {
+                    await widget.app.logout();
+                  }
+                },
+              ),
+            ),
+          ),
         ],
         const SizedBox(height: 8),
         TextButton.icon(
@@ -580,9 +630,11 @@ class _ModulesScreenState extends State<ModulesScreen> {
           label: const Text('Browse all available modules'),
         ),
         const SizedBox(height: 12),
-        const AuthReferenceWaves(height: 68),
       ],
-    );
+    ),
+    const Positioned(left: 0, right: 0, bottom: 0,
+      child: AuthReferenceWaves(height: 60)),
+    ]);
   }
 
   /// Newer approved reference 11: Definition uses ordered navigation rows,
