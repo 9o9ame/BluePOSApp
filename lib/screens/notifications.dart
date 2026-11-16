@@ -133,15 +133,35 @@ class NotificationsView extends StatelessWidget {
               color: scheme.primary, fontWeight: FontWeight.w800)),
         ]),
         const SizedBox(height: 14),
-        SegmentedButton<int>(
+        Row(
           key: const ValueKey('notification-filters'),
-          segments: const [
-            ButtonSegment(value: 0, label: Text('All')),
-            ButtonSegment(value: 1, label: Text('Alerts')),
-            ButtonSegment(value: 2, label: Text('Activity')),
+          children: [
+            for (final filter in const [
+              (0, 'All', Icons.notifications_none_rounded),
+              (1, 'Alerts', Icons.warning_amber_rounded),
+              (2, 'Activity', Icons.monitor_heart_outlined),
+            ]) ...[
+              Expanded(child: ChoiceChip(
+                label: Text(filter.$2,
+                  style: const TextStyle(
+                    fontSize: 12, fontWeight: FontWeight.w700)),
+                avatar: filter.$1 == 0 ? null
+                  : Icon(filter.$3, size: 16,
+                    color: filter.$1 == 1
+                      ? const Color(0xFFE14B61)
+                      : const Color(0xFF2B7CE8)),
+                selected: selectedTab == filter.$1,
+                selectedColor: const Color(0xFF05AE80),
+                backgroundColor: const Color(0xFFF3F5FF),
+                showCheckmark: false,
+                side: BorderSide.none,
+                onSelected: (_) => onTabChanged(filter.$1),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16)),
+              )),
+              if (filter.$1 != 2) const SizedBox(width: 7),
+            ],
           ],
-          selected: {selectedTab},
-          onSelectionChanged: (selection) => onTabChanged(selection.first),
         ),
         const SizedBox(height: 16),
         if (busy)
@@ -166,8 +186,15 @@ class NotificationsView extends StatelessWidget {
         for (final notice in visible)
           Padding(
             padding: const EdgeInsets.only(bottom: 10),
-            child: Surface(
+            child: Container(
               padding: const EdgeInsets.all(13),
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(colors: [
+                  Colors.white, Color(0xFFF3F6FF)]),
+                border: Border.all(color: Colors.white, width: 1.5),
+                borderRadius: BorderRadius.circular(17),
+                boxShadow: const [BoxShadow(color: Color(0x23566DB0),
+                  blurRadius: 10, offset: Offset(0, 5))]),
               child: Row(crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Container(
