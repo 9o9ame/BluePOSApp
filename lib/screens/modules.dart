@@ -427,28 +427,36 @@ class _ModulesScreenState extends State<ModulesScreen> {
     final scheme = Theme.of(context).colorScheme;
     return Padding(
       padding: const EdgeInsets.only(bottom: 9),
-      child: Card(
-        margin: EdgeInsets.zero,
-        child: InkWell(
-          key: key,
-          borderRadius: BorderRadius.circular(widget.app.appearance.corner),
-          onTap: onTap,
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
-            child: Row(children: [
-              Container(
-                height: 46, width: 46,
-                decoration: BoxDecoration(
-                  color: tone.withValues(alpha: .12),
-                  borderRadius: BorderRadius.circular(14)),
-                child: Icon(icon, color: tone, size: 25)),
-              const SizedBox(width: 14),
-              Expanded(child: Text(title,
-                style: const TextStyle(fontSize: 16,
-                  fontWeight: FontWeight.w800))),
-              Icon(Icons.chevron_right_rounded,
-                color: scheme.onSurfaceVariant),
-            ]),
+      child: Container(
+        decoration: BoxDecoration(
+          gradient: const LinearGradient(
+            colors: [Color(0xFFFFFFFF), Color(0xFFF4F6FF)]),
+          border: Border.all(color: Colors.white, width: 1.5),
+          borderRadius: BorderRadius.circular(15),
+          boxShadow: const [BoxShadow(color: Color(0x205D78AE),
+            blurRadius: 9, offset: Offset(0, 4))]),
+        child: Material(color: Colors.transparent,
+          child: InkWell(
+            key: key,
+            borderRadius: BorderRadius.circular(15),
+            onTap: onTap,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+              child: Row(children: [
+                Container(
+                  height: 37, width: 37,
+                  decoration: BoxDecoration(
+                    color: tone.withValues(alpha: .13),
+                    borderRadius: BorderRadius.circular(10)),
+                  child: Icon(icon, color: tone, size: 21)),
+                const SizedBox(width: 12),
+                Expanded(child: Text(title,
+                  style: const TextStyle(fontSize: 14,
+                    fontWeight: FontWeight.w800))),
+                Icon(Icons.chevron_right_rounded,
+                  color: scheme.onSurfaceVariant),
+              ]),
+            ),
           ),
         ),
       ),
@@ -492,8 +500,16 @@ class _ModulesScreenState extends State<ModulesScreen> {
         ]),
         const SizedBox(height: 12),
         if (!main) ...[
-          Card(margin: EdgeInsets.zero, child: Padding(
-            padding: const EdgeInsets.all(17), child: Row(children: [
+          Container(
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(colors: [
+                Color(0xFFFFFFFF), Color(0xFFE7FFF5)]),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: Colors.white, width: 1.5),
+              boxShadow: const [BoxShadow(
+                color: Color(0x1C57BBA4), blurRadius: 10, offset: Offset(0, 5))]),
+            child: Padding(
+            padding: const EdgeInsets.all(14), child: Row(children: [
               Container(width: 54, height: 54, decoration: BoxDecoration(
                 color: scheme.primaryContainer,
                 borderRadius: BorderRadius.circular(16)),
