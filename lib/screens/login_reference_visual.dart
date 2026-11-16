@@ -221,15 +221,50 @@ class LoginReferenceGradientButton extends StatelessWidget {
       child: Material(color: Colors.transparent,
         child: InkWell(onTap: onPressed,
           borderRadius: BorderRadius.circular(16),
-          child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-            if (busy) const SizedBox(width: 17, height: 17,
-              child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-            else const Icon(Icons.login_rounded, color: Colors.white, size: 21),
-            const SizedBox(width: 10),
-            Text(label, style: const TextStyle(color: Colors.white,
-              fontWeight: FontWeight.w800, fontSize: 18)),
+          child: Stack(children: [
+            const Positioned.fill(child: ClipRRect(
+              borderRadius: BorderRadius.all(Radius.circular(16)),
+              child: IgnorePointer(child: CustomPaint(
+                painter: _LoginButtonShinePainter())))),
+            Center(child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (busy) const SizedBox(width: 17, height: 17,
+                  child: CircularProgressIndicator(
+                    color: Colors.white, strokeWidth: 2))
+                else const Icon(Icons.login_rounded,
+                  color: Colors.white, size: 21),
+                const SizedBox(width: 10),
+                Text(label, style: const TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w800, fontSize: 18)),
+              ],
+            )),
           ]),
         ),
       ),
     ));
+}
+
+
+class _LoginButtonShinePainter extends CustomPainter {
+  const _LoginButtonShinePainter();
+  @override
+  void paint(Canvas canvas, Size size) {
+    final w = size.width, h = size.height;
+    final curve = Path()
+      ..moveTo(w * .59, h)
+      ..quadraticBezierTo(w * .78, h * .88, w, h * .01)
+      ..lineTo(w, h)..close();
+    canvas.drawPath(curve, Paint()
+      ..color = const Color(0x220028F6));
+    final topGlow = Path()
+      ..moveTo(0, 0)..lineTo(w, 0)
+      ..quadraticBezierTo(w * .58, h * .24, 0, h * .15)
+      ..close();
+    canvas.drawPath(topGlow, Paint()
+      ..color = const Color(0x10FFFFFF));
+  }
+  @override
+  bool shouldRepaint(covariant _LoginButtonShinePainter oldDelegate) => false;
 }
