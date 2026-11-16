@@ -6,7 +6,7 @@ import '../core/api.dart';
 import '../core/saved_accounts.dart';
 import '../core/session.dart';
 import '../widgets/common.dart';
-import 'auth_reference_chrome.dart';
+import 'login_reference_visual.dart';
 import 'password_recovery.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -249,35 +249,66 @@ class _LoginScreenState extends State<LoginScreen> {
       IconData icon, {bool isPassword = false,
       TextInputType? keyboard, TextInputAction? action,
       bool compact = false}) {
-    return SizedBox(height: compact ? 38 : 42, child: TextField(
-      controller: controller,
-      keyboardType: keyboard,
-      textInputAction: action,
-      autofillHints: isPassword ? const [AutofillHints.password] :
-        identical(controller, user) ? const [AutofillHints.username] : null,
-      enableSuggestions: !isPassword,
-      autocorrect: false,
-      obscureText: isPassword && obscure,
-      onTap: challenge == null && (identical(controller, tenant) ||
-        identical(controller, user)) ? _openSavedLogins : null,
-      onSubmitted: isPassword ? (_) => submit() : null,
-      style: const TextStyle(fontSize: 13.5),
-      decoration: InputDecoration(
-        hintText: placeholder,
-        isDense: true,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 9, vertical: 10),
-        prefixIconConstraints: BoxConstraints(minWidth: 39,
-          minHeight: compact ? 38 : 42),
-        prefixIcon: Icon(icon, size: 18),
-        suffixIconConstraints: BoxConstraints(minWidth: 40,
-          minHeight: compact ? 38 : 42),
-        suffixIcon: isPassword ? IconButton(
-          tooltip: obscure ? 'Show password' : 'Hide password',
-          onPressed: () => setState(() => obscure = !obscure),
-          icon: Icon(obscure ? Icons.visibility_outlined :
-            Icons.visibility_off_outlined, size: 19)) : null,
+    final index = identical(controller, tenant) ? 0 :
+      identical(controller, user) ? 1 : 2;
+    const tones = [Color(0xFF0074F8), Color(0xFF0EA760), Color(0xFFF39B0A)];
+    const plates = [Color(0xFFDFEEFF), Color(0xFFDCFAE9), Color(0xFFFFF0DB)];
+    final faceHeight = compact ? 45.0 : 50.0;
+    return Container(
+      key: ValueKey('login-field-$index'),
+      height: faceHeight,
+      decoration: BoxDecoration(
+        color: const Color(0xFFF9FAFF),
+        border: Border.all(color: Colors.white, width: 1.6),
+        borderRadius: BorderRadius.circular(17),
+        boxShadow: const [
+          BoxShadow(color: Color(0x1C5F75BB),
+            blurRadius: 11, offset: Offset(0, 5)),
+        ],
       ),
-    ));
+      child: TextField(
+        controller: controller,
+        keyboardType: keyboard,
+        textInputAction: action,
+        autofillHints: isPassword ? const [AutofillHints.password] :
+          identical(controller, user) ? const [AutofillHints.username] : null,
+        enableSuggestions: !isPassword,
+        autocorrect: false,
+        obscureText: isPassword && obscure,
+        onTap: challenge == null && (identical(controller, tenant) ||
+          identical(controller, user)) ? _openSavedLogins : null,
+        onSubmitted: isPassword ? (_) => submit() : null,
+        style: const TextStyle(fontSize: 13.5, color: Color(0xFF172848)),
+        decoration: InputDecoration(
+          hintText: placeholder,
+          hintStyle: const TextStyle(color: Color(0xFF465471), fontSize: 13.5),
+          border: InputBorder.none,
+          enabledBorder: InputBorder.none,
+          focusedBorder: InputBorder.none,
+          contentPadding: EdgeInsets.symmetric(horizontal: 9,
+            vertical: compact ? 11 : 13),
+          prefixIconConstraints: const BoxConstraints(minWidth: 70, minHeight: 43),
+          prefixIcon: Row(mainAxisSize: MainAxisSize.min, children: [
+            const SizedBox(width: 8),
+            Container(
+              width: 35, height: 35,
+              decoration: BoxDecoration(color: plates[index],
+                borderRadius: BorderRadius.circular(10)),
+              child: Icon(icon, color: tones[index], size: 22),
+            ),
+            const SizedBox(width: 11),
+            Container(width: 1, height: 23, color: const Color(0xFFB9C5DD)),
+            const SizedBox(width: 7),
+          ]),
+          suffixIcon: isPassword ? IconButton(
+            tooltip: obscure ? 'Show password' : 'Hide password',
+            onPressed: () => setState(() => obscure = !obscure),
+            icon: Icon(obscure ? Icons.visibility_outlined :
+              Icons.visibility_off_outlined,
+              color: const Color(0xFF40516D), size: 20)) : null,
+        ),
+      ),
+    );
   }
 
   @override
@@ -286,15 +317,14 @@ class _LoginScreenState extends State<LoginScreen> {
     final accent = widget.app.appearance.accent;
     final verifying = challenge != null;
     return Scaffold(
-      backgroundColor: scheme.surface,
+      backgroundColor: const Color(0xFFF7F8FF),
       body: SizedBox.expand(
         key: const ValueKey('login-background'),
         child: SafeArea(child: LayoutBuilder(builder: (context, layout) {
           final compact = layout.maxHeight < 700;
           final maxWidth = math.min(385.0, layout.maxWidth - 34);
           return Stack(children: [
-            const Positioned(left: 0, right: 0, bottom: 0,
-              child: AuthReferenceWaves(height: 109)),
+            const Positioned.fill(child: LoginReferenceBackground()),
             SingleChildScrollView(
               keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
               child: ConstrainedBox(
@@ -302,32 +332,29 @@ class _LoginScreenState extends State<LoginScreen> {
                 child: Center(child: SizedBox(
                   width: maxWidth,
                   child: Padding(padding: EdgeInsets.only(
-                    top: compact ? 12 : 24,
-                    bottom: compact ? 22 : 38),
+                    top: compact ? 12 : 25,
+                    bottom: compact ? 25 : 35),
                     child: AutofillGroup(child: Column(
                       mainAxisSize: MainAxisSize.min,
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        const Center(child: AuthReferenceBrand(iconSize: 52)),
-                        SizedBox(height: compact ? 20 : 31),
-                        Center(child: Container(
-                          width: compact ? 64 : 78,
-                          height: compact ? 64 : 78,
+                        const LoginReferenceBrand(),
+                        SizedBox(height: compact ? 14 : 20),
+                        if (!verifying)
+                          LoginReferenceStorefront(height: compact ? 108 : 129)
+                        else Center(child: Container(
+                          width: 75, height: 75,
                           decoration: BoxDecoration(
-                            color: scheme.tertiaryContainer,
-                            borderRadius: BorderRadius.circular(21)),
-                          child: Icon(verifying
-                            ? Icons.verified_user_rounded
-                            : Icons.storefront_rounded,
-                            color: scheme.onTertiaryContainer,
-                            size: compact ? 36 : 44),
-                        )),
-                        SizedBox(height: compact ? 12 : 19),
+                            color: const Color(0xFFDEEDFF),
+                            borderRadius: BorderRadius.circular(20)),
+                          child: const Icon(Icons.verified_user_rounded,
+                            color: Color(0xFF086CF1), size: 41))),
+                        SizedBox(height: compact ? 10 : 14),
                         Text(verifying ? 'Verify Your Account' : 'Welcome Back',
                           textAlign: TextAlign.center,
                           style: TextStyle(
-                            color: scheme.onSurface,
-                            fontSize: compact ? 23 : 27,
+                            color: const Color(0xFF071947),
+                            fontSize: compact ? 26 : 29,
                             fontWeight: FontWeight.w900)),
                         const SizedBox(height: 4),
                         Text(verifying
@@ -335,17 +362,17 @@ class _LoginScreenState extends State<LoginScreen> {
                           : 'Sign in to your business account',
                           textAlign: TextAlign.center,
                           style: TextStyle(fontSize: 12,
-                            color: scheme.onSurfaceVariant)),
-                        SizedBox(height: compact ? 18 : 25),
+                            color: const Color(0xFF546078))),
+                        SizedBox(height: compact ? 16 : 21),
                         if (!verifying) ...[
                           _input(tenant, 'Tenant / Mart Code',
                             Icons.storefront_outlined,
                             action: TextInputAction.next, compact: compact),
-                          const SizedBox(height: 9),
+                          const SizedBox(height: 11),
                           _input(user, 'Username',
                             Icons.person_outline_rounded,
                             action: TextInputAction.next, compact: compact),
-                          const SizedBox(height: 9),
+                          const SizedBox(height: 11),
                           _input(password, 'Password',
                             Icons.lock_outline_rounded,
                             isPassword: true, compact: compact),
@@ -378,19 +405,11 @@ class _LoginScreenState extends State<LoginScreen> {
                           ]),
                         ],
                         const SizedBox(height: 12),
-                        SizedBox(height: 49, child: FilledButton.icon(
+                        LoginReferenceGradientButton(
                           key: const ValueKey('login-submit'),
                           onPressed: busy ? null : submit,
-                          icon: busy
-                            ? const SizedBox(width: 16, height: 16,
-                                child: CircularProgressIndicator(strokeWidth: 2))
-                            : Icon(verifying
-                                ? Icons.verified_outlined
-                                : Icons.login_rounded, size: 18),
-                          label: Text(verifying ? 'Verify & Continue' : 'Login',
-                            style: const TextStyle(
-                              fontWeight: FontWeight.w800)),
-                        )),
+                          busy: busy,
+                          label: verifying ? 'Verify & Continue' : 'Login'),
                         if (verifying) ...[
                           TextButton(
                             onPressed: busy ? null : resend,
@@ -414,17 +433,33 @@ class _LoginScreenState extends State<LoginScreen> {
                                     initialUsername: user.text.trim()))),
                               child: const Text('Forgot Password?'))),
                           SizedBox(height: compact ? 4 : 8),
-                          Center(child: Text('or', style: TextStyle(
-                            color: scheme.onSurfaceVariant))),
+                          Row(children: [
+                            const Expanded(child: Divider(color: Color(0xFFB8C3DE))),
+                            Padding(padding: const EdgeInsets.symmetric(horizontal: 15),
+                              child: Text('or', style: TextStyle(
+                                color: scheme.onSurfaceVariant))),
+                            const Expanded(child: Divider(color: Color(0xFFB8C3DE))),
+                          ]),
                           const SizedBox(height: 9),
-                          SizedBox(height: 48,
-                            child: OutlinedButton.icon(
+                          Container(
+                            height: 49,
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(18),
+                              gradient: const LinearGradient(
+                                colors: [Color(0xFFF9FAFF), Color(0xFFE9F0FF)]),
+                              border: Border.all(color: Colors.white, width: 1.7),
+                              boxShadow: const [BoxShadow(
+                                color: Color(0x205A79C0),
+                                blurRadius: 10, offset: Offset(0, 5))]),
+                            child: TextButton.icon(
                               onPressed: busy ? null : biometricLogin,
-                              icon: Icon(Icons.fingerprint_rounded,
-                                color: accent, size: 22),
+                              icon: const Icon(Icons.fingerprint_rounded,
+                                color: Color(0xFF135CFA), size: 24),
                               label: const Text('Fingerprint / Face Unlock',
-                                style: TextStyle(fontWeight: FontWeight.w700)),
-                            )),
+                                style: TextStyle(color: Color(0xFF091A46),
+                                  fontWeight: FontWeight.w800, fontSize: 13)),
+                            ),
+                          ),
                         ],
                         if (error != null) Padding(
                           padding: const EdgeInsets.only(top: 12),
