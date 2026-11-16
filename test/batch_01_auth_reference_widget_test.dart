@@ -14,7 +14,8 @@ void main() {
     await tester.pumpWidget(MaterialApp(
       home: BlueposSplash(appearance: appearance)));
     await tester.pump(const Duration(milliseconds: 100));
-    expect(find.text('BluePOS'), findsOneWidget);
+    expect(find.byKey(const ValueKey('splash-cart-logo')), findsOneWidget);
+    expect(find.byKey(const ValueKey('splash-wordmark')), findsOneWidget);
     expect(find.text('Complete Business Management'), findsOneWidget);
     expect(find.byKey(const ValueKey('splash-loading-dots')), findsOneWidget);
     expect(find.byType(AuthReferenceWaves), findsOneWidget);
