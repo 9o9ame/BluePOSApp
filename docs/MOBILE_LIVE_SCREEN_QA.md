@@ -723,3 +723,42 @@ If compile/test fails, capture FIRST meaningful error and fix before continuing.
 - **New QA definition of DONE**: for EACH numbered screen, compare reference image to running app (colors/backgrounds, icons, cards/radii/shadows, element positions/spacing, typography, fields/control order, button states, header/tab navigation, Redmi narrow/keyboard, authorized real API values, loading/empty/error), record exact differences and evidence, confirm focused tests, then mark visual+functional PASS or documented approved deviation. Export QA JSON; update handoff/plan after each batch. User wants to inspect every detail personally.
 - **Current dev state**: Screens 39–43 implementation delivered on `feature/daily-entries`; device and analyzer tests pending. Newly requested next batch grouping is **Batch 05 = screens 41–50**, but 41–43 have already been implemented: validate/refine them before addressing 44–50. Avoid misleadingly reporting all ten as new. User asked to establish pack/workflow **before** further coding; next implementation cycle should start from 44–50 (seven new screens) within Batch 05 and re-review 41–43, after verifying current code/UI/backend.
 - Local Windows Android path `C:\Projects\BluePOSApp`. Don't merge main, reset/clean generated Android files, post live invoices/returns/stock, change frozen screens, or claim unrun tests passed. Do not use accidental Waqas ERP screenshot message as project requirement.
+
+
+### 2026-11-16 — Batch 01 reference-first development implemented; visual approval pending
+
+**User instruction:** "go ahead" for Batch 01 (01–10), including matching login/auth screenshots to the actual newer pack. The earlier prelogin frozen-design assumption is superseded **only for reference-based visual work**; existing MFA, tenant/mart login, biometric/device security and signed-in behavior remain authoritative. No accepted functional workflows should be removed.
+
+**Exact reference images inspected:** `BluePOS_Mobile_92_Screens_Numbered_Batches_and_Visual_QA.zip` → `BATCH_01_01-10/01_Splash.png` through `10_Notifications.png`. A 5×2 contact sheet and actual source images were inspected. Source `PROJECT_UI_DESIGN_SYSTEM.md` read before changes; Flutter uses existing `Theme.of(context).colorScheme` and `AppAppearance`.
+
+**Committed files and per-screen state:**
+- NEW `lib/screens/auth_reference_chrome.dart`: theme-aware reusable BluePOS brand/header and cyan–mint-style wave painter, not hardcoded image color values.
+- **01 Splash** UPDATED `lib/screens/splash.dart`: replace prior marketing feature illustration/list with centered branded icon/wordmark, three animated loading dots, caption, bottom wave, preserving session-initialization lifetime (no artificial delay).
+- **02 Login** UPDATED `lib/screens/login.dart`: flat reference-style vertically stacked tenant, username and password controls, storefront hero, Welcome Back, blue-themed Login button, biometric option, Remember Me. The old circular geometry is removed. Existing `submit`, login validation, saved accounts, MFA, biometric functions and API auth untouched. Added link to verified password recovery.
+- **03 Connect Business**: NOT implemented as separate page. Earlier user explicitly rejected standalone tenant selection and chose Tenant/Mart code on Login; exact image 03 conflicts with existing functional design. No fake tenant/branch selector introduced. Await explicit product-flow decision if separate page is truly desired. May reuse its look within current tenant field without adding a route.
+- **04 Account Verification**: current `LoginScreen` MFA challenge state now uses reference Verify Your Account hero, code entry, Verify & Continue, Resend Code, Trust this device, Back to Login. **Not a separate route**, retaining verified API and device trust rules. Six separate digit boxes from PNG not implemented; further pixel QA pending.
+- **05 Password Recovery** NEW `lib/screens/password_recovery.dart`: themed recovery screen linked from Login, verified backend POST `/api/forgot-password` requires tenant_code/username; optional follow-up `/api/reset-password` requires tenant_code, username, token, password and confirmation. No email-only assumption or fake reset links; uses real account-scoped endpoints and generic success notice. Must test without submitting actual reset requests on user's live account unless intentionally doing recovery.
+- **06 Dashboard** UPDATED `lib/screens/dashboard.dart`: align Quick Actions to three columns on ordinary width rather than four; preserve real server invoice counts, RBAC and no fabricated money KPI.
+- **07 POS Sales** unchanged this pass: existing working functional catalog/cart preserved, visual comparison to `07_Premium_Home_Dashboard.png` and screenshot diff still needed.
+- **08 Main Menu / 09 More Menu** UPDATED `lib/screens/modules.dart` shared approved menu; added theme-aware wave footer while preserving authenticated menu rows and existing permissions/navigation.
+- **10 Notifications** UPDATED `lib/screens/notifications.dart`: reference-style theme-aware wave footer. Owner-only real access alerts/filter/read state preserved; do not fake purchase/low-stock/backup notifications illustrated in PNG.
+- NEW `test/batch_01_auth_reference_widget_test.dart`: offline widget coverage for Splash brand+dots+waves, missing recovery tenant/username validation, reusable theme chrome. Tests created, **not executed** on assistant runtime; Flutter/Dart not installed there. Previous user approved core login flow/functionality but **new auth layout needs fresh phone verification**.
+
+**Validation:** GitHub commits and source readback completed. Simple lexical delimiter-balance checks pass for touched Dart files. **Flutter analyzer, new widget tests, mobile tests and pixel-level visual matching are pending.** Do not call this 10/10 screens pixel-complete or fully tested. No backend/DB changes, invoice posting, Git main merge, forced changes or Android generation.
+
+**User Windows PC commands:**
+```powershell
+Set-Location "C:\Projects\BluePOSApp"
+git branch --show-current
+git status --short
+git pull --ff-only origin feature/daily-entries
+flutter analyze --no-fatal-infos
+flutter test "C:\Projects\BluePOSApp\test\batch_01_auth_reference_widget_test.dart"
+flutter test "C:\Projects\BluePOSApp\test\approved_navigation_menus_widget_test.dart"
+flutter test "C:\Projects\BluePOSApp\test\dashboard_permissions_widget_test.dart"
+```
+After safe pull/tests, press capital **R** in existing Flutter debug terminal for new widget geometry; if no active run, `flutter devices` then `flutter run -d <device_id>` (Wi-Fi Debugging once adapter available). Stop on any compile failure.
+
+**Visual QA:** Open Batch 01 folder images 01–10 next to the phone, check logo shape, top spacing, centered hero, card fields, labels, icon sizing, button geometry, wave footer and light/dark. For 02 verify tenant+username+password and biometric; 04 check authentic MFA only when naturally challenged; 05 check empty-field error without sending reset. For 06–10 validate original API data and authorized routes, and note differences, especially center Scanner bottom tab in image vs stable Products tab app. Don't post a live sale for design QA. Export `SCREEN_QA.html` results after visual compare.
+
+**Next work:** correct any analyzer/layout regression first; then address remaining Batch 01 parity gaps (03 tenant-flow decision, 04 OTP boxes, 06 Dashboard KPI hierarchy, 07 POS product grid and bottom nav safely) with smallest diffs and screenshot-based testing; only mark visual PASS when user approves. Five-to-ten-screen batch expectation remains, but do not fabricate completion where source/API conflict exists.
