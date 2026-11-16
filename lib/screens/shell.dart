@@ -74,6 +74,7 @@ class _AppShellState extends State<AppShell> {
                   onPressed: () {
                     navigate(4);
                   }),
+            centerTitle: true,
             titleSpacing: 0,
             title: Row(mainAxisSize: MainAxisSize.min, children: [
               const BlueposBrandMark(size: 36),
@@ -103,20 +104,11 @@ class _AppShellState extends State<AppShell> {
                   MaterialPageRoute(builder: (_) =>
                     NotificationsScreen(app: app))),
               ),
-              if (selected == 0)
+              if (selected == 1)
                 IconButton(
-                  tooltip: 'Refresh dashboard',
-                  icon: const Icon(Icons.refresh_rounded),
-                  onPressed: () => setState(() {
-                    pages[0] = DashboardScreen(app: app, navigate: navigate);
-                  })),
-              IconButton(
-                tooltip: 'Settings',
-                icon: const Icon(Icons.person_outline_rounded),
-                onPressed: () => Navigator.of(ctx).push(MaterialPageRoute(
-                  builder: (_) => Scaffold(
-                    appBar: AppBar(title: const Text('Settings')),
-                    body: SettingsScreen(app: app))))),
+                  tooltip: 'Open product catalog',
+                  icon: const Icon(Icons.filter_list_rounded),
+                  onPressed: () => navigate(2)),
               const SizedBox(width: 3),
             ],
           ),
