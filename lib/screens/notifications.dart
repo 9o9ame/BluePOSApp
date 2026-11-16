@@ -71,29 +71,51 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
   }
 
   @override
-  Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final light = ThemeData(
+      useMaterial3: true,
+      brightness: Brightness.light,
+      colorScheme: ColorScheme.fromSeed(
+        seedColor: const Color(0xFF068A70),
+        brightness: Brightness.light,
+        surface: const Color(0xFFF7F8FF)),
+      scaffoldBackgroundColor: const Color(0xFFF7F8FF),
+      cardColor: Colors.white,
+      textTheme: theme.textTheme.apply(
+        bodyColor: const Color(0xFF101F43),
+        displayColor: const Color(0xFF101F43)),
+    );
+    return Theme(data: light, child: Scaffold(
       backgroundColor: const Color(0xFFF7F8FF),
-      foregroundColor: const Color(0xFF081943),
-      title: const Text('Notifications',
-        style: TextStyle(fontWeight: FontWeight.w900)),
-      actions: [
-        IconButton(
-          tooltip: 'Refresh notifications',
-          onPressed: busy ? null : reload,
-          icon: const Icon(Icons.refresh_rounded)),
-      ],
-    ),
-    body: RefreshIndicator(
-      onRefresh: reload,
-      child: NotificationsView(
-        notices: notices, unread: unread, busy: busy, error: error,
-        selectedTab: tab,
-        onTabChanged: (value) => setState(() => tab = value),
-        onRead: markRead,
+      appBar: AppBar(
+        backgroundColor: const Color(0xFFF7F8FF),
+        foregroundColor: const Color(0xFF081943),
+        title: const Text('Notifications',
+          style: TextStyle(fontSize: 20,
+            color: Color(0xFF081943), fontWeight: FontWeight.w900)),
+        actions: [
+          IconButton(
+            tooltip: 'Refresh notifications',
+            onPressed: busy ? null : reload,
+            icon: const Icon(Icons.filter_list_rounded)),
+        ],
       ),
-    ),
-  );
+      body: Stack(children: [
+        const Positioned(left: 0, right: 0, bottom: 0,
+          child: AuthReferenceWaves(height: 65)),
+        RefreshIndicator(
+          onRefresh: reload,
+          child: NotificationsView(
+            notices: notices, unread: unread, busy: busy, error: error,
+            selectedTab: tab,
+            onTabChanged: (value) => setState(() => tab = value),
+            onRead: markRead,
+          ),
+        ),
+      ]),
+    ));
+  }
 }
 
 class NotificationsView extends StatelessWidget {
@@ -125,25 +147,14 @@ class NotificationsView extends StatelessWidget {
     return ListView(
       key: const ValueKey('notifications-list'),
       physics: const AlwaysScrollableScrollPhysics(),
-      padding: const EdgeInsets.fromLTRB(14, 10, 14, 16),
+      padding: const EdgeInsets.fromLTRB(14, 4, 14, 112),
       children: [
-        Row(children: [
-          Container(
-            width: 38, height: 38,
-            decoration: BoxDecoration(
-              color: const Color(0xFFE3F1FF),
-              borderRadius: BorderRadius.circular(11)),
-            child: const Icon(Icons.notifications_active_outlined,
-              color: Color(0xFF0085ED), size: 23)),
-          const SizedBox(width: 10),
-          Expanded(child: const Text('Notifications',
-            style: TextStyle(fontSize: 22,
-              color: Color(0xFF081943),
-              fontWeight: FontWeight.w900))),
-          if (unread > 0)
-            Text('$unread unread', style: TextStyle(
-              color: scheme.primary, fontWeight: FontWeight.w800)),
-        ]),
+        if (unread > 0)
+          Align(alignment: Alignment.centerRight,
+            child: Text('$unread unread',
+              style: const TextStyle(color: Color(0xFF068B75),
+                fontSize: 12, fontWeight: FontWeight.w800))),
+        const SizedBox(height: 6),
         const SizedBox(height: 14),
         Row(
           key: const ValueKey('notification-filters'),
@@ -155,8 +166,10 @@ class NotificationsView extends StatelessWidget {
             ]) ...[
               Expanded(child: ChoiceChip(
                 label: Text(filter.$2,
-                  style: const TextStyle(
-                    fontSize: 12, fontWeight: FontWeight.w700)),
+                  style: TextStyle(
+                    color: selectedTab == filter.$1
+                      ? Colors.white : const Color(0xFF17254A),
+                    fontSize: 12, fontWeight: FontWeight.w800)),
                 avatar: filter.$1 == 0 ? null
                   : Icon(filter.$3, size: 16,
                     color: filter.$1 == 1
@@ -164,6 +177,10 @@ class NotificationsView extends StatelessWidget {
                       : const Color(0xFF2B7CE8)),
                 selected: selectedTab == filter.$1,
                 selectedColor: const Color(0xFF05AE80),
+                labelStyle: TextStyle(
+                  color: selectedTab == filter.$1
+                    ? Colors.white : const Color(0xFF142A52),
+                  fontWeight: FontWeight.w800),
                 backgroundColor: const Color(0xFFF3F5FF),
                 showCheckmark: false,
                 side: BorderSide.none,
@@ -248,7 +265,6 @@ class NotificationsView extends StatelessWidget {
             ),
           ),
         const SizedBox(height: 12),
-        const AuthReferenceWaves(height: 68),
       ],
     );
   }
