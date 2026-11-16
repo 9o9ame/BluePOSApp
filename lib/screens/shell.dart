@@ -37,84 +37,147 @@ class _AppShellState extends State<AppShell> {
 
   @override
   Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
     final app = widget.app;
-    return Scaffold(
-      appBar: AppBar(
-        leadingWidth: 55,
-        leading: Padding(padding: const EdgeInsets.only(left: 15, top: 6, bottom: 6),
-          child: const BlueposBrandMark(size: 40)),
-        titleSpacing: 0,
-        title: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Text('BluePOS', style: TextStyle(color: scheme.onSurface,
-            fontWeight: FontWeight.w900, fontSize: 17)),
-          Text('${app.branchName} • ${titles[selected]}', maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: TextStyle(fontSize: 10, color: scheme.onSurfaceVariant)),
-        ]),
-        actions: [
-          IconButton(
-            key: const ValueKey('open-notifications'),
-            tooltip: 'Notifications',
-            icon: const Icon(Icons.notifications_none_rounded),
-            onPressed: () => Navigator.of(context).push(
-              MaterialPageRoute(builder: (_) =>
-                NotificationsScreen(app: app))),
+    final reference = selected == 0 || selected == 1 || selected == 4;
+    final base = Theme.of(context);
+    final refTheme = ThemeData(
+      useMaterial3: true,
+      brightness: Brightness.light,
+      colorScheme: ColorScheme.fromSeed(
+        seedColor: const Color(0xFF008F65),
+        brightness: Brightness.light,
+        surface: const Color(0xFFF7F8FF)),
+      scaffoldBackgroundColor: const Color(0xFFF7F8FF),
+      cardColor: Colors.white,
+      appBarTheme: const AppBarTheme(
+        backgroundColor: Color(0xFFF7F8FF),
+        foregroundColor: Color(0xFF081943),
+        elevation: 0),
+    );
+    return Theme(
+      data: reference ? refTheme : base,
+      child: Builder(builder: (ctx) {
+        final scheme = Theme.of(ctx).colorScheme;
+        return Scaffold(
+          appBar: AppBar(
+            backgroundColor: reference
+              ? const Color(0xFFF7F8FF) : null,
+            leadingWidth: 47,
+            leading: selected == 1
+              ? IconButton(
+                  tooltip: 'Back to Home',
+                  icon: const Icon(Icons.arrow_back_rounded),
+                  onPressed: () => navigate(0))
+              : IconButton(
+                  tooltip: 'Open Main Menu',
+                  icon: const Icon(Icons.menu_rounded),
+                  onPressed: () {
+                    navigate(4);
+                  }),
+            titleSpacing: 0,
+            title: Row(mainAxisSize: MainAxisSize.min, children: [
+              const BlueposBrandMark(size: 36),
+              const SizedBox(width: 7),
+              Column(crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text.rich(const TextSpan(children: [
+                    TextSpan(text: 'Blue',
+                      style: TextStyle(color: Color(0xFF071947))),
+                    TextSpan(text: 'POS',
+                      style: TextStyle(color: Color(0xFF079BFA))),
+                  ]), style: const TextStyle(fontSize: 20,
+                    fontWeight: FontWeight.w900)),
+                  if (selected == 0 || selected == 4)
+                    const Text('P O S  &  E R P',
+                      style: TextStyle(fontSize: 7,
+                        color: Color(0xFF071947),
+                        fontWeight: FontWeight.w700)),
+                ]),
+            ]),
+            actions: [
+              IconButton(
+                key: const ValueKey('open-notifications'),
+                tooltip: 'Notifications',
+                icon: const Icon(Icons.notifications_none_rounded),
+                onPressed: () => Navigator.of(ctx).push(
+                  MaterialPageRoute(builder: (_) =>
+                    NotificationsScreen(app: app))),
+              ),
+              if (selected == 0)
+                IconButton(
+                  tooltip: 'Refresh dashboard',
+                  icon: const Icon(Icons.refresh_rounded),
+                  onPressed: () => setState(() {
+                    pages[0] = DashboardScreen(app: app, navigate: navigate);
+                  })),
+              IconButton(
+                tooltip: 'Settings',
+                icon: const Icon(Icons.person_outline_rounded),
+                onPressed: () => Navigator.of(ctx).push(MaterialPageRoute(
+                  builder: (_) => Scaffold(
+                    appBar: AppBar(title: const Text('Settings')),
+                    body: SettingsScreen(app: app))))),
+              const SizedBox(width: 3),
+            ],
           ),
-          IconButton(tooltip: 'Refresh page', icon: const Icon(Icons.refresh_outlined),
-            onPressed: () => setState(() {
-              pages[selected] = switch (selected) {
-                0 => DashboardScreen(app: app, navigate: navigate),
-                2 => ProductsScreen(app: app, catalogHome: true, onAdd: (p) { saleKey.currentState?.addProduct(p); navigate(1); }),
-                3 => ReportsScreen(app: app),
-                _ => pages[selected],
-              };
-            })),
-          IconButton(tooltip: 'Settings', icon: const Icon(Icons.person_outline_rounded),
-            onPressed: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) =>
-              Scaffold(appBar: AppBar(title: const Text('Settings')),
-                body: SettingsScreen(app: app))))),
-          const SizedBox(width: 7),
-        ],
-      ),
-      // The POS page contains an Expanded catalog and a docked footer.
-      // Give every preserved tab a finite, identical viewport; the default
-      // loose IndexedStack fit can measure inactive tabs at inconsistent sizes.
-      body: LayoutBuilder(builder: (context, bounds) => SizedBox(
-        width: bounds.maxWidth,
-        height: bounds.maxHeight,
-        child: IndexedStack(
-          sizing: StackFit.expand,
-          index: selected,
-          children: pages,
-        ),
-      )),
-      bottomNavigationBar: SafeArea(top: false, child: Container(
-        decoration: BoxDecoration(color: Theme.of(context).cardColor,
-          boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: .045),
-            offset: const Offset(0, -6), blurRadius: 14)]),
-        child: NavigationBar(
-          selectedIndex: selected,
-          onDestinationSelected: navigate,
-          backgroundColor: Colors.transparent,
-          indicatorColor: scheme.primary,
-          indicatorShape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-          labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
-          height: app.appearance.density == 'compact' ? 62 : 71,
-          destinations: const [
-            NavigationDestination(icon: Icon(Icons.home_outlined),
-              selectedIcon: Icon(Icons.home_rounded, color: Colors.white), label: 'Home'),
-            NavigationDestination(icon: Icon(Icons.shopping_cart_outlined),
-              selectedIcon: Icon(Icons.shopping_cart_rounded, color: Colors.white), label: 'POS'),
-            NavigationDestination(icon: Icon(Icons.inventory_2_outlined),
-              selectedIcon: Icon(Icons.inventory_2_rounded, color: Colors.white), label: 'Products'),
-            NavigationDestination(icon: Icon(Icons.bar_chart_outlined),
-              selectedIcon: Icon(Icons.bar_chart_rounded, color: Colors.white), label: 'Reports'),
-            NavigationDestination(icon: Icon(Icons.apps_outlined),
-              selectedIcon: Icon(Icons.apps_rounded, color: Colors.white), label: 'Modules'),
-          ],
-        ),
-      )),
+          body: LayoutBuilder(builder: (context, bounds) => SizedBox(
+            width: bounds.maxWidth,
+            height: bounds.maxHeight,
+            child: IndexedStack(
+              sizing: StackFit.expand,
+              index: selected,
+              children: pages,
+            ),
+          )),
+          bottomNavigationBar: SafeArea(
+            top: false,
+            child: Container(
+              decoration: BoxDecoration(
+                color: reference ? Colors.white : Theme.of(ctx).cardColor,
+                borderRadius: const BorderRadius.vertical(
+                  top: Radius.circular(20)),
+                boxShadow: const [BoxShadow(
+                  color: Color(0x23527AA4),
+                  offset: Offset(0, -3), blurRadius: 15)],
+              ),
+              child: NavigationBar(
+                selectedIndex: selected,
+                onDestinationSelected: navigate,
+                backgroundColor: Colors.transparent,
+                indicatorColor: reference
+                  ? const Color(0xFF06AA70) : scheme.primary,
+                indicatorShape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(20)),
+                labelBehavior:
+                  NavigationDestinationLabelBehavior.alwaysShow,
+                height: app.appearance.density == 'compact' ? 62 : 71,
+                destinations: const [
+                  NavigationDestination(
+                    icon: Icon(Icons.home_outlined),
+                    selectedIcon: Icon(Icons.home_rounded,
+                      color: Colors.white), label: 'Home'),
+                  NavigationDestination(
+                    icon: Icon(Icons.shopping_cart_outlined),
+                    selectedIcon: Icon(Icons.shopping_cart_rounded,
+                      color: Colors.white), label: 'POS'),
+                  NavigationDestination(
+                    icon: Icon(Icons.inventory_2_outlined),
+                    selectedIcon: Icon(Icons.inventory_2_rounded,
+                      color: Colors.white), label: 'Products'),
+                  NavigationDestination(
+                    icon: Icon(Icons.bar_chart_outlined),
+                    selectedIcon: Icon(Icons.bar_chart_rounded,
+                      color: Colors.white), label: 'Reports'),
+                  NavigationDestination(
+                    icon: Icon(Icons.more_horiz_rounded),
+                    selectedIcon: Icon(Icons.more_horiz_rounded,
+                      color: Colors.white), label: 'More'),
+                ],
+              ),
+            ),
+          ),
+        );
+      }),
     );
   }
 }
