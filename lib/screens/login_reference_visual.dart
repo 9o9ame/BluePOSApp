@@ -124,63 +124,81 @@ class _StorefrontPainter extends CustomPainter {
     final f = size.height / 122;
     canvas.save();
     canvas.scale(f);
-    final backdrop = Paint()
-      ..shader = const RadialGradient(colors: [
-        Color(0xFFFFEAD1), Color(0xFFFAF0DE), Color(0x00FAF0DE)],
-        stops: [0, .65, 1])
-        .createShader(const Rect.fromLTWH(42, 4, 156, 120));
-    canvas.drawCircle(const Offset(120, 68), 67, backdrop);
-    // Soft mint/blue clouds behind the shop.
-    for (final cloud in <(Offset,double,Color)>[
-      (const Offset(52, 96), 37, const Color(0x7759EBCB)),
-      (const Offset(194, 92), 34, const Color(0x8859CFFD)),
-      (const Offset(83, 111), 26, const Color(0xBB8DEFFF)),
-      (const Offset(167, 112), 32, const Color(0xAA81E5C5)),
-    ]) {
-      canvas.drawCircle(cloud.$1, cloud.$2, Paint()..color = cloud.$3);
+    // Artwork coordinates follow the reference's small centered storefront
+    // rather than filling its entire 240px layout slot.
+    const cx = 120.0;
+    final glow = Rect.fromCircle(center: const Offset(cx, 64), radius: 61);
+    canvas.drawCircle(const Offset(cx, 65), 61,
+      Paint()..shader = const RadialGradient(
+        colors: [Color(0xFFFFEAD3), Color(0xFFFCEFE0), Color(0x00FAF1E7)],
+        stops: [0, .64, 1]).createShader(glow));
+    // A low irregular cloud cushion around the storefront, with soft edges.
+    void cloud(Offset center, double rx, double ry, Color inner) {
+      final rect = Rect.fromCenter(center: center, width: rx * 2, height: ry * 2);
+      canvas.drawOval(rect, Paint()..shader = RadialGradient(
+        colors: [inner, inner.withValues(alpha: 0)],
+      ).createShader(rect));
     }
-    final shadow = Paint()..color = const Color(0x330A73AC)
-      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 9);
+    cloud(const Offset(78, 92), 46, 27, const Color(0x9959E9C9));
+    cloud(const Offset(164, 91), 43, 28, const Color(0xAA68D0F9));
+    cloud(const Offset(95, 108), 38, 17, const Color(0xAA60D5F8));
+    cloud(const Offset(146, 107), 39, 18, const Color(0x8861E8C6));
+    // Very soft base shadow directly below the shop.
+    canvas.drawOval(const Rect.fromLTWH(78, 106, 89, 10),
+      Paint()..color = const Color(0x330D79BE)
+        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 7));
+    final shop = RRect.fromRectAndRadius(
+      const Rect.fromLTWH(87, 54, 78, 55), const Radius.circular(7));
+    canvas.drawRRect(shop, Paint()..shader = const LinearGradient(
+      colors: [Color(0xFFF9FDFF), Color(0xFFC4E9FF)],
+    ).createShader(const Rect.fromLTWH(87, 54, 78, 55)));
     canvas.drawRRect(RRect.fromRectAndRadius(
-      const Rect.fromLTWH(79, 49, 94, 66), const Radius.circular(9)), shadow);
-    // Store facade.
-    canvas.drawRRect(RRect.fromRectAndRadius(
-      const Rect.fromLTWH(80, 45, 94, 68), const Radius.circular(8)),
+      const Rect.fromLTWH(102, 73, 25, 36), const Radius.circular(3)),
       Paint()..shader = const LinearGradient(
-        colors: [Color(0xFFFCFFFF), Color(0xFFC6EDFC)],
-      ).createShader(const Rect.fromLTWH(80, 45, 94, 68)));
+        colors: [Color(0xFF008FFF), Color(0xFF49C2FC)],
+      ).createShader(const Rect.fromLTWH(102, 73, 25, 36)));
+    canvas.drawCircle(const Offset(121, 94), 1.7,
+      Paint()..color = const Color(0xFFB6E8FF));
     canvas.drawRRect(RRect.fromRectAndRadius(
-      const Rect.fromLTWH(95, 71, 25, 42), const Radius.circular(4)),
-      Paint()..color = const Color(0xFF25A9F5));
-    canvas.drawRRect(RRect.fromRectAndRadius(
-      const Rect.fromLTWH(130, 69, 30, 25), const Radius.circular(4)),
-      Paint()..color = const Color(0xFF43BDF8));
-    canvas.drawLine(const Offset(132, 91), const Offset(157, 72),
-      Paint()..color = const Color(0x77FFFFFF)..strokeWidth = 2);
-    // Orange striped shop awning.
+      const Rect.fromLTWH(136, 72, 22, 23), const Radius.circular(3)),
+      Paint()..color = const Color(0xFF22A7F7));
+    canvas.drawLine(const Offset(139, 91), const Offset(154, 75),
+      Paint()..color = const Color(0x99A5EDFF)..strokeWidth = 2);
+    // Orange canopy: five alternating tapered fabric strips and soft
+    // scalloped hems, not a squared-off cartoon strip.
     final roof = Path()
-      ..moveTo(89, 34)..lineTo(166, 34)..lineTo(184, 56)
-      ..lineTo(76, 56)..close();
-    canvas.drawPath(roof, Paint()..color = const Color(0xFFFCA528));
+      ..moveTo(94, 39)..lineTo(155, 39)
+      ..quadraticBezierTo(157, 39, 159, 42)
+      ..lineTo(172, 61)..lineTo(79, 61)
+      ..lineTo(92, 41)..close();
+    canvas.drawPath(roof, Paint()..shader = const LinearGradient(
+      colors: [Color(0xFFFABB46), Color(0xFFF78A00)],
+    ).createShader(const Rect.fromLTWH(79, 39, 93, 26)));
+    const strips = <Color>[
+      Color(0xFFF9990C), Color(0xFFFFF5E9), Color(0xFFF49B15),
+      Color(0xFFFFF5E9), Color(0xFFEF8B09),
+    ];
     for (var i = 0; i < 5; i++) {
-      final left = 79.0 + i * 21;
-      final stripe = Path()
-        ..moveTo(left + 10, 34)..lineTo(left + 20, 34)
-        ..lineTo(left + 20, 56)..lineTo(left + 1, 56)..close();
-      canvas.drawPath(stripe, Paint()..color = i.isEven
-        ? const Color(0xFFFFF5E2) : const Color(0xFFFB900D));
-      canvas.drawCircle(Offset(left + 10, 56), 9, Paint()
-        ..color = i.isEven ? const Color(0xFFFFE6C2) : const Color(0xFFFF9C18));
+      final x = 80.0 + i * 18.1;
+      final shade = strips[i];
+      final piece = Path()
+        ..moveTo(91 + i * 13.1, 39)
+        ..lineTo(104 + i * 13.1, 39)
+        ..lineTo(x + 18.1, 60)
+        ..lineTo(x, 60)..close();
+      canvas.drawPath(piece, Paint()..color = shade);
+      canvas.drawArc(Rect.fromLTWH(x, 53, 18.1, 15),
+        0, 3.14159265, false, Paint()..color = shade);
     }
-    final accent = Paint()
-      ..color = const Color(0xFF12B16B)
-      ..strokeWidth = 3.5
-      ..strokeCap = StrokeCap.round;
-    canvas.drawLine(const Offset(169, 5), const Offset(169, 19), accent);
-    canvas.drawLine(const Offset(181, 13), const Offset(191, 5), accent);
-    canvas.drawLine(const Offset(187, 26), const Offset(200, 22), accent);
+    // Reference's three emerald celebration marks.
+    final accent = Paint()..color = const Color(0xFF03AE69)
+      ..strokeWidth = 3..strokeCap = StrokeCap.round;
+    canvas.drawLine(const Offset(168, 16), const Offset(168, 30), accent);
+    canvas.drawLine(const Offset(182, 23), const Offset(191, 12), accent);
+    canvas.drawLine(const Offset(188, 35), const Offset(199, 31), accent);
     canvas.restore();
   }
+
   @override
   bool shouldRepaint(covariant _StorefrontPainter oldDelegate) => false;
 }
