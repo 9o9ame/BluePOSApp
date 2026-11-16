@@ -83,12 +83,55 @@ class _DashboardScreenState extends State<DashboardScreen> {
     ),
   ));
 
+  Widget _statTile(String caption, String value, IconData icon,
+      Color tint, VoidCallback onTap) => InkWell(
+    onTap: onTap,
+    borderRadius: BorderRadius.circular(16),
+    child: Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 15),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(colors: [
+          Colors.white, Color(0xFFF1F5FF)]),
+        border: Border.all(color: Colors.white, width: 1.5),
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: const [BoxShadow(
+          color: Color(0x205F7BB3), blurRadius: 11,
+          offset: Offset(0, 5))]),
+      child: Row(children: [
+        Container(width: 36, height: 38,
+          decoration: BoxDecoration(
+            color: tint.withValues(alpha: .13),
+            borderRadius: BorderRadius.circular(10)),
+          child: Icon(icon, size: 22, color: tint)),
+        const SizedBox(width: 8),
+        Expanded(child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(caption, maxLines: 2,
+              style: const TextStyle(fontSize: 11,
+                color: Color(0xFF4D5C77))),
+            Text(value, style: const TextStyle(
+              fontSize: 19, fontWeight: FontWeight.w900,
+              color: Color(0xFF0A1A43))),
+          ])),
+      ])),
+  );
+
   Widget _action(IconData icon, String caption, VoidCallback onPressed) {
     final scheme = Theme.of(context).colorScheme;
     return InkWell(
       onTap: onPressed, borderRadius: BorderRadius.circular(16),
-      child: Surface(padding: const EdgeInsets.symmetric(
+      child: Container(padding: const EdgeInsets.symmetric(
         horizontal: 4, vertical: 13),
+        decoration: BoxDecoration(
+          gradient: const LinearGradient(colors: [
+            Colors.white, Color(0xFFF0F5FF)]),
+          border: Border.all(color: Colors.white, width: 1.6),
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: const [BoxShadow(
+            color: Color(0x1E6684B6), blurRadius: 9,
+            offset: Offset(0, 4))]),
         child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
           Container(
             width: 44, height: 44,
@@ -116,7 +159,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     final canViewProducts = enabled('catalog') &&
         (app.hasPermission('products.view') || app.hasPermission('products.manage'));
     return RefreshIndicator(onRefresh: reload, child: ListView(
-      padding: EdgeInsets.all(app.appearance.spacing), children: [
+      padding: const EdgeInsets.fromLTRB(14, 8, 14, 18), children: [
         const SizedBox(height: 9),
         Row(children: [
           Container(width: 52, height: 52,
@@ -131,8 +174,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 color: scheme.onSurfaceVariant, fontSize: 12)),
               const SizedBox(height: 2),
               Text(app.tenantName, maxLines: 1, overflow: TextOverflow.ellipsis,
-                style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                  fontWeight: FontWeight.w900)),
+                style: const TextStyle(fontSize: 21,
+                  color: Color(0xFF0A1B48), fontWeight: FontWeight.w900)),
               Text('${app.branchName} • ${app.warehouseName}',
                 maxLines: 1, overflow: TextOverflow.ellipsis,
                 style: TextStyle(fontSize: 11,
@@ -175,23 +218,24 @@ class _DashboardScreenState extends State<DashboardScreen> {
         ],
         if (canViewSales || canViewProducts) ...[
           const SizedBox(height: 16),
-          const SectionHeading('Business at a glance'),
+          const Text('Business at a glance',
+            style: TextStyle(fontSize: 17,
+              color: Color(0xFF0A1B48), fontWeight: FontWeight.w900)),
           if (busy) pageLoading()
         else if (error != null) FailureState(message: error!, retry: reload)
-        else Column(children: [
-          if (canViewProducts) BpStatCard(
-            icon: Icons.inventory_2_outlined,
-            caption: 'Products',
-            value: productsCount?.toString() ?? '—',
-            hint: 'Authorized catalog'),
-          if (canViewSales) ...[
-            const SizedBox(height: 9),
-            BpStatCard(
-              icon: Icons.receipt_long_outlined,
-            caption: 'All invoices',
-            value: branchInvoices?.toString() ?? '—',
-            hint: 'Current branch • API record count'),
-          ],
+        else Row(children: [
+          if (canViewSales)
+            Expanded(child: _statTile('All invoices',
+              branchInvoices?.toString() ?? '—',
+              Icons.receipt_long_rounded,
+              const Color(0xFF087EF5), _sales)),
+          if (canViewSales && canViewProducts)
+            const SizedBox(width: 9),
+          if (canViewProducts)
+            Expanded(child: _statTile('Products',
+              productsCount?.toString() ?? '—',
+              Icons.inventory_2_rounded,
+              const Color(0xFFFF9813), () => widget.navigate(2))),
         ]),
         ],
         if (canCreateSale || canViewProducts || canViewSales) ...[
@@ -199,7 +243,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         const SectionHeading('Quick actions'),
         GridView.count(
           crossAxisCount: MediaQuery.sizeOf(context).width < 355 ? 2 : 3,
-          childAspectRatio: MediaQuery.sizeOf(context).width < 355 ? 1.45 : 1.0,
+          childAspectRatio: MediaQuery.sizeOf(context).width < 355 ? 1.12 : 1.07,
           mainAxisSpacing: 8, crossAxisSpacing: 8,
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
