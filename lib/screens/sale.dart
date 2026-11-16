@@ -390,17 +390,36 @@ class SaleScreenState extends State<SaleScreen> {
       Expanded(child: ListView(
         padding: EdgeInsets.all(app.appearance.spacing),
         children: [
-      Row(children: [
-        Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('POS (Sales)', style: Theme.of(context).textTheme.titleLarge
-              ?.copyWith(fontWeight: FontWeight.w900)),
-            Text('Select products from your authorized catalog',
-              style: TextStyle(color: scheme.onSurfaceVariant, fontSize: 12)),
-          ],
-        )),
-        Icon(Icons.shopping_cart_checkout_rounded, color: scheme.primary),
-      ]),
+      Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        decoration: BoxDecoration(
+          gradient: const LinearGradient(colors: [
+            Color(0xFFE6FFF1), Color(0xFFF2F5FF)]),
+          border: Border.all(color: Colors.white, width: 1.5),
+          borderRadius: BorderRadius.circular(16)),
+        child: Row(children: [
+          Container(width: 40, height: 40,
+            decoration: BoxDecoration(
+              color: const Color(0xFFD6F9E6),
+              borderRadius: BorderRadius.circular(12)),
+            child: const Icon(Icons.point_of_sale_rounded,
+              color: Color(0xFF02A76A), size: 25)),
+          const SizedBox(width: 10),
+          Expanded(child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text('POS (Sales)',
+                style: TextStyle(color: Color(0xFF0A1B48),
+                  fontSize: 19, fontWeight: FontWeight.w900)),
+              Text('Select products from your authorized catalog',
+                maxLines: 1, overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                  color: Color(0xFF5B6984), fontSize: 11)),
+            ])),
+          Icon(Icons.shopping_cart_checkout_rounded,
+            color: scheme.primary),
+        ]),
+      ),
       const SizedBox(height: 13),
       if (!attempted) ...[
         // Screen 07 reference: search, category chips and two-column cards
@@ -515,7 +534,16 @@ class SaleScreenState extends State<SaleScreen> {
     SafeArea(top: false, child: Padding(
       padding: EdgeInsets.fromLTRB(app.appearance.spacing, 7,
         app.appearance.spacing, 8),
-      child: Surface(padding: const EdgeInsets.all(12), child: Column(
+      child: Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          gradient: const LinearGradient(colors: [
+            Colors.white, Color(0xFFEFFFF9)]),
+          border: Border.all(color: Colors.white, width: 1.5),
+          borderRadius: BorderRadius.circular(17),
+          boxShadow: const [BoxShadow(color: Color(0x1F2E9A78),
+            blurRadius: 12, offset: Offset(0, -3))]),
+        child: Column(
         mainAxisSize: MainAxisSize.min, children: [
           Row(children: [
             CircleAvatar(
@@ -534,10 +562,18 @@ class SaleScreenState extends State<SaleScreen> {
               ])),
             const SizedBox(width: 8),
             FilledButton(
+              style: FilledButton.styleFrom(
+                backgroundColor: const Color(0xFF05A96F),
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12))),
               onPressed: lines.isEmpty || saving || attempted ? null : () =>
                 Navigator.of(context).push(MaterialPageRoute(
                   builder: (_) => PaymentScreen(sale: this))),
-              child: const Text('Proceed to Payment'),
+              child: const Row(mainAxisSize: MainAxisSize.min, children: [
+                Text('Checkout'), SizedBox(width: 5),
+                Icon(Icons.arrow_forward_rounded, size: 16),
+              ]),
             ),
           ]),
           const SizedBox(height: 5),
