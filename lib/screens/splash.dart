@@ -147,6 +147,9 @@ class _CartMarkPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final scale = size.width / 113;
+    // Center the cart glyph inside its rounded gradient tile.
+    canvas.save();
+    canvas.translate(-4 * scale, 0);
     final paint = Paint()
       ..color = Colors.white
       ..strokeWidth = 5.5 * scale
@@ -166,6 +169,7 @@ class _CartMarkPainter extends CustomPainter {
     final wheel = Paint()..color = Colors.white;
     canvas.drawCircle(Offset(53 * scale, 91 * scale), 5.4 * scale, wheel);
     canvas.drawCircle(Offset(84 * scale, 91 * scale), 5.4 * scale, wheel);
+    canvas.restore();
   }
 
   @override
