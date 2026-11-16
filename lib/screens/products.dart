@@ -41,35 +41,74 @@ class PosCatalogProductCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final stock = objectOf(product['sales_lookup'])['in_stock'];
+    final premium = imageFirst == true;
     return InkWell(
       key: ValueKey('pos-product-${field(product['ulid'])}'),
       onTap: onTap,
-      borderRadius: BorderRadius.circular(16),
-      child: Surface(padding: const EdgeInsets.all(11), child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Center(child: ProductThumb(
-            api: api, imageUrl: field(product['image_url']),
-            size: (imageFirst == true) ? 100 : 66)),
-          SizedBox(height: (imageFirst == true) ? 11 : 9),
-          Text(field(product['name'], 'Product'), maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-            style: TextStyle(fontSize: (imageFirst == true) ? 13 : 12,
-              fontWeight: FontWeight.w800)),
-          const SizedBox(height: 5),
-          Text(retailPrice == null ? 'Price unavailable'
-              : money(retailPrice, currency),
-            maxLines: 1, overflow: TextOverflow.ellipsis,
-            style: TextStyle(fontSize: (imageFirst == true) ? 15 : 12,
-              fontWeight: FontWeight.w900, color: scheme.primary)),
-          const Spacer(),
-          Row(children: [
-            Expanded(child: Text(stock == null ? 'Stock not shown'
-                : 'Stock: ${field(stock)}', maxLines: 1,
+      borderRadius: BorderRadius.circular(17),
+      child: Container(
+        padding: const EdgeInsets.all(9),
+        decoration: BoxDecoration(
+          gradient: const LinearGradient(colors: [
+            Colors.white, Color(0xFFF6F8FF)]),
+          border: Border.all(color: Colors.white, width: 1.6),
+          borderRadius: BorderRadius.circular(17),
+          boxShadow: const [BoxShadow(
+            color: Color(0x235C76AF),
+            blurRadius: 10, offset: Offset(0, 5))]),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              width: double.infinity,
+              height: premium ? 114 : 86,
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(colors: [
+                  Color(0xFFE9FFF3), Color(0xFFE6F5FF)]),
+                borderRadius: BorderRadius.circular(13)),
+              child: ProductThumb(
+                api: api,
+                imageUrl: field(product['image_url']),
+                size: premium ? 96 : 67),
+            ),
+            const SizedBox(height: 7),
+            Text(field(product['name'], 'Product'),
+              maxLines: 2,
               overflow: TextOverflow.ellipsis,
-              style: TextStyle(color: scheme.onSurfaceVariant, fontSize: 10))),
-            Icon(Icons.add_circle_rounded, size: 21, color: scheme.primary),
+              style: TextStyle(
+                color: const Color(0xFF0A1B48),
+                fontSize: premium ? 12.5 : 12,
+                fontWeight: FontWeight.w800)),
+            const SizedBox(height: 5),
+            Text(retailPrice == null
+                ? 'Price unavailable'
+                : money(retailPrice, currency),
+              maxLines: 1, overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                fontSize: premium ? 15 : 12,
+                fontWeight: FontWeight.w900,
+                color: const Color(0xFF081B4C))),
+            const Spacer(),
+            Row(children: [
+              Expanded(child: Text(stock == null
+                ? 'Stock not shown' : 'In stock: ${field(stock)}',
+                maxLines: 1, overflow: TextOverflow.ellipsis,
+                style: TextStyle(fontSize: 10.5,
+                  fontWeight: FontWeight.w700,
+                  color: stock == null
+                    ? scheme.onSurfaceVariant
+                    : const Color(0xFF009344)))),
+              Container(
+                width: 30, height: 30,
+                decoration: BoxDecoration(
+                  color: const Color(0xFFDCFBE9),
+                  borderRadius: BorderRadius.circular(9)),
+                child: const Icon(Icons.add_rounded,
+                  size: 22, color: Color(0xFF02A64F))),
+            ]),
           ]),
-        ])),
+      ),
     );
   }
 }
@@ -297,7 +336,15 @@ class _ProductsScreenState extends State<ProductsScreen> {
       else
         TextField(controller: search, onChanged: queryChanged,
           decoration: InputDecoration(
-            prefixIcon: const Icon(Icons.search),
+            filled: true,
+            fillColor: const Color(0xFFFFFFFF),
+            enabledBorder: OutlineInputBorder(
+              borderSide: const BorderSide(color: Color(0xFFE6EBFA)),
+              borderRadius: BorderRadius.circular(17)),
+            focusedBorder: OutlineInputBorder(
+              borderSide: const BorderSide(color: Color(0xFF00A672)),
+              borderRadius: BorderRadius.circular(17)),
+            prefixIcon: const Icon(Icons.search_rounded),
             hintText: (widget.inlineCatalog == true)
               ? 'Scan barcode or search product...' : 'Search product, SKU or barcode',
             suffixIcon: (widget.inlineCatalog == true)
