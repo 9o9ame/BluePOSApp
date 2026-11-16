@@ -98,7 +98,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
           IconButton(
             tooltip: 'Refresh notifications',
             onPressed: busy ? null : reload,
-            icon: const Icon(Icons.filter_list_rounded)),
+            icon: const Icon(Icons.refresh_rounded)),
         ],
       ),
       body: Stack(children: [
