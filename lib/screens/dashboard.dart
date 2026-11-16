@@ -119,31 +119,40 @@ class _DashboardScreenState extends State<DashboardScreen> {
   );
 
   Widget _action(IconData icon, String caption, VoidCallback onPressed) {
-    final scheme = Theme.of(context).colorScheme;
+    final tone = switch (caption) {
+      'New Sale' => const Color(0xFF087FF4),
+      'Products' => const Color(0xFFF2930D),
+      'Invoices' => const Color(0xFF8150EE),
+      _ => const Color(0xFF08AF79),
+    };
     return InkWell(
-      onTap: onPressed, borderRadius: BorderRadius.circular(16),
-      child: Container(padding: const EdgeInsets.symmetric(
-        horizontal: 4, vertical: 13),
+      onTap: onPressed,
+      borderRadius: BorderRadius.circular(17),
+      child: Container(
+        padding: const EdgeInsets.symmetric(
+          horizontal: 5, vertical: 12),
         decoration: BoxDecoration(
-          gradient: const LinearGradient(colors: [
-            Colors.white, Color(0xFFF0F5FF)]),
-          border: Border.all(color: Colors.white, width: 1.6),
-          borderRadius: BorderRadius.circular(16),
+          gradient: LinearGradient(colors: [
+            tone.withValues(alpha: .095),
+            Colors.white,
+          ]),
+          border: Border.all(color: Colors.white, width: 1.5),
+          borderRadius: BorderRadius.circular(17),
           boxShadow: const [BoxShadow(
-            color: Color(0x1E6684B6), blurRadius: 9,
-            offset: Offset(0, 4))]),
-        child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-          Container(
-            width: 44, height: 44,
-            decoration: BoxDecoration(
-              color: scheme.primary.withValues(alpha: .12),
-              borderRadius: BorderRadius.circular(14)),
-            child: Icon(icon, size: 25, color: scheme.primary),
-          ),
-          const SizedBox(height: 9),
-          Text(caption, maxLines: 2, textAlign: TextAlign.center,
-            style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.w800)),
-        ]),
+            color: Color(0x1D5777B1),
+            blurRadius: 10, offset: Offset(0, 5))]),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, size: 32, color: tone),
+            const SizedBox(height: 11),
+            Text(caption, textAlign: TextAlign.center,
+              maxLines: 2,
+              style: const TextStyle(
+                color: Color(0xFF0A1B48),
+                fontSize: 12,
+                fontWeight: FontWeight.w800)),
+          ]),
       ),
     );
   }
@@ -162,11 +171,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
       padding: const EdgeInsets.fromLTRB(14, 8, 14, 18), children: [
         const SizedBox(height: 9),
         Row(children: [
-          Container(width: 52, height: 52,
-            decoration: BoxDecoration(color: scheme.tertiaryContainer,
-              borderRadius: BorderRadius.circular(app.appearance.corner)),
-            child: Icon(Icons.storefront_rounded,
-              color: scheme.onTertiaryContainer, size: 28)),
+          Container(width: 55, height: 55,
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                colors: [Color(0xFFFFF5E6), Color(0xFFFFE6C5)]),
+              borderRadius: BorderRadius.circular(16)),
+            child: const Icon(Icons.storefront_rounded,
+              color: Color(0xFFFF9813), size: 29)),
           const SizedBox(width: 12),
           Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -196,23 +207,45 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 color: Color(0x3300A47B),
                 blurRadius: 14, offset: Offset(0, 7))],
               borderRadius: BorderRadius.circular(app.appearance.corner + 8)),
-            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              const Row(children: [
-                Icon(Icons.receipt_long_outlined, color: Colors.white),
-                SizedBox(width: 9),
-                Expanded(child: Text("Today's invoices",
-                  style: TextStyle(color: Colors.white, fontSize: 16,
-                    fontWeight: FontWeight.w700))),
-              ]),
-              const SizedBox(height: 14),
-              if (busy)
-                const CircularProgressIndicator(color: Colors.white)
-              else Text(error != null ? '—' : todayInvoices?.toString() ?? '—',
-                style: const TextStyle(color: Colors.white, fontSize: 34,
-                  fontWeight: FontWeight.w900)),
-              const SizedBox(height: 4),
-              const Text('Current branch • live invoice count',
-                style: TextStyle(color: Colors.white, fontSize: 11)),
+            child: Stack(children: [
+              Positioned(right: 0, top: 0, bottom: 0,
+                child: Opacity(opacity: .4,
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      for (final h in [22.0, 32.0, 45.0, 60.0])
+                        Container(
+                          width: 11, height: h,
+                          margin: const EdgeInsets.only(left: 6),
+                          decoration: BoxDecoration(
+                            gradient: const LinearGradient(
+                              begin: Alignment.topCenter,
+                              end: Alignment.bottomCenter,
+                              colors: [Color(0xFFE4FFF7), Color(0xFF3CE7B1)]),
+                            borderRadius: BorderRadius.circular(5))),
+                    ]))),
+              Column(crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Row(children: [
+                    Icon(Icons.receipt_long_outlined, color: Colors.white),
+                    SizedBox(width: 9),
+                    Expanded(child: Text("Today's invoices",
+                      style: TextStyle(
+                        color: Colors.white, fontSize: 16,
+                        fontWeight: FontWeight.w800))),
+                  ]),
+                  const SizedBox(height: 14),
+                  if (busy)
+                    const CircularProgressIndicator(color: Colors.white)
+                  else Text(error != null ? '—'
+                      : todayInvoices?.toString() ?? '—',
+                    style: const TextStyle(color: Colors.white,
+                      fontSize: 34, fontWeight: FontWeight.w900)),
+                  const SizedBox(height: 8),
+                  const Text('Current branch • live invoice count',
+                    style: TextStyle(
+                      color: Colors.white, fontSize: 11)),
+                ]),
             ]),
           ),
         ],
@@ -240,7 +273,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
         ],
         if (canCreateSale || canViewProducts || canViewSales) ...[
         const SizedBox(height: 16),
-        const SectionHeading('Quick actions'),
+        const Text('Quick Actions', style: TextStyle(
+          color: Color(0xFF0A1B48), fontSize: 19,
+          fontWeight: FontWeight.w900)),
         GridView.count(
           crossAxisCount: MediaQuery.sizeOf(context).width < 355 ? 2 : 3,
           childAspectRatio: MediaQuery.sizeOf(context).width < 355 ? 1.12 : 1.07,
