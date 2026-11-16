@@ -73,7 +73,10 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
   @override
   Widget build(BuildContext context) => Scaffold(
     appBar: AppBar(
-      title: const Text('Notifications'),
+      backgroundColor: const Color(0xFFF7F8FF),
+      foregroundColor: const Color(0xFF081943),
+      title: const Text('Notifications',
+        style: TextStyle(fontWeight: FontWeight.w900)),
       actions: [
         IconButton(
           tooltip: 'Refresh notifications',
@@ -122,11 +125,20 @@ class NotificationsView extends StatelessWidget {
     return ListView(
       key: const ValueKey('notifications-list'),
       physics: const AlwaysScrollableScrollPhysics(),
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.fromLTRB(14, 10, 14, 16),
       children: [
         Row(children: [
-          Expanded(child: Text('Notifications',
-            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+          Container(
+            width: 38, height: 38,
+            decoration: BoxDecoration(
+              color: const Color(0xFFE3F1FF),
+              borderRadius: BorderRadius.circular(11)),
+            child: const Icon(Icons.notifications_active_outlined,
+              color: Color(0xFF0085ED), size: 23)),
+          const SizedBox(width: 10),
+          Expanded(child: const Text('Notifications',
+            style: TextStyle(fontSize: 22,
+              color: Color(0xFF081943),
               fontWeight: FontWeight.w900))),
           if (unread > 0)
             Text('$unread unread', style: TextStyle(
