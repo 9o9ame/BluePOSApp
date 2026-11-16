@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../core/api.dart';
 import '../core/saved_accounts.dart';
@@ -314,6 +315,61 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
+  // Screen 04 reference: six independently framed digit positions, while
+  // retaining one real accessible TextField and the existing MFA API flow.
+  Widget _verificationCodeBoxes() {
+    final digits = code.text;
+    return SizedBox(
+      key: const ValueKey('mfa-six-digit-code'),
+      height: 61,
+      child: Stack(children: [
+        Row(children: [
+          for (var i = 0; i < 6; i++) ...[
+            if (i > 0) const SizedBox(width: 7),
+            Expanded(child: Container(
+              height: 57,
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                color: i == digits.length
+                  ? const Color(0xFFE9F6FF) : const Color(0xFFF9FAFF),
+                border: Border.all(
+                  color: i == digits.length
+                    ? const Color(0xFF20A8FF) : const Color(0xFFE1E6F4),
+                  width: i == digits.length ? 1.5 : 1),
+                borderRadius: BorderRadius.circular(11),
+                boxShadow: const [
+                  BoxShadow(color: Color(0x225875AC),
+                    blurRadius: 8, offset: Offset(0, 4)),
+                ],
+              ),
+              child: Text(i < digits.length ? digits[i] : '',
+                style: const TextStyle(
+                  fontSize: 22, fontWeight: FontWeight.w900,
+                  color: Color(0xFF132653))),
+            )),
+          ],
+        ]),
+        Positioned.fill(child: Opacity(
+          opacity: .01,
+          child: TextField(
+            controller: code,
+            autofocus: true,
+            keyboardType: TextInputType.number,
+            textInputAction: TextInputAction.done,
+            autofillHints: const [AutofillHints.oneTimeCode],
+            inputFormatters: [FilteringTextInputFormatter.digitsOnly,
+              LengthLimitingTextInputFormatter(6)],
+            onChanged: (_) => setState(() {}),
+            onSubmitted: (_) => submit(),
+            decoration: const InputDecoration(
+              counterText: '', border: InputBorder.none,
+              labelText: '6-digit verification code'),
+          ),
+        )),
+      ]),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
@@ -389,10 +445,7 @@ class _LoginScreenState extends State<LoginScreen> {
                               style: TextStyle(fontSize: 12))),
                           ]),
                         ] else ...[
-                          _input(code, '6-digit verification code',
-                            Icons.verified_user_outlined,
-                            keyboard: TextInputType.number,
-                            action: TextInputAction.done, compact: compact),
+                          _verificationCodeBoxes(),
                           if (hint?.isNotEmpty == true)
                             Padding(padding: const EdgeInsets.only(top: 7),
                               child: Text('Recovery hint: $hint',
