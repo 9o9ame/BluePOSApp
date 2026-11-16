@@ -91,11 +91,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
         horizontal: 4, vertical: 13),
         child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
           Container(
-            width: 40, height: 40,
+            width: 44, height: 44,
             decoration: BoxDecoration(
-              color: scheme.primary.withValues(alpha: .10),
-              borderRadius: BorderRadius.circular(13)),
-            child: Icon(icon, size: 24, color: scheme.primary),
+              color: scheme.primary.withValues(alpha: .12),
+              borderRadius: BorderRadius.circular(14)),
+            child: Icon(icon, size: 25, color: scheme.primary),
           ),
           const SizedBox(height: 9),
           Text(caption, maxLines: 2, textAlign: TextAlign.center,
@@ -145,11 +145,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
           Container(width: double.infinity,
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [app.appearance.accent,
-                  Color.lerp(app.appearance.accent,
-                    AppAppearance.palette['emerald']!, .70)!],
+              gradient: const LinearGradient(
+                colors: [Color(0xFF0BBD88), Color(0xFF00A86D),
+                  Color(0xFF008B69)],
                 begin: Alignment.topLeft, end: Alignment.bottomRight),
+              boxShadow: const [BoxShadow(
+                color: Color(0x3300A47B),
+                blurRadius: 14, offset: Offset(0, 7))],
               borderRadius: BorderRadius.circular(app.appearance.corner + 8)),
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
               const Row(children: [
