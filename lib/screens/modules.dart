@@ -737,66 +737,91 @@ class _ModulesScreenState extends State<ModulesScreen> {
   }
 
   Widget _definitionHome() {
-    final scheme = Theme.of(context).colorScheme;
+    // Screen 11: ordered reference navigation; actions remain RBAC-gated.
     final specs = <({String group, String title, IconData icon, Color tone})>[
       (group: 'Definition', title: 'Products',
-        icon: Icons.inventory_2_outlined, tone: scheme.primary),
+        icon: Icons.local_offer_rounded, tone: const Color(0xFF8147FF)),
       (group: 'Definition', title: 'Customers',
-        icon: Icons.people_outline_rounded, tone: scheme.secondary),
+        icon: Icons.people_alt_rounded, tone: const Color(0xFF00A1F6)),
       (group: 'Definition', title: 'Suppliers',
-        icon: Icons.local_shipping_outlined, tone: scheme.tertiary),
+        icon: Icons.local_shipping_rounded, tone: const Color(0xFFFF9515)),
       (group: 'Definition', title: 'Categories',
-        icon: Icons.category_outlined, tone: scheme.tertiary),
+        icon: Icons.layers_rounded, tone: const Color(0xFF05C96B)),
       (group: 'Definition', title: 'Subcategories',
-        icon: Icons.account_tree_outlined, tone: scheme.primary),
+        icon: Icons.account_tree_rounded, tone: const Color(0xFF8A38F8)),
       (group: 'Definition', title: 'Brands',
-        icon: Icons.sell_outlined, tone: scheme.error),
+        icon: Icons.sell_rounded, tone: const Color(0xFFF63876)),
       (group: 'Definition', title: 'Units',
-        icon: Icons.straighten_outlined, tone: scheme.primary),
+        icon: Icons.inventory_2_rounded, tone: const Color(0xFF077EF6)),
       (group: 'Definition', title: 'Price Lists',
-        icon: Icons.sell_outlined, tone: scheme.secondary),
+        icon: Icons.price_change_rounded, tone: const Color(0xFF04B966)),
       (group: 'Definition', title: 'Sale Schemes',
-        icon: Icons.local_offer_outlined, tone: scheme.tertiary),
+        icon: Icons.campaign_rounded, tone: const Color(0xFFFF9E00)),
       (group: 'Daily Entries', title: 'Opening Stock',
-        icon: Icons.upload_file_outlined, tone: scheme.secondary),
+        icon: Icons.file_upload_outlined, tone: const Color(0xFF06BAEB)),
       (group: 'Daily Entries', title: 'Stock Taking',
-        icon: Icons.fact_check_outlined, tone: scheme.error),
+        icon: Icons.assignment_turned_in_rounded,
+        tone: const Color(0xFFE62E68)),
     ];
-    return ListView(
-      key: const ValueKey('approved-definition-home'),
-      padding: EdgeInsets.all(widget.app.appearance.spacing),
-      children: [
-        Row(children: [
-          IconButton(
-            tooltip: 'Back to More',
-            onPressed: () => setState(() => activeGroup = null),
-            icon: const Icon(Icons.arrow_back_rounded)),
-          Expanded(child: Text('Definition',
-            style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+    return Stack(children: [
+      ListView(
+        key: const ValueKey('approved-definition-home'),
+        padding: const EdgeInsets.fromLTRB(12, 8, 12, 90),
+        children: [
+          const Padding(
+            padding: EdgeInsets.fromLTRB(3, 2, 0, 11),
+            child: Text('Definition', style: TextStyle(
+              color: Color(0xFF0A1C45), fontSize: 23,
               fontWeight: FontWeight.w900))),
-        ]),
-        const SizedBox(height: 11),
-        for (final item in specs)
-          ...[
+          for (final item in specs)
             for (final action in groups[item.group] ?? const <ModuleAction>[])
               if (action.title == item.title && action.visible(widget.app))
-                _menuRow(
-                  key: ValueKey('definition-${item.title}'),
-                  title: item.title, icon: item.icon, tone: item.tone,
-                  onTap: action.open),
-          ],
-        const SizedBox(height: 9),
-        TextButton.icon(
-          onPressed: () => setState(() {
-            activeGroup = 'Definition';
-            showDirectory = true;
-          }),
-          icon: const Icon(Icons.grid_view_outlined),
-          label: const Text('Browse definition modules'),
-        ),
-        const SizedBox(height: 16),
-      ],
-    );
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 5),
+                  child: Material(
+                    color: Colors.transparent,
+                    child: InkWell(
+                      key: ValueKey('definition-${item.title}'),
+                      borderRadius: BorderRadius.circular(13),
+                      onTap: action.open,
+                      child: Container(
+                        height: 46,
+                        padding: const EdgeInsets.symmetric(horizontal: 10),
+                        decoration: BoxDecoration(
+                          gradient: const LinearGradient(colors: [
+                            Colors.white, Color(0xFFF1F5FF)]),
+                          borderRadius: BorderRadius.circular(13),
+                          border: Border.all(color: Colors.white, width: 1.3),
+                          boxShadow: const [BoxShadow(
+                            color: Color(0x15566FAB), blurRadius: 7,
+                            offset: Offset(0, 3))]),
+                        child: Row(children: [
+                          Container(
+                            width: 36, height: 34,
+                            decoration: BoxDecoration(
+                              color: item.tone.withValues(alpha: .12),
+                              borderRadius: BorderRadius.circular(9)),
+                            child: Icon(item.icon, size: 21, color: item.tone)),
+                          const SizedBox(width: 10),
+                          Container(height: 25, width: 1,
+                            color: const Color(0xFFE2E8F8)),
+                          const SizedBox(width: 10),
+                          Expanded(child: Text(item.title,
+                            style: const TextStyle(
+                              color: Color(0xFF091A40), fontSize: 13.5,
+                              fontWeight: FontWeight.w800))),
+                          const Icon(Icons.chevron_right_rounded,
+                            color: Color(0xFF142C52), size: 20),
+                        ]),
+                      ),
+                    ),
+                  ),
+                ),
+        ],
+      ),
+      const Positioned(left: 0, right: 0, bottom: 0,
+        child: IgnorePointer(child: AuthReferenceWaves(height: 56))),
+    ]);
   }
 
   Widget _directory() {
