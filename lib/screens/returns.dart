@@ -164,7 +164,7 @@ class _ReturnDocumentEditorState extends State<ReturnDocumentEditor> {
   }
 
   Future<void> loadAvailable() async {
-    if (!validPublicUlid(sourceUlid)) return;
+    if (!validPublicUlid(sourceUlid)) { return; }
     final path = '${widget.kind.sourcePath}/$sourceUlid/returnable-lines';
     try {
       final full = await widget.app.api.get(
@@ -184,7 +184,7 @@ class _ReturnDocumentEditorState extends State<ReturnDocumentEditor> {
 
   Future<void> createDraft() async {
     if (created || saving ||
-        !widget.app.hasPermission(widget.kind.createPermission)) return;
+        !widget.app.hasPermission(widget.kind.createPermission)) { return; }
     if (!createUncertain) {
       if (!validPublicUlid(sourceUlid) || available.isEmpty) {
         setState(() => error =
@@ -220,8 +220,8 @@ class _ReturnDocumentEditorState extends State<ReturnDocumentEditor> {
             attemptKey: pendingKey!, payload: pendingPayload!,
           );
         } catch (_) {
-          if (mounted) setState(() => error =
-            'Cannot securely store this return request. No request was sent.');
+          if (mounted) { setState(() => error =
+            'Cannot securely store this return request. No request was sent.'); }
           return;
         }
       }
@@ -254,14 +254,14 @@ class _ReturnDocumentEditorState extends State<ReturnDocumentEditor> {
         pendingPayload = null;
         pendingKey = null;
       }
-      if (mounted) setState(() => error = createUncertain
+      if (mounted) { setState(() => error = createUncertain
         ? widget.kind == ReturnDocumentKind.sale
           ? 'Return draft status unknown. Retry the saved request with the same idempotency key.'
           : 'Purchase Return creation status unknown. Search history before another create.'
-        : ex.message);
+        : ex.message); }
     } catch (_) {
-      if (mounted) setState(() => error =
-        'Return draft status unknown. Check documents before another attempt.');
+      if (mounted) { setState(() => error =
+        'Return draft status unknown. Check documents before another attempt.'); }
     } finally {
       if (mounted) setState(() => saving = false);
     }
@@ -286,7 +286,7 @@ class _ReturnDocumentEditorState extends State<ReturnDocumentEditor> {
 
   Future<void> editLine([Map<String, dynamic>? current]) async {
     if (!created || !draft || !editable || saving ||
-        !validPublicUlid(sourceUlid)) return;
+        !validPublicUlid(sourceUlid)) { return; }
     Map<String, dynamic> selection = {};
     if (current != null) {
       final sourceLine = field(current[widget.kind.lineKey]);
@@ -388,17 +388,17 @@ class _ReturnDocumentEditorState extends State<ReturnDocumentEditor> {
                     }
                     if (sheet.mounted) Navigator.pop(sheet, true);
                   } on ApiFailure catch (ex) {
-                    if (sheet.mounted) change(() {
+                    if (sheet.mounted) { change(() {
                       ambiguous = ex.status == 0 || ex.status >= 500;
                       formError = ambiguous
                         ? 'Line save unconfirmed. Close and refresh before retrying.'
                         : ex.message;
-                    });
+                    }); }
                   } catch (_) {
-                    if (sheet.mounted) change(() {
+                    if (sheet.mounted) { change(() {
                       ambiguous = true;
                       formError = 'Line save unconfirmed. Reload before retrying.';
-                    });
+                    }); }
                   } finally {
                     if (sheet.mounted) change(() => inFlight = false);
                   }
@@ -420,7 +420,7 @@ class _ReturnDocumentEditorState extends State<ReturnDocumentEditor> {
     if (!await confirmMutation(context,
       title: 'Remove return line?',
       warning: 'Only this unposted return line will be removed.',
-      actionLabel: 'Remove')) return;
+      actionLabel: 'Remove')) { return; }
     setState(() => saving = true);
     try {
       await widget.app.api.request('DELETE',
@@ -435,12 +435,12 @@ class _ReturnDocumentEditorState extends State<ReturnDocumentEditor> {
 
   Future<void> post() async {
     if (!created || !draft || !canPost || saving ||
-        recordsOf(document?['lines']).isEmpty) return;
+        recordsOf(document?['lines']).isEmpty) { return; }
     if (!await confirmMutation(context,
       title: 'Post ${widget.kind.title}?',
       warning: 'The server will validate returnable quantities and update '
         'stock using its existing append-only inventory flow.',
-      actionLabel: 'Post Return')) return;
+      actionLabel: 'Post Return')) { return; }
     setState(() => saving = true);
     try {
       await widget.app.api.post('${widget.kind.path}/$id/post', {});
@@ -448,8 +448,8 @@ class _ReturnDocumentEditorState extends State<ReturnDocumentEditor> {
     } catch (ex) {
       if (mounted) {
         await refresh();
-        if (mounted) setState(() => error =
-          'Return posting status uncertain. Check current status first. $ex');
+        if (mounted) { setState(() => error =
+          'Return posting status uncertain. Check current status first. $ex'); }
       }
     } finally {
       if (mounted) setState(() => saving = false);
