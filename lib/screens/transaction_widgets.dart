@@ -7,7 +7,6 @@ import '../core/api.dart';
 import '../core/session.dart';
 import '../widgets/common.dart';
 import '../widgets/reference_surface.dart';
-import 'auth_reference_chrome.dart';
 
 /// Strict ULID boundaries for API identifiers. BIGINT database keys are never
 /// transported from, or chosen by, a mobile form.
