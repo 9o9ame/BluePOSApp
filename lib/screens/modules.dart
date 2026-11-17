@@ -103,7 +103,6 @@ class _ModulesScreenState extends State<ModulesScreen> {
 
   void _switchMenu(bool main) {
     widget.menuMode.value = main;
-    _syncMenuMode();
   }
   String? activeGroup;
 
@@ -447,10 +446,11 @@ class _ModulesScreenState extends State<ModulesScreen> {
     required Color tone,
     required VoidCallback onTap,
     Key? key,
+    bool compact = false,
   }) {
     final scheme = Theme.of(context).colorScheme;
     return Padding(
-      padding: const EdgeInsets.only(bottom: 9),
+      padding: const EdgeInsets.only(bottom: compact ? 5 : 9),
       child: Container(
         decoration: BoxDecoration(
           gradient: const LinearGradient(
@@ -465,17 +465,17 @@ class _ModulesScreenState extends State<ModulesScreen> {
             borderRadius: BorderRadius.circular(15),
             onTap: onTap,
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: compact ? 5 : 7),
               child: Row(children: [
                 Container(
-                  height: 37, width: 37,
+                  height: compact ? 32 : 37, width: compact ? 32 : 37,
                   decoration: BoxDecoration(
                     color: tone.withValues(alpha: .13),
                     borderRadius: BorderRadius.circular(10)),
-                  child: Icon(icon, color: tone, size: 21)),
+                  child: Icon(icon, color: tone, size: compact ? 20 : 21)),
                 const SizedBox(width: 12),
                 Expanded(child: Text(title,
-                  style: const TextStyle(fontSize: 14,
+                  style: const TextStyle(fontSize: compact ? 13.4 : 14,
                     fontWeight: FontWeight.w800))),
                 Icon(Icons.chevron_right_rounded,
                   color: scheme.onSurfaceVariant),
@@ -536,7 +536,7 @@ class _ModulesScreenState extends State<ModulesScreen> {
               : Icons.settings_outlined,
               color: const Color(0xFF0C275B))),
         ]),
-        const SizedBox(height: 12),
+        const SizedBox(height: 7),
         if (!main) ...[
           Container(
             decoration: BoxDecoration(
@@ -547,13 +547,13 @@ class _ModulesScreenState extends State<ModulesScreen> {
               boxShadow: const [BoxShadow(
                 color: Color(0x1C57BBA4), blurRadius: 10, offset: Offset(0, 5))]),
             child: Padding(
-            padding: const EdgeInsets.all(14), child: Row(children: [
-              Container(width: 54, height: 54, decoration: BoxDecoration(
+            padding: const EdgeInsets.all(11), child: Row(children: [
+              Container(width: 44, height: 44, decoration: BoxDecoration(
                 color: scheme.primaryContainer,
                 borderRadius: BorderRadius.circular(16)),
                 child: Icon(Icons.storefront_rounded,
-                  color: scheme.primary, size: 29)),
-              const SizedBox(width: 13),
+                  color: scheme.primary, size: 26)),
+              const SizedBox(width: 10),
               Expanded(child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start, children: [
                   Text(app.tenantName, maxLines: 2,
@@ -566,33 +566,33 @@ class _ModulesScreenState extends State<ModulesScreen> {
                 ])),
             ]),
           )),
-          const SizedBox(height: 16),
+          const SizedBox(height: 9),
         ],
         for (final item in entries)
           if (_hasVisibleActions(item.group))
             _menuRow(title: item.label, icon: item.icon,
               tone: item.color, onTap: () => _showGroup(item.group),
-              key: ValueKey('menu-${item.group}')),
+              key: ValueKey('menu-${item.group}'), compact: true),
         if (main) ...[
           if (_hasVisibleActions('Definition'))
             _menuRow(title: 'Products', icon: Icons.inventory_2_rounded,
-              tone: const Color(0xFF9155EC), onTap: () => widget.navigate(2)),
+              tone: const Color(0xFF9155EC), onTap: () => widget.navigate(2), compact: true),
           if (groups['Definition']!.any((action) =>
               action.title == 'Customers' && action.visible(app)))
             _menuRow(title: 'Customers', icon: Icons.people_rounded,
               tone: const Color(0xFFEA4A72), onTap: () =>
                 groups['Definition']!.firstWhere((a) =>
-                  a.title == 'Customers').open()),
+                  a.title == 'Customers').open(), compact: true),
           if (groups['Daily Entries']!.any((action) =>
               action.title == 'Purchases' && action.visible(app)))
             _menuRow(title: 'Purchases', icon: Icons.shopping_bag_rounded,
               tone: scheme.tertiary, onTap: () =>
                 groups['Daily Entries']!.firstWhere((a) =>
-                  a.title == 'Purchases').open()),
+                  a.title == 'Purchases').open(), compact: true),
           if (groups['Daily Entries']!.any((action) =>
               action.title == 'New Sale' && action.visible(app)))
             _menuRow(title: 'Sales', icon: Icons.shopping_cart_rounded,
-              tone: scheme.tertiary, onTap: () => widget.navigate(1)),
+              tone: scheme.tertiary, onTap: () => widget.navigate(1), compact: true),
         ] else ...[
           const SizedBox(height: 2),
           Divider(color: scheme.outlineVariant),
@@ -603,21 +603,23 @@ class _ModulesScreenState extends State<ModulesScreen> {
               icon: Icons.verified_user_rounded,
               tone: scheme.tertiary, onTap: () =>
                 groups['Administration']!.firstWhere((a) =>
-                  a.title == 'Security Sessions').open()),
+                  a.title == 'Security Sessions').open(), compact: true),
           _menuRow(title: 'Settings', icon: Icons.settings_rounded,
-            tone: const Color(0xFF087CF7), onTap: _settings),
+            tone: const Color(0xFF087CF7), onTap: _settings, compact: true),
           _menuRow(title: 'Help & Support', icon: Icons.support_agent_rounded,
             tone: const Color(0xFF7B4DE8),
             onTap: () => setState(() {
               showDirectory = true;
               activeGroup = 'Help';
-            })),
+            }), compact: true),
           Padding(
-            padding: const EdgeInsets.only(top: 7, bottom: 7),
+            padding: const EdgeInsets.only(top: 4, bottom: 4),
             child: Material(
               color: const Color(0xFFFFEDF0),
               borderRadius: BorderRadius.circular(15),
               child: ListTile(
+                dense: true,
+                visualDensity: VisualDensity.compact,
                 key: const ValueKey('more-logout'),
                 leading: const Icon(Icons.logout_rounded,
                   color: Color(0xFFE62845)),
