@@ -2,6 +2,7 @@ import 'package:bluepos_app/core/api.dart';
 import 'package:bluepos_app/core/appearance.dart';
 import 'package:bluepos_app/core/session.dart';
 import 'package:bluepos_app/screens/modules.dart';
+import 'package:bluepos_app/screens/shell.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -64,6 +65,28 @@ void main() {
       findsOneWidget);
     expect(find.byKey(const ValueKey('drawer-action-New Sale')),
       findsNothing);
+    await tester.pumpWidget(const SizedBox.shrink());
+    await app.api.close();
+  });
+
+  testWidgets('closed floating drawer does not collapse tab screens',
+      (tester) async {
+    await tester.binding.setSurfaceSize(const Size(390, 820));
+    addTearDown(() async => tester.binding.setSurfaceSize(null));
+    final app = AppController(BlueposApi(), AppAppearance());
+    app.session = {
+      'permissions': <String>[],
+      'entitlements': {'features': <String>[]},
+    };
+    await tester.pumpWidget(MaterialApp(home: AppShell(app: app)));
+    await tester.pump();
+    final stack = find.byType(IndexedStack);
+    expect(stack, findsOneWidget);
+    expect(tester.getSize(stack).height, greaterThan(100));
+    expect(tester.getSize(stack).width, greaterThan(100));
+    await tester.tap(find.byKey(const ValueKey('reference-nav-POS')));
+    await tester.pump();
+    expect(tester.getSize(stack).height, greaterThan(100));
     await tester.pumpWidget(const SizedBox.shrink());
     await app.api.close();
   });
