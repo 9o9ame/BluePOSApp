@@ -63,7 +63,7 @@ class AppController extends ChangeNotifier {
     final actual = parsed.containsKey('user') ? parsed : objectOf(parsed['data']);
     if (actual['user'] is Map && actual['tenant'] is Map) {
       session = actual;
-      appearance.apply(objectOf(actual['appearance']));
+      appearance.apply(objectOf(actual['appearance']), fromServer: true);
       notifyListeners();
     }
   }
@@ -169,6 +169,7 @@ class AppController extends ChangeNotifier {
 
   Future<void> saveAppearance(Map<String, dynamic> config) async {
     final response = await api.patch('/api/auth/appearance', config);
+    await appearance.markThemeExplicit();
     appearance.apply(objectOf(objectOf(response)['appearance']));
     session?['appearance'] = appearance.toJson();
   }
