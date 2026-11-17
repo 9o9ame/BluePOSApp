@@ -28,6 +28,8 @@ import 'device_admin.dart';
 import 'security_sessions.dart';
 import 'purchase_orders.dart';
 import 'purchase_invoices.dart';
+import 'transaction_widgets.dart';
+import 'receipt.dart';
 import 'inventory_documents.dart';
 import 'vouchers.dart';
 import 'returns.dart';
@@ -212,11 +214,28 @@ class _ModulesScreenState extends State<ModulesScreen> {
         Icons.add_shopping_cart_rounded,
         () => _open(SalesInvoiceEntryScreen(app: widget.app)),
         permissions: const ['sales.create'], entitlement: 'sales'),
-      ModuleAction('Sales Invoices', 'Sales history and receipts',
-        Icons.receipt_long_outlined, () => _data('Sales Invoices',
-          '/api/sales?per_page=25', nameKey: 'document_number',
-          subtitleKey: 'sale_date', amountKey: 'grand_total',
-          detailPrefix: '/api/sales'),
+      ModuleAction('Sales Invoices', 'Posted sales and invoices',
+        Icons.receipt_long_outlined, () => _open(TransactionDirectory(
+          app: widget.app,
+          title: 'Sales Invoices',
+          endpoint: '/api/sales',
+          dateKey: 'sale_date',
+          referenceStyle: true,
+          createPermission: 'sales.create',
+          onCreate: (context) async {
+            await Navigator.of(context).push(MaterialPageRoute<void>(
+              builder: (_) => SalesInvoiceEntryScreen(app: widget.app)));
+            return true;
+          },
+          onOpen: (context, row) async {
+            final id = field(row['ulid']);
+            if (!validPublicUlid(id)) return false;
+            await Navigator.of(context).push(MaterialPageRoute<void>(
+              builder: (_) => ReceiptScreen(
+                app: widget.app, saleUlid: id)));
+            return true;
+          },
+        )),
         permissions: const ['sales.view'], entitlement: 'sales'),
       ModuleAction('Quotations', 'Create and browse sales estimates',
         Icons.request_quote_outlined,
