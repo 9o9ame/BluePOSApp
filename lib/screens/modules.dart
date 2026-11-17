@@ -69,10 +69,10 @@ class ModuleAction {
 
 class ModulesScreen extends StatefulWidget {
   const ModulesScreen({super.key, required this.app, required this.navigate,
-    required this.menuMode});
+    this.menuMode});
   final AppController app;
   final ValueChanged<int> navigate;
-  final ValueNotifier<bool> menuMode;
+  final ValueNotifier<bool>? menuMode;
 
   @override
   State<ModulesScreen> createState() => _ModulesScreenState();
@@ -82,14 +82,16 @@ class _ModulesScreenState extends State<ModulesScreen> {
   final search = TextEditingController();
   // Approved references 08 (Main Menu) and 09 (More) share the existing
   // permission-checked module directory; no new backend actions.
+  late final ValueNotifier<bool> _menuMode =
+      widget.menuMode ?? ValueNotifier<bool>(false);
   bool showMainMenu = false;
   bool showDirectory = false;
 
   @override
   void initState() {
     super.initState();
-    showMainMenu = widget.menuMode.value;
-    widget.menuMode.addListener(_syncMenuMode);
+    showMainMenu = _menuMode.value;
+    _menuMode.addListener(_syncMenuMode);
   }
 
   void _syncMenuMode() {
@@ -102,13 +104,14 @@ class _ModulesScreenState extends State<ModulesScreen> {
   }
 
   void _switchMenu(bool main) {
-    widget.menuMode.value = main;
+    _menuMode.value = main;
   }
   String? activeGroup;
 
   @override
   void dispose() {
-    widget.menuMode.removeListener(_syncMenuMode);
+    _menuMode.removeListener(_syncMenuMode);
+    if (widget.menuMode == null) _menuMode.dispose();
     search.dispose();
     super.dispose();
   }
