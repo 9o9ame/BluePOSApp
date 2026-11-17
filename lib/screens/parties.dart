@@ -215,6 +215,66 @@ class _PartyDirectoryState extends State<PartyDirectory> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 const SizedBox(height: 4),
+                if (widget.type == 'vendor') ...[
+                  BpReferenceFormField(
+                    label: 'Supplier Name *', hint: 'Enter supplier name',
+                    fieldKey: const ValueKey('party-editor-name'),
+                    icon: Icons.person_rounded, controller: name,
+                    maxLength: 180),
+                  BpReferenceFormField(
+                    label: 'Mobile Number', hint: 'Enter mobile number',
+                    icon: Icons.phone_rounded, controller: mobile,
+                    maxLength: 64, keyboardType: TextInputType.phone),
+                  BpReferenceFormField(
+                    label: 'City / Area', hint: 'Enter city',
+                    fieldKey: const ValueKey('party-editor-area'),
+                    icon: Icons.location_on_rounded,
+                    controller: area, maxLength: 120),
+                  BpReferenceFormField(
+                    label: 'Address', hint: 'Enter address',
+                    icon: Icons.home_rounded, controller: address, maxLines: 2),
+                  BpReferenceFormField(
+                    label: 'Credit Limit', hint: 'Enter credit limit',
+                    icon: Icons.credit_card_outlined,
+                    controller: creditLimit,
+                    keyboardType: const TextInputType.numberWithOptions(decimal: true)),
+                  BpReferenceFormField(
+                    label: 'Credit Days', hint: 'Enter credit days',
+                    icon: Icons.calendar_today_outlined,
+                    controller: creditDays,
+                    keyboardType: TextInputType.number),
+                  BpReferenceFormField(
+                    label: 'Contact Person', hint: 'Enter contact person',
+                    icon: Icons.person_outline_rounded,
+                    controller: contact, maxLength: 180),
+                  BpReferenceFormField(
+                    label: 'Email', hint: 'Enter email address',
+                    icon: Icons.email_outlined, controller: email,
+                    keyboardType: TextInputType.emailAddress),
+                  BpReferenceFormField(
+                    label: 'Supplier Code *', hint: 'Enter supplier code',
+                    fieldKey: const ValueKey('party-editor-code'),
+                    icon: Icons.qr_code_rounded, controller: code,
+                    maxLength: 64),
+                  BpReferenceFormField(
+                    label: 'Account Type *', hint: '',
+                    icon: Icons.account_balance_outlined,
+                    child: DropdownButtonFormField<String>(
+                      isExpanded: true,
+                      initialValue: selected.isEmpty ? null : selected,
+                      decoration: BpReferenceStyle.of(sheet)
+                        .search('Select account type').copyWith(
+                          isDense: true,
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 10, vertical: 7)),
+                      items: accounts.map((row) => DropdownMenuItem<String>(
+                        value: field(row['ulid']),
+                        child: Text(field(row['name']),
+                          maxLines: 1, overflow: TextOverflow.ellipsis))).toList(),
+                      onChanged: saving ? null :
+                        (value) => update(() => selected = value ?? ''),
+                    )),
+                ] else ...[
                 BpReferenceFormField(
                   label: 'Code *', hint: 'Enter party code',
                   fieldKey: const ValueKey('party-editor-code'),
@@ -278,6 +338,7 @@ class _PartyDirectoryState extends State<PartyDirectory> {
                     icon: Icons.calendar_today_outlined,
                     controller: creditDays,
                     keyboardType: TextInputType.number),
+                ],
                 ],
                 BpReferenceFormField(
                   label: 'Status *', hint: '',
