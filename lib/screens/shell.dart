@@ -27,7 +27,7 @@ class _AppShellState extends State<AppShell>
     vsync: this, value: 1, duration: const Duration(milliseconds: 250));
   late final AnimationController drawerMotion = AnimationController(
     vsync: this, duration: const Duration(milliseconds: 420));
-  late final Animation<double> drawerCurve = CurvedAnimation(
+  late final CurvedAnimation drawerCurve = CurvedAnimation(
     parent: drawerMotion, curve: Curves.easeInOutCubic);
   final menuMode = ValueNotifier<bool>(false);
   final saleKey = GlobalKey<SaleScreenState>();
