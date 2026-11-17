@@ -45,6 +45,149 @@ class BpReferenceStyle {
     );
 }
 
+/// Shared geometry for reference screens. Change sizes here, not per form.
+abstract final class BpReferenceMetrics {
+  static const double fieldVerticalPadding = 7;
+  static const double fieldHorizontalPadding = 10;
+  static const double fieldTileVerticalPadding = 5;
+  static const double fieldIconSize = 33;
+  static const double formRowGap = 4;
+  static const double actionHeight = 43;
+  static const double actionRadius = 13;
+  static const double actionBarPadding = 9;
+}
+
+/// Consistent compact field tile for add/edit reference screens.
+class BpReferenceFormField extends StatelessWidget {
+  const BpReferenceFormField({
+    super.key, required this.label, required this.hint, required this.icon,
+    this.controller, this.readOnly = false, this.maxLines = 1,
+    this.maxLength, this.keyboardType, this.suffixIcon, this.child,
+  });
+
+  final String label;
+  final String hint;
+  final IconData icon;
+  final TextEditingController? controller;
+  final bool readOnly;
+  final int maxLines;
+  final int? maxLength;
+  final TextInputType? keyboardType;
+  final Widget? suffixIcon;
+  final Widget? child;
+
+  @override
+  Widget build(BuildContext context) {
+    final style = BpReferenceStyle.of(context);
+    return Container(
+      margin: const EdgeInsets.only(bottom: BpReferenceMetrics.formRowGap),
+      padding: const EdgeInsets.symmetric(
+        horizontal: 8, vertical: BpReferenceMetrics.fieldTileVerticalPadding),
+      decoration: style.card(radius: 13),
+      child: Row(children: [
+        Container(
+          width: BpReferenceMetrics.fieldIconSize,
+          height: BpReferenceMetrics.fieldIconSize + 4,
+          decoration: BoxDecoration(
+            color: style.scheme.primary.withValues(alpha: .10),
+            borderRadius: BorderRadius.circular(9)),
+          child: Icon(icon, size: 19, color: style.scheme.primary)),
+        const SizedBox(width: 9),
+        Expanded(child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text(label, style: TextStyle(
+              fontSize: 10.5, fontWeight: FontWeight.w900,
+              color: style.ink)),
+            const SizedBox(height: 2),
+            child ?? TextField(
+              controller: controller,
+              readOnly: readOnly,
+              maxLength: maxLength,
+              maxLines: maxLines,
+              keyboardType: keyboardType,
+              decoration: style.search(hint).copyWith(
+                isDense: true, counterText: '',
+                suffixIcon: suffixIcon,
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: BpReferenceMetrics.fieldHorizontalPadding,
+                  vertical: BpReferenceMetrics.fieldVerticalPadding))),
+          ],
+        )),
+      ]),
+    );
+  }
+}
+
+/// Shared small, single-line bottom actions; Wave stays outside content.
+class BpReferenceFooter extends StatelessWidget {
+  const BpReferenceFooter({
+    super.key, required this.saveLabel, required this.onCancel,
+    this.onSave, this.saving = false,
+  });
+  final String saveLabel;
+  final VoidCallback onCancel;
+  final VoidCallback? onSave;
+  final bool saving;
+
+  @override
+  Widget build(BuildContext context) {
+    final style = BpReferenceStyle.of(context);
+    return Column(mainAxisSize: MainAxisSize.min, children: [
+      const BpReferenceFooterWave(),
+      SafeArea(top: false, child: Container(
+        padding: const EdgeInsets.all(BpReferenceMetrics.actionBarPadding),
+        decoration: BoxDecoration(
+          color: style.surface,
+          borderRadius: const BorderRadius.vertical(
+            top: Radius.circular(18)),
+          border: Border.all(color: style.line)),
+        child: Row(children: [
+          Expanded(child: OutlinedButton(
+            style: OutlinedButton.styleFrom(
+              minimumSize: const Size(0, BpReferenceMetrics.actionHeight),
+              padding: const EdgeInsets.symmetric(horizontal: 5),
+              shape: RoundedRectangleBorder(borderRadius:
+                BorderRadius.circular(BpReferenceMetrics.actionRadius))),
+            onPressed: saving ? null : onCancel,
+            child: const Text('Cancel', maxLines: 1))),
+          const SizedBox(width: 8),
+          Expanded(child: FilledButton.icon(
+            style: FilledButton.styleFrom(
+              minimumSize: const Size(0, BpReferenceMetrics.actionHeight),
+              padding: const EdgeInsets.symmetric(horizontal: 5),
+              backgroundColor: const Color(0xFF006DF6),
+              shape: RoundedRectangleBorder(borderRadius:
+                BorderRadius.circular(BpReferenceMetrics.actionRadius))),
+            onPressed: saving ? null : onSave,
+            icon: saving
+              ? const SizedBox(width: 14, height: 14,
+                  child: CircularProgressIndicator(strokeWidth: 2))
+              : const Icon(Icons.save_outlined, size: 16),
+            label: FittedBox(fit: BoxFit.scaleDown,
+              child: Text(saving ? 'Saving…' : saveLabel,
+                maxLines: 1, softWrap: false)),
+          )),
+        ]),
+      )),
+    ]);
+  }
+}
+
+/// Footer wave is isolated from the form's scrollable body.
+class BpReferenceFooterWave extends StatelessWidget {
+  const BpReferenceFooterWave({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    // The existing AuthReferenceWaves is imported by screens, not by this
+    // generic styling component. A lightweight decorative strip is shared.
+    return Container(height: 12, decoration: const BoxDecoration(
+      gradient: LinearGradient(colors: [
+        Color(0xFF76DEEF), Color(0xFF7FF2C6)])));
+  }
+}
+
 /// Two-tier header from the approved mobile reference. The secondary bar
 /// keeps the back action and title while the top brand remains consistent.
 class BpReferenceSubpageAppBar extends StatelessWidget
