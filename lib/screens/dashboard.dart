@@ -5,6 +5,7 @@ import '../core/appearance.dart';
 import '../core/session.dart';
 import '../widgets/common.dart';
 import 'history.dart';
+import 'auth_reference_chrome.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({
@@ -167,8 +168,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
     final canCreateSale = enabled('sales') && app.hasPermission('sales.create');
     final canViewProducts = enabled('catalog') &&
         (app.hasPermission('products.view') || app.hasPermission('products.manage'));
-    return RefreshIndicator(onRefresh: reload, child: ListView(
-      padding: const EdgeInsets.fromLTRB(14, 8, 14, 18), children: [
+    return Stack(children: [
+      RefreshIndicator(onRefresh: reload, child: ListView(
+      padding: const EdgeInsets.fromLTRB(14, 8, 14, 100), children: [
         const SizedBox(height: 9),
         Row(children: [
           Container(width: 55, height: 55,
@@ -291,19 +293,16 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 () => widget.navigate(2)),
             if (canViewSales) ...[
               _action(Icons.receipt_long_outlined, 'Invoices', _sales),
-              _action(Icons.analytics_outlined, 'Reports',
-                () => widget.navigate(3)),
             ],
           ],
         ),
         ],
-        if (canViewSales) const SizedBox(height: 17),
-        if (canViewSales) SectionHeading('Recent invoices',
+        if (canViewSales && recent.isNotEmpty) const SizedBox(height: 17),
+        if (canViewSales && recent.isNotEmpty) SectionHeading('Recent invoices',
           trailing: TextButton(onPressed: _sales,
             child: const Text('View all'))),
-        if (canViewSales && !busy && error == null)
-          if (recent.isEmpty) const EmptyState(title: 'No invoices yet')
-          else ...recent.take(5).map((item) => Padding(
+        if (canViewSales && !busy && error == null && recent.isNotEmpty)
+          ...recent.take(5).map((item) => Padding(
             padding: const EdgeInsets.only(bottom: 8),
             child: Surface(padding: const EdgeInsets.symmetric(
               horizontal: 13, vertical: 12),
@@ -335,6 +334,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
           ),
         const SizedBox(height: 16),
       ],
-    ));
+    )),
+      const Positioned(left: 0, right: 0, bottom: 0,
+        child: IgnorePointer(
+          child: AuthReferenceWaves(height: 55))),
+    ]);
   }
 }
