@@ -514,19 +514,13 @@ class _ModulesScreenState extends State<ModulesScreen> {
     return Stack(children: [
     ListView(
       key: ValueKey(main ? 'approved-main-menu' : 'approved-more-menu'),
-      padding: const EdgeInsets.fromLTRB(14, 8, 14, 90),
+      padding: const EdgeInsets.fromLTRB(14, 8, 14, 96),
       children: [
         Row(children: [
           Expanded(child: Text(main ? 'Main Menu' : 'More',
             style: const TextStyle(
               color: Color(0xFF071943), fontSize: 23,
               fontWeight: FontWeight.w900))),
-          IconButton(
-            key: ValueKey(main ? 'switch-to-more' : 'switch-to-main-menu'),
-            tooltip: main ? 'Open More Menu (09)' : 'Open Main Menu (08)',
-            onPressed: () => _switchMenu(!main),
-            icon: Icon(main ? Icons.more_horiz_rounded : Icons.apps_rounded,
-              color: const Color(0xFF087D9E))),
           IconButton(
             tooltip: main ? 'Search modules' : 'Settings',
             onPressed: main
@@ -575,27 +569,27 @@ class _ModulesScreenState extends State<ModulesScreen> {
           if (_hasVisibleActions(item.group))
             _menuRow(title: item.label, icon: item.icon,
               tone: item.color, onTap: () => _showGroup(item.group),
-              key: ValueKey('menu-${item.group}'), compact: true),
+              key: ValueKey('menu-${item.group}'), compact: !main),
         if (main) ...[
           if (_hasVisibleActions('Definition'))
             _menuRow(title: 'Products', icon: Icons.inventory_2_rounded,
-              tone: const Color(0xFF9155EC), onTap: () => widget.navigate(2), compact: true),
+              tone: const Color(0xFF9155EC), onTap: () => widget.navigate(2), compact: false),
           if (groups['Definition']!.any((action) =>
               action.title == 'Customers' && action.visible(app)))
             _menuRow(title: 'Customers', icon: Icons.people_rounded,
               tone: const Color(0xFFEA4A72), onTap: () =>
                 groups['Definition']!.firstWhere((a) =>
-                  a.title == 'Customers').open(), compact: true),
+                  a.title == 'Customers').open(), compact: false),
           if (groups['Daily Entries']!.any((action) =>
               action.title == 'Purchases' && action.visible(app)))
             _menuRow(title: 'Purchases', icon: Icons.shopping_bag_rounded,
               tone: scheme.tertiary, onTap: () =>
                 groups['Daily Entries']!.firstWhere((a) =>
-                  a.title == 'Purchases').open(), compact: true),
+                  a.title == 'Purchases').open(), compact: false),
           if (groups['Daily Entries']!.any((action) =>
               action.title == 'New Sale' && action.visible(app)))
             _menuRow(title: 'Sales', icon: Icons.shopping_cart_rounded,
-              tone: scheme.tertiary, onTap: () => widget.navigate(1), compact: true),
+              tone: scheme.tertiary, onTap: () => widget.navigate(1), compact: false),
         ] else ...[
           const SizedBox(height: 2),
           Divider(color: scheme.outlineVariant),
