@@ -31,20 +31,20 @@ _Source: numbered 92-image reference ZIP and live Android screenshots supplied b
 | 24 | Sale Schemes | Real-data UI implemented | GET /api/sale-schemes; permission gate, search/filter, real status/dates |
 | 25 | Add Sale Scheme | **Preview only** | Reference fields + pinned footer. Save disabled: current server contract requires reward product ULID/quantity not included in mockup |
 | 26 | Customers | Reference-styled real API list | Search, filter, compact record cards, authorized Add; customer balances are not invented |
-| 27 | Add Customer | Reference-styled existing real API form | Required party code + account type retained; compact fields and centralized small footer; mocked opening balance/credit limit not submitted |
+| 27 | Add Customer | Reference-styled existing real API form | Required party code + account type retained; email/credit limit/credit days supported by real API; opening balance remains separate posting flow |
 | 28 | Customer Details | Reference-styled authorized detail view | Shared labeled rows, real ULID fetch, no fabricated receivables or transactions |
 | 29 | Suppliers | Reference-styled real API list | Search, filter, compact cards and authorized Add |
 | 30 | Supplier Details | Reference-styled authorized detail view | Shared detail rows, real ULID fetch, no invented payable summaries |
 | 31 | Add Supplier | UI implemented, device QA pending | Reordered existing real party fields to match reference: Supplier Name, Mobile, City, Address, Credit Limit/Days, Contact, Email, then required Code/Account Type; no fake opening balance/group field |
 | 32 | Daily Entries Home | UI implemented, device QA pending | Color-coded reference menu uses only existing permission/entitlement-gated actions, including stock flows; no fictional voucher routes |
-| 33 | Create Sales Invoice | Existing approved/frozen POS reused | No geometry or posting logic changes in this batch; preserves server totals/stock rules |
-| 34 | Sales Invoice Detail | UI implemented, device QA pending | Existing real sale detail + PDF export reused; table-style read-only rows, totals and pinned Print/Share footer |
-| 35 | Purchase Invoices | UI implemented, device QA pending | Existing server-backed draft/post flows preserved; shared TransactionDirectory reference list/search and Add Purchase CTA refined |
-| 36 | Create Purchase Invoice | Reference-style functional draft editor; device QA pending | Compact server-backed Supplier/Date/Warehouse/Remarks, product cards and shared Create Draft/Post footer; uses existing authorized purchase draft/line/post methods |
-| 37 | Purchase Invoice Detail | Reference-style real detail; device QA pending | Server-confirmed purchase lines/totals/status; Print PDF from authorized server response and vendor View Ledger when permitted, without a fake purchase-ledger endpoint |
-| 38 | Sales Returns | Functional server list, styled; device QA pending | Real `/api/sales-returns`, search/status filter, compact colored reference cards, Add Return; no sample returns |
-| 39 | Create Sales Return | Reference-style functional return editor; device QA pending | Posted original sale selection, server returnable lines, draft/line edit/delete, preserved persisted idempotency key and server Post Return; compact form/item cards and footer |
-| 40 | Purchase Returns | Functional server list, styled; device QA pending | Real `/api/purchase-returns`, search/status filters, Add Return; existing server purchase return editor/posting reuse |
+| 33 | Create Sales Invoice | Existing approved/frozen POS reused; list navigation fixed | Dedicated Sales Invoices list now opens full ReceiptScreen instead of generic history bottom sheet; separate Create Sales Invoice still uses existing authorized POS |
+| 34 | Sales Invoice Detail | UI refined, device QA pending | Server sale items, compact displayed decimals, highlighted backend grand total, actual payment method/amount banner only when payments exist; shared pinned Print/Share footer |
+| 35 | Purchase Invoices | Shared directory cards improved, device QA pending | Actual supplier, document/date/amount/status rendered; server-side search/status filtering, no mocked Paid/Unpaid badges; authorized Add Purchase |
+| 36 | Create Purchase Invoice | API-verified compact UI, device QA pending | Two-column fields: supplier, server document number, invoice date, session warehouse, supplier reference, due date, payment terms, freight, other discount, notes; 4dp numeric validation; existing authorized draft/line/post |
+| 37 | Purchase Invoice Detail | Draft/posted views distinguished; device QA pending | Draft remains editable, posted record shows real server invoice, status and items; resource-backed discount/freight/charges/tax/grand total; Print PDF and vendor-party View Ledger only as authorized |
+| 38 | Sales Returns | Real server directory, device QA pending | Status filter only draft/posted per SaleReturnStatus enum, real customer/source/date/amount, no fictional Refunded status |
+| 39 | Create Sales Return | API-verified compact UI, device QA pending | Read-only server return number, party derived from selected invoice, compact source/date/optional reason/notes, server-returnable items preview, persisted idempotency and real draft/line/post flow |
+| 40 | Purchase Returns | Real server directory, device QA pending | Actual data only; draft/posted server filter and source/party display; genuine purchase return draft/line/post flow retained; empty view when backend has no records |
 | 41–92 | Remaining references | Not claimed complete by this document | Next batch 41–45; inspect reference PNGs and live API before implementation |
 
 ## Current fixes from user feedback
@@ -108,6 +108,22 @@ This was an **inspection only** of the web repository; it was not edited.
 - Web contract previously verified: `backend/routes/api.php` exposes `/api/purchases`, `/api/purchases/{ulid}/post`, `/api/sales-returns`, `/api/sales-returns/{ulid}/post`, `/api/purchase-returns`, `/api/purchase-returns/{ulid}/post`, and party ledger. **No purchase-specific ledger endpoint** is implied by the mockups.
 - No backend/schema migrations, fake line totals or sample return data. No change to frozen Sales Invoice creation geometry.
 - **Pending:** Flutter compiler/analyzer and focused tests; 360–390px device screenshots, Android UI review, real RBAC/API integration QA, server posting and retry tests on `bluepos_test`. The GitHub tool commits are not proof of runtime success.
+
+## Corrections after Android screenshot review — 2026-11-17
+
+**Important distinction:** the supplied 33–40 mockups demonstrate visual hierarchy, **not the live BluePOS business contract**. The live `9o9ame/bluepos` `main` backend and React frontend have been inspected directly before these changes. No illustrative mockup product, total, date, status or customer was inserted.
+
+- Web sources inspected: `PROJECT_UI_DESIGN_SYSTEM.md`; `backend/routes/api.php`; `backend/app/Http/Controllers/Api/Purchases/PurchaseInvoiceController.php` and `PurchaseReturnController.php`; `backend/app/Http/Controllers/Api/Sales/SaleReturnController.php` and `SaleController.php`; respective `Http/Resources/Purchases/*Resource.php` and `Http/Resources/Sales/*Resource.php`; enums `SaleReturnStatus`, `PurchaseReturnStatus`, `PurchaseInvoiceStatus`, `SaleStatus`; `frontend/src/pages/PurchasesPage.tsx`, `SalesReturnsPage.tsx`, `PurchaseReturnsPage.tsx`.
+- Server status contracts: Sales/Purchase Returns = **draft/posted only**. Purchase Invoice = draft/posted/cancelled. Sale = posted/void. Removed mockup-derived `Refunded`/`Adjusted` dropdown statuses. Filtering now calls each backend endpoint with `status`, not client-side subset filtering.
+- `lib/screens/modules.dart`: Sales Invoices action now opens shared server-backed `TransactionDirectory`, whose records open the **full** `ReceiptScreen` instead of a generic history-sheet. Dedicated Create Sales Invoice action still delegates to the existing frozen POS editor. No duplicate invoice posting engine.
+- `lib/screens/transaction_widgets.dart`: shared reference cards now use real party, document, source invoice, date, status and server grand total; color keyed to the returned status. Search placeholder adapts to Sales, Purchases and Returns.
+- `lib/widgets/reference_surface.dart`: new `BpReferenceCompactField` two-column input component plus semantic right-action color support in shared footer; form geometry centralized.
+- `lib/screens/purchase_invoices.dart`: create/edit now use verified header fields and server-generated invoice number (read-only), active session warehouse, real optional supplier reference/due date/payment terms/freight/other discount/notes. Decimal inputs remain strings and are validated as nonnegative with max 4 places; backend recalculates all totals. Posted records use read-only header/status instead of showing editable draft form, with PurchaseInvoiceResource fields (including actual `discount_amount`, not nonexistent `total_discount_amount`). 37 Print and View Ledger actions remain real and permission-checked.
+- `lib/screens/returns.dart`: 39 compact return number/party/source/date form is sourced from real SaleReturnResource/PurchaseReturnResource or chosen source record; no generated-code input. Shows **server returnable-line preview** before a draft exists; creating/adding/posting continues through existing authorized API actions, including persisted idempotency for sale return creation.
+- `lib/screens/receipt.dart`: no generic bottom-sheet route; quantity/rate strings compacted for **display only**, no client-side financial arithmetic; server grand total and optional actual payment banner; shared Print/Share footer.
+- `test/mobile_reference_33_40_web_contract_test.dart` added for 4dp/6dp validation, ULID-only boundaries, compact two-column layout and shared footer action color.
+- **Not claimed:** Full pixel-perfect parity, Flutter compile/analyzer passing, server posting integration tests or approved Android comparison. These still require focused on-device QA and backend tests on `bluepos_test`. Do **not** run posting tests on persistent development DB.
+- **No web backend/frontend changes, no database migrations, no Git branch switch**. All mobile commits are on `feature/daily-entries`.
 
 ## Validation
 
