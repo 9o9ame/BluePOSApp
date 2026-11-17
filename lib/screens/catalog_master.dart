@@ -112,6 +112,7 @@ class _CatalogReferenceFieldTile extends StatelessWidget {
 /// Soft green/neutral status selector from the mobile form references.
 class _CatalogReferenceStatus extends StatelessWidget {
   const _CatalogReferenceStatus({
+    super.key,
     required this.active,
     required this.enabled,
     required this.onChanged,
