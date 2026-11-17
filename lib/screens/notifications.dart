@@ -12,6 +12,7 @@ class NotificationsScreen extends StatefulWidget {
   const NotificationsScreen({super.key, required this.app,
     this.onNavigate});
   final AppController app;
+  final ValueChanged<int>? onNavigate;
 
   @override
   State<NotificationsScreen> createState() => _NotificationsScreenState();
