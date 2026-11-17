@@ -196,7 +196,7 @@ class _AppShellState extends State<AppShell>
                       child: child));
                 },
               )),
-              AnimatedBuilder(
+              Positioned.fill(child: AnimatedBuilder(
                 animation: drawerMotion,
                 builder: (context, _) {
                   if (drawerMotion.value == 0 && !drawerOpen) {
@@ -235,7 +235,7 @@ class _AppShellState extends State<AppShell>
                     ),
                   ]);
                 },
-              ),
+              )),
             ]);
           }),
           bottomNavigationBar: BlueposReferenceNav(
