@@ -68,9 +68,11 @@ class ModuleAction {
 }
 
 class ModulesScreen extends StatefulWidget {
-  const ModulesScreen({super.key, required this.app, required this.navigate});
+  const ModulesScreen({super.key, required this.app, required this.navigate,
+    required this.menuMode});
   final AppController app;
   final ValueChanged<int> navigate;
+  final ValueNotifier<bool> menuMode;
 
   @override
   State<ModulesScreen> createState() => _ModulesScreenState();
@@ -82,10 +84,32 @@ class _ModulesScreenState extends State<ModulesScreen> {
   // permission-checked module directory; no new backend actions.
   bool showMainMenu = false;
   bool showDirectory = false;
+
+  @override
+  void initState() {
+    super.initState();
+    showMainMenu = widget.menuMode.value;
+    widget.menuMode.addListener(_syncMenuMode);
+  }
+
+  void _syncMenuMode() {
+    if (!mounted) return;
+    setState(() {
+      showMainMenu = widget.menuMode.value;
+      showDirectory = false;
+      activeGroup = null;
+    });
+  }
+
+  void _switchMenu(bool main) {
+    widget.menuMode.value = main;
+    _syncMenuMode();
+  }
   String? activeGroup;
 
   @override
   void dispose() {
+    widget.menuMode.removeListener(_syncMenuMode);
     search.dispose();
     super.dispose();
   }
@@ -494,6 +518,12 @@ class _ModulesScreenState extends State<ModulesScreen> {
             style: const TextStyle(
               color: Color(0xFF071943), fontSize: 23,
               fontWeight: FontWeight.w900))),
+          IconButton(
+            key: ValueKey(main ? 'switch-to-more' : 'switch-to-main-menu'),
+            tooltip: main ? 'Open More Menu (09)' : 'Open Main Menu (08)',
+            onPressed: () => _switchMenu(!main),
+            icon: Icon(main ? Icons.more_horiz_rounded : Icons.apps_rounded,
+              color: const Color(0xFF087D9E))),
           IconButton(
             tooltip: main ? 'Search modules' : 'Settings',
             onPressed: main
