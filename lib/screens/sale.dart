@@ -125,12 +125,14 @@ class SaleScreenState extends State<SaleScreen> {
       tenantUlid: field(objectOf(widget.app.session?['tenant'])['ulid']),
       branchUlid: field(objectOf(widget.app.session?['branch'])['ulid']),
     );
-    if (data != null && mounted) setState(() {
-      attemptKey = data['key'] as String;
-      attemptPayload = objectOf(data['payload']);
-      attempted = true;
-      error = 'An earlier invoice save is not confirmed. Retry safely before creating a new sale.';
-    });
+    if (data != null && mounted) {
+      setState(() {
+        attemptKey = data['key'] as String;
+        attemptPayload = objectOf(data['payload']);
+        attempted = true;
+        error = 'An earlier invoice save is not confirmed. Retry safely before creating a new sale.';
+      });
+    }
   }
 
   @override
@@ -339,6 +341,7 @@ class SaleScreenState extends State<SaleScreen> {
       final sale = obj.containsKey('ulid') ? obj : objectOf(obj['data']);
       if (!mounted) return;
       await pendingStore.clear();
+      if (!mounted) return;
       await showDialog<void>(context: context, barrierDismissible: false, builder: (ctx) => AlertDialog(
         title: const Row(children: [Icon(Icons.check_circle, color: Colors.green), SizedBox(width: 10),
           Expanded(child: Text('Sale completed'))]),
@@ -367,7 +370,9 @@ class SaleScreenState extends State<SaleScreen> {
     } on ApiFailure catch (e) {
       if (!mounted) return;
       // A definitive authorization/validation rejection did not create the invoice.
-      if (e.status == 422 || e.status == 403) await pendingStore.clear();
+      if (e.status == 422 || e.status == 403) {
+        await pendingStore.clear();
+      }
       if (!mounted) return;
       setState(() {
         error = e.message;
