@@ -227,41 +227,63 @@ class NotificationsView extends StatelessWidget {
               style: const TextStyle(color: Color(0xFF068B75),
                 fontSize: 12, fontWeight: FontWeight.w800))),
         const SizedBox(height: 6),
-        Row(
+        Container(
           key: const ValueKey('notification-filters'),
-          children: [
+          height: 51,
+          padding: const EdgeInsets.all(4),
+          decoration: BoxDecoration(
+            color: const Color(0xFFFFFFFF),
+            borderRadius: BorderRadius.circular(27),
+            border: Border.all(color: const Color(0xFFEAF0FF)),
+            boxShadow: const [
+              BoxShadow(color: Color(0x245D7DB8),
+                blurRadius: 10, offset: Offset(0, 5)),
+            ]),
+          child: Row(children: [
             for (final filter in const [
               (0, 'All', Icons.notifications_none_rounded),
               (1, 'Alerts', Icons.warning_amber_rounded),
               (2, 'Activity', Icons.monitor_heart_outlined),
             ]) ...[
-              Expanded(child: ChoiceChip(
-                label: Text(filter.$2,
-                  style: TextStyle(
-                    color: selectedTab == filter.$1
-                      ? Colors.white : const Color(0xFF17254A),
-                    fontSize: 12, fontWeight: FontWeight.w800)),
-                avatar: filter.$1 == 0 ? null
-                  : Icon(filter.$3, size: 16,
-                    color: filter.$1 == 1
-                      ? const Color(0xFFE14B61)
-                      : const Color(0xFF2B7CE8)),
-                selected: selectedTab == filter.$1,
-                selectedColor: const Color(0xFF05AE80),
-                labelStyle: TextStyle(
-                  color: selectedTab == filter.$1
-                    ? Colors.white : const Color(0xFF142A52),
-                  fontWeight: FontWeight.w800),
-                backgroundColor: const Color(0xFFF3F5FF),
-                showCheckmark: false,
-                side: BorderSide.none,
-                onSelected: (_) => onTabChanged(filter.$1),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16)),
+              Expanded(child: Material(
+                color: Colors.transparent,
+                child: InkWell(
+                  onTap: () => onTabChanged(filter.$1),
+                  borderRadius: BorderRadius.circular(24),
+                  child: Container(
+                    alignment: Alignment.center,
+                    decoration: BoxDecoration(
+                      gradient: selectedTab == filter.$1
+                        ? const LinearGradient(colors: [
+                            Color(0xFF03BFA1), Color(0xFF00825B)])
+                        : const LinearGradient(colors: [
+                            Color(0xFFF4F6FE), Color(0xFFEDF1FF)]),
+                      borderRadius: BorderRadius.circular(24)),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        if (filter.$1 != 0) ...[
+                          Icon(filter.$3, size: 16,
+                            color: selectedTab == filter.$1
+                              ? Colors.white
+                              : filter.$1 == 1
+                                ? const Color(0xFFE83554)
+                                : const Color(0xFF087DF2)),
+                          const SizedBox(width: 5),
+                        ],
+                        Text(filter.$2, style: TextStyle(
+                          fontSize: 12.5,
+                          fontWeight: FontWeight.w900,
+                          color: selectedTab == filter.$1
+                            ? Colors.white
+                            : const Color(0xFF17244B))),
+                      ]),
+                  ),
+                ),
               )),
-              if (filter.$1 != 2) const SizedBox(width: 7),
+              if (filter.$1 != 2) const SizedBox(width: 5),
             ],
-          ],
+          ]),
         ),
         const SizedBox(height: 16),
         if (busy)
