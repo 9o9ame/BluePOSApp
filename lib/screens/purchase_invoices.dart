@@ -454,54 +454,125 @@ class _PurchaseInvoiceEditorState extends State<PurchaseInvoiceEditor> {
             Row(children: [
               Expanded(child: SectionHeading('Purchase lines (${serverLines.length})')),
               if (draft && canEdit && !saving)
-                IconButton(onPressed: () => lineEditor(),
-                  icon: Icon(Icons.add_circle_outline, color: colors.primary),
-                  tooltip: 'Add purchase line'),
+                OutlinedButton.icon(
+                  key: const ValueKey('purchase-add-product'),
+                  onPressed: () => lineEditor(),
+                  icon: const Icon(Icons.add_rounded, size: 16),
+                  label: const Text('Add Product',
+                    style: TextStyle(fontSize: 11))),
             ]),
             if (serverLines.isEmpty) const EmptyState(
               title: 'No draft lines',
               subtitle: 'Add products before posting.')
             else for (final line in serverLines)
-              Padding(padding: const EdgeInsets.only(bottom: 9),
-                child: Surface(padding: const EdgeInsets.all(12),
+              Padding(padding: const EdgeInsets.only(bottom: 7),
+                child: Container(
+                  padding: const EdgeInsets.all(9),
+                  decoration: style.card(radius: 12),
                   child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start, children: [
-                    Text(field(objectOf(line['product'])['name'], 'Product'),
-                      style: const TextStyle(fontWeight: FontWeight.w800)),
-                    const SizedBox(height: 5),
-                    Text('Quantity: ${field(line['quantity'])}  ·  '
-                      'Cost: ${money(line['unit_cost'], widget.app.currency)}'),
-                    Text('Line total: ${money(line['line_total'], widget.app.currency)}'),
-                    if (field(line['batch_number']).isNotEmpty)
-                      Text('Batch: ${field(line['batch_number'])}'),
-                    if (draft && canEdit) Row(
-                      mainAxisAlignment: MainAxisAlignment.end, children: [
-                      IconButton(onPressed: saving ? null :
-                        () => lineEditor(line),
-                        icon: const Icon(Icons.edit_outlined),
-                        tooltip: 'Edit line'),
-                      IconButton(onPressed: saving ? null :
-                        () => deleteLine(line),
-                        icon: Icon(Icons.delete_outline, color: colors.error),
-                        tooltip: 'Remove draft line'),
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(children: [
+                        Container(
+                          width: 38, height: 38,
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFDBEFFD),
+                            borderRadius: BorderRadius.circular(9)),
+                          child: const Icon(Icons.inventory_2_outlined,
+                            color: Color(0xFF078DF3), size: 21)),
+                        const SizedBox(width: 8),
+                        Expanded(child: Text(
+                          field(objectOf(line['product'])['name'], 'Product'),
+                          maxLines: 2, overflow: TextOverflow.ellipsis,
+                          style: TextStyle(fontSize: 12,
+                            fontWeight: FontWeight.w900, color: style.ink))),
+                        if (draft && canEdit) ...[
+                          IconButton(
+                            constraints: const BoxConstraints(
+                              minWidth: 31, minHeight: 31),
+                            visualDensity: VisualDensity.compact,
+                            onPressed: saving ? null : () => lineEditor(line),
+                            icon: const Icon(Icons.edit_outlined, size: 18)),
+                          IconButton(
+                            constraints: const BoxConstraints(
+                              minWidth: 31, minHeight: 31),
+                            visualDensity: VisualDensity.compact,
+                            onPressed: saving ? null : () => deleteLine(line),
+                            icon: Icon(Icons.delete_outline, size: 18,
+                              color: colors.error)),
+                        ],
+                      ]),
+                      const SizedBox(height: 6),
+                      Row(children: [
+                        Expanded(child: Text(
+                          'Qty: ${field(line['quantity'])}',
+                          style: TextStyle(fontSize: 10, color: style.muted))),
+                        Expanded(child: Text(
+                          'Rate: ${field(line['unit_cost'])}',
+                          style: TextStyle(fontSize: 10, color: style.muted))),
+                        Text(money(line['line_total'], widget.app.currency),
+                          style: TextStyle(fontSize: 11,
+                            fontWeight: FontWeight.w900, color: style.ink)),
+                      ]),
+                      if (field(line['batch_number']).isNotEmpty)
+                        Text('Batch: ${field(line['batch_number'])}',
+                          style: TextStyle(fontSize: 10, color: style.muted)),
                     ]),
-                  ]))),
+                )),
             const SizedBox(height: 12),
-            Surface(child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Text('Server-calculated total',
-                style: TextStyle(color: colors.onSurfaceVariant,
-                  fontSize: 12)),
-              Text(money(document?['grand_total'], widget.app.currency),
-                style: const TextStyle(fontWeight: FontWeight.w900,
-                  fontSize: 22)),
-              Text('Status: ${field(document?['status'])}',
-                style: const TextStyle(fontSize: 12)),
-              if (field(document?['status']) == 'posted') ...[
-                Text('Paid: ${money(document?['paid_amount'], widget.app.currency)}'),
-                Text('Balance: ${money(document?['balance_payable'], widget.app.currency)}'),
-              ],
-            ])),
+            Container(
+              padding: const EdgeInsets.all(11),
+              decoration: style.card(radius: 14),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  if (document?['subtotal'] != null)
+                    BpReferenceDetailLine(
+                      label: 'Subtotal',
+                      value: money(document?['subtotal'], widget.app.currency),
+                      icon: Icons.calculate_outlined),
+                  if (document?['total_discount_amount'] != null)
+                    BpReferenceDetailLine(
+                      label: 'Discount',
+                      value: money(document?['total_discount_amount'],
+                        widget.app.currency),
+                      icon: Icons.discount_outlined),
+                  if (document?['freight_amount'] != null)
+                    BpReferenceDetailLine(
+                      label: 'Freight',
+                      value: money(document?['freight_amount'],
+                        widget.app.currency),
+                      icon: Icons.local_shipping_outlined),
+                  if (document?['tax_amount'] != null)
+                    BpReferenceDetailLine(
+                      label: 'Tax',
+                      value: money(document?['tax_amount'],
+                        widget.app.currency),
+                      icon: Icons.percent_outlined),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 9, vertical: 10),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFD7F8CF),
+                      borderRadius: BorderRadius.circular(10)),
+                    child: Row(children: [
+                      const Expanded(child: Text('Grand Total',
+                        style: TextStyle(fontWeight: FontWeight.w900))),
+                      Text(money(document?['grand_total'],
+                        widget.app.currency),
+                        style: const TextStyle(fontWeight: FontWeight.w900)),
+                    ])),
+                  if (field(document?['status']) == 'posted') ...[
+                    BpReferenceDetailLine(
+                      label: 'Paid', icon: Icons.payments_outlined,
+                      value: money(document?['paid_amount'],
+                        widget.app.currency)),
+                    BpReferenceDetailLine(
+                      label: 'Balance', icon: Icons.account_balance_wallet_outlined,
+                      value: money(document?['balance_payable'],
+                        widget.app.currency)),
+                  ],
+                ])),
             if (field(document?['status']) == 'posted' &&
                 widget.app.hasPermission('payments.create'))
               Padding(padding: const EdgeInsets.only(top: 13),
