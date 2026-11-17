@@ -132,6 +132,14 @@ This was an **inspection only** of the web repository; it was not edited.
 - **Shared UI:** `BpReferenceCompactField` drives dense invoice metadata; `BpReferenceWorkflowActions` now controls both Post (green) and authorized Ledger/Share (blue) without duplicating footer layouts.
 - Added test coverage for shared decimal label rendering. Flutter SDK still unavailable in this execution environment; no analyzer/test pass is asserted.
 
+## Flutter analyzer incident correction — 2026-11-17
+
+Windows verification after `b3bf748` successfully fast-forwarded the mobile branch, but failed to compile `lib/screens/returns.dart:509–513` due to an ambiguous nested conditional with null-aware map reads. Both focused test suites failed **to load**, not because their assertions failed.
+
+**Committed fix:** Return detail/customer-or-supplier name is resolved from already-converted `objectOf(document)` and `objectOf(source)` maps using one type-safe party key before rendering. Removed unused imports from affected files, migrated PDF `Table.fromTextArray` to `TableHelper.fromTextArray`, added braces around the logged guarded flows in Purchase/Return/Transaction widgets, and cleaned the shared display-label interpolation warning. No backend/schema/posting calculations changed.
+
+**Validation:** Structural bracket/quote checks across five touched Dart files passed; **Flutter analyzer/tests have not been rerun in the assistant runtime**. The prior Windows run reported 38 diagnostics including compile errors; user must pull latest branch and rerun targeted checks. Their local `analysis_options.yaml` modification and untracked `.idea/`, `.metadata`, `android/`, `bluepos_app.iml`, `widget_test.generated.bak` were deliberately untouched. Never reset or delete them without explicit approval.
+
 ## Validation
 
 - Repository files edited on `feature/daily-entries`; no main merge.
