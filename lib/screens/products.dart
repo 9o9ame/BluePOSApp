@@ -238,8 +238,10 @@ class _ProductsScreenState extends State<ProductsScreen> {
   Future<void> loadCategories() async {
     try {
       final response = await widget.app.api.get('/api/categories');
-      if (mounted) setState(() => categories = recordsOf(response)
-        .where((c) => c['is_active'] != false).toList());
+      if (mounted) {
+        setState(() => categories = recordsOf(response)
+          .where((c) => c['is_active'] != false).toList());
+      }
     } catch (_) { /* Categorization is optional when user lacks its permission. */ }
   }
 
