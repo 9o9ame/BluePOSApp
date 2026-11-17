@@ -272,6 +272,8 @@ class _TransactionDirectoryState extends State<TransactionDirectory> {
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
     final style = BpReferenceStyle.of(context);
+    final isReturns = widget.endpoint == '/api/sales-returns' ||
+      widget.endpoint == '/api/purchase-returns';
     final allowCreate = widget.onCreate != null &&
       (widget.createPermission == null ||
         widget.app.hasPermission(widget.createPermission!));
@@ -290,7 +292,8 @@ class _TransactionDirectoryState extends State<TransactionDirectory> {
         onPressed: () async {
           if (await widget.onCreate!(context) && mounted) await load();
         }, icon: const Icon(Icons.add_rounded),
-        label: Text(widget.referenceStyle ? 'Add Purchase' : 'New'))
+        label: Text(isReturns ? 'Add Return' :
+          widget.referenceStyle ? 'Add Purchase' : 'New'))
         : null,
       body: RefreshIndicator(onRefresh: load,
         child: ListView(
@@ -333,10 +336,13 @@ class _TransactionDirectoryState extends State<TransactionDirectory> {
                   if (widget.referenceStyle)
                     Container(width: 46, height: 46,
                       decoration: BoxDecoration(
-                        color: colors.primaryContainer,
+                        color: isReturns ? const Color(0xFFFFE8F1)
+                          : colors.primaryContainer,
                         borderRadius: BorderRadius.circular(12)),
-                      child: Icon(Icons.receipt_long_outlined,
-                        color: colors.primary))
+                      child: Icon(isReturns ? Icons.assignment_return_rounded
+                        : Icons.receipt_long_outlined,
+                        color: isReturns ? const Color(0xFFF04878)
+                          : colors.primary))
                   else
                     Icon(Icons.description_outlined, color: colors.primary),
                   const SizedBox(width: 11),
@@ -352,6 +358,14 @@ class _TransactionDirectoryState extends State<TransactionDirectory> {
                         field(item['customer_name'])))),
                         maxLines: 1, overflow: TextOverflow.ellipsis,
                         style: TextStyle(fontSize: 11,
+                          color: colors.onSurfaceVariant)),
+                    if (isReturns)
+                      Text('Invoice: ${field(
+                        objectOf(item['original_sale'])['document_number'],
+                        field(objectOf(item['original_purchase'])['document_number'],
+                          'Not available'))}',
+                        maxLines: 1, overflow: TextOverflow.ellipsis,
+                        style: TextStyle(fontSize: 10,
                           color: colors.onSurfaceVariant)),
                     Text(field(item[widget.dateKey]),
                       style: TextStyle(fontSize: 11,
