@@ -131,3 +131,44 @@ class BpReferenceSubpageAppBar extends StatelessWidget
     );
   }
 }
+
+/// Decorative upper-right swoosh from the approved light reference.
+/// It stays behind content and darkens with the selected theme.
+class BpReferenceTopAccent extends StatelessWidget {
+  const BpReferenceTopAccent({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final dark = Theme.of(context).brightness == Brightness.dark;
+    return IgnorePointer(child: SizedBox(
+      width: 200, height: 96,
+      child: CustomPaint(painter: _BpReferenceTopPainter(dark))));
+  }
+}
+
+class _BpReferenceTopPainter extends CustomPainter {
+  const _BpReferenceTopPainter(this.dark);
+  final bool dark;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final path = Path()
+      ..moveTo(size.width, 0)
+      ..lineTo(size.width, size.height)
+      ..cubicTo(size.width * .68, size.height * .63,
+        size.width * .48, size.height * .96, 0, size.height * .92)
+      ..lineTo(size.width, 0)
+      ..close();
+    canvas.drawPath(path, Paint()
+      ..shader = LinearGradient(
+        begin: Alignment.topRight, end: Alignment.bottomLeft,
+        colors: dark
+          ? [const Color(0xFF263C65), const Color(0xFF182C4A)]
+          : [const Color(0xFFE8F2FF), const Color(0xFFCFDFFF)],
+      ).createShader(Offset.zero & size));
+  }
+
+  @override
+  bool shouldRepaint(covariant _BpReferenceTopPainter oldDelegate) =>
+      oldDelegate.dark != dark;
+}
