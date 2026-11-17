@@ -420,7 +420,7 @@ class SaleScreenState extends State<SaleScreen> {
         // Screen 07 reference: search, category chips and two-column cards
         // belong on the main POS page, not only a second picker screen.
         SizedBox(
-          height: (MediaQuery.sizeOf(context).height * .54).clamp(335.0, 570.0),
+          height: (MediaQuery.sizeOf(context).height * .68).clamp(430.0, 680.0),
           child: ProductsScreen(
             key: const ValueKey('inline-pos-catalog'),
             app: app,
@@ -527,10 +527,9 @@ class SaleScreenState extends State<SaleScreen> {
       const SizedBox(height: 20),
     ])),
     SafeArea(top: false, child: Padding(
-      padding: EdgeInsets.fromLTRB(app.appearance.spacing, 7,
-        app.appearance.spacing, 8),
+      padding: const EdgeInsets.fromLTRB(10, 5, 10, 7),
       child: Container(
-        padding: const EdgeInsets.all(12),
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 11),
         decoration: BoxDecoration(
           gradient: const LinearGradient(colors: [
             Colors.white, Color(0xFFEFFFF9)]),
@@ -547,7 +546,7 @@ class SaleScreenState extends State<SaleScreen> {
             const SizedBox(width: 10),
             Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('${lines.length} products · Estimated item net',
+                Text('${lines.length} items · Estimated total',
                   style: TextStyle(fontSize: 11,
                     color: scheme.onSurfaceVariant), maxLines: 1,
                   overflow: TextOverflow.ellipsis),
@@ -571,10 +570,7 @@ class SaleScreenState extends State<SaleScreen> {
               ]),
             ),
           ]),
-          const SizedBox(height: 5),
-          Text('Estimate before tax · BluePOS server calculates final total.',
-            style: TextStyle(fontSize: 10,
-              color: scheme.onSurfaceVariant)),
+
         ],
       )),
     )),
