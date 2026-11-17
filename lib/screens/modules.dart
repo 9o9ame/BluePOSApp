@@ -117,8 +117,29 @@ class _ModulesScreenState extends State<ModulesScreen> {
     super.dispose();
   }
 
-  void _open(Widget screen) =>
-    Navigator.of(context).push(MaterialPageRoute(builder: (_) => screen));
+  void _open(Widget screen) {
+    final duration = widget.app.appearance.animations
+        ? const Duration(milliseconds: 290) : Duration.zero;
+    Navigator.of(context).push(PageRouteBuilder<void>(
+      transitionDuration: duration,
+      reverseTransitionDuration: duration,
+      pageBuilder: (context, animation, secondaryAnimation) => screen,
+      transitionsBuilder: (context, animation, secondaryAnimation, child) {
+        final curved = CurvedAnimation(
+          parent: animation, curve: Curves.easeOutCubic);
+        return FadeTransition(
+          opacity: curved,
+          child: SlideTransition(
+            position: Tween<Offset>(
+              begin: const Offset(.055, 0),
+              end: Offset.zero,
+            ).animate(curved),
+            child: child,
+          ),
+        );
+      },
+    ));
+  }
 
   void _catalog(CatalogMasterConfig config) =>
     _open(CatalogMasterScreen(app: widget.app, config: config));
