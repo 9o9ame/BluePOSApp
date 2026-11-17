@@ -157,6 +157,18 @@ class _CatalogMasterScreenState extends State<CatalogMasterScreen> {
     }
     var saving = false;
     String? formError;
+    int previewIcon = 0;
+    int previewColor = 0;
+    final categoryPreviewIcons = <IconData>[
+      Icons.shopping_basket_rounded, Icons.sell_rounded,
+      Icons.restaurant_rounded, Icons.inventory_2_rounded,
+      Icons.grid_view_rounded,
+    ];
+    final categoryPreviewColors = <Color>[
+      const Color(0xFFFF9900), const Color(0xFF5A9DFF),
+      const Color(0xFF42C875), const Color(0xFF984AF7),
+      const Color(0xFFF5759B), const Color(0xFF60D2EA),
+    ];
     final singular = widget.config.title == 'Categories' ? 'Category'
       : widget.config.title == 'Subcategories' ? 'Subcategory'
       : widget.config.title == 'Brands' ? 'Brand'
@@ -167,7 +179,9 @@ class _CatalogMasterScreenState extends State<CatalogMasterScreen> {
       final didSave = await Navigator.of(context).push<bool>(
         MaterialPageRoute(builder: (_) => StatefulBuilder(
           builder: (sheetContext, updateSheet) => Scaffold(
-            appBar: AppBar(title: Text(formTitle)),
+            appBar: AppBar(centerTitle: true,
+              title: Text(formTitle, style: const TextStyle(
+                fontSize: 18, fontWeight: FontWeight.w900))),
             body: SafeArea(child: Padding(
               padding: EdgeInsets.fromLTRB(16, 12, 16,
                 MediaQuery.viewInsetsOf(sheetContext).bottom + 20),
@@ -175,18 +189,97 @@ class _CatalogMasterScreenState extends State<CatalogMasterScreen> {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                const SizedBox(height: 12),
-                Center(child: Icon(
-                  widget.config.needsCategory ? Icons.layers_outlined
-                    : widget.config.apiPath == '/api/brands'
-                      ? Icons.sell_outlined
-                      : widget.config.isUnit ? Icons.inventory_2_outlined
-                      : Icons.category_outlined,
-                  size: 56, color: Theme.of(sheetContext).colorScheme.primary)),
-                const SizedBox(height: 22),
-                Text(formTitle, style: const TextStyle(
-                  fontSize: 21, fontWeight: FontWeight.w900)),
-                const SizedBox(height: 16),
+                if (widget.config.apiPath == '/api/categories') ...[
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      gradient: const LinearGradient(colors: [
+                        Colors.white, Color(0xFFF0F4FF)]),
+                      border: Border.all(color: Colors.white, width: 1.3),
+                      borderRadius: BorderRadius.circular(16),
+                      boxShadow: const [BoxShadow(
+                        color: Color(0x1A5374AE), blurRadius: 10,
+                        offset: Offset(0, 4))]),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text('Category Icon & Color',
+                          style: TextStyle(fontWeight: FontWeight.w900,
+                            color: Color(0xFF10234D), fontSize: 13)),
+                        const SizedBox(height: 12),
+                        Row(children: [
+                          Container(
+                            width: 66, height: 66,
+                            decoration: BoxDecoration(
+                              color: categoryPreviewColors[previewColor]
+                                .withValues(alpha: .14),
+                              borderRadius: BorderRadius.circular(14)),
+                            child: Icon(categoryPreviewIcons[previewIcon],
+                              size: 35,
+                              color: categoryPreviewColors[previewColor])),
+                          const SizedBox(width: 10),
+                          Expanded(child: Wrap(spacing: 4, runSpacing: 4,
+                            children: [
+                              for (var i = 0; i < categoryPreviewIcons.length; i++)
+                                InkWell(
+                                  onTap: () => updateSheet(() => previewIcon = i),
+                                  borderRadius: BorderRadius.circular(9),
+                                  child: Container(
+                                    width: 35, height: 35,
+                                    decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(9),
+                                      color: i == previewIcon
+                                        ? const Color(0xFFE2F0FF) : Colors.white,
+                                      border: Border.all(color: i == previewIcon
+                                        ? const Color(0xFF087AF8)
+                                        : const Color(0xFFE0E6F6))),
+                                    child: Icon(categoryPreviewIcons[i],
+                                      size: 18,
+                                      color: const Color(0xFF445780))),
+                                ),
+                            ])),
+                        ]),
+                        const SizedBox(height: 8),
+                        Wrap(spacing: 8, runSpacing: 6,
+                          children: [
+                            for (var i = 0; i < categoryPreviewColors.length; i++)
+                              InkWell(
+                                onTap: () => updateSheet(() => previewColor = i),
+                                child: Container(width: 25, height: 25,
+                                  decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    color: categoryPreviewColors[i],
+                                    border: Border.all(
+                                      color: i == previewColor
+                                        ? const Color(0xFF1045C8)
+                                        : Colors.white, width: 2.5))),
+                              ),
+                          ]),
+                        const SizedBox(height: 6),
+                        const Text('Icon and color are preview only; '
+                          'the current Category API does not save them.',
+                          style: TextStyle(fontSize: 10,
+                            color: Color(0xFF667494))),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                ] else ...[
+                  const SizedBox(height: 12),
+                  Center(child: Icon(
+                    widget.config.needsCategory ? Icons.layers_outlined
+                      : widget.config.apiPath == '/api/brands'
+                        ? Icons.sell_outlined
+                        : widget.config.isUnit ? Icons.inventory_2_outlined
+                        : Icons.category_outlined,
+                    size: 56,
+                    color: Theme.of(sheetContext).colorScheme.primary)),
+                  const SizedBox(height: 22),
+                ],
+                if (widget.config.apiPath != '/api/categories')
+                  Text(formTitle, style: const TextStyle(
+                    fontSize: 21, fontWeight: FontWeight.w900)),
+                const SizedBox(height: 14),
                 TextField(
                   key: const ValueKey('catalog-editor-name'),
                   controller: name, maxLength: 160,
@@ -266,6 +359,11 @@ class _CatalogMasterScreenState extends State<CatalogMasterScreen> {
                   child: Text(formError!, style: TextStyle(
                     color: Theme.of(sheetContext).colorScheme.error)),
                 ),
+                const SizedBox(height: 12),
+                if (widget.config.apiPath == '/api/categories')
+                  const Text('Category changes are validated and saved '
+                    'by BluePOS server.', style: TextStyle(
+                      color: Color(0xFF6D7C98), fontSize: 10.5)),
                 const SizedBox(height: 10),
                 FilledButton.icon(
                   key: const ValueKey('catalog-editor-save'),
