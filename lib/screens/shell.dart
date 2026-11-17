@@ -21,6 +21,7 @@ class AppShell extends StatefulWidget {
 
 class _AppShellState extends State<AppShell> {
   int selected = 0;
+  final menuMode = ValueNotifier<bool>(false);
   final saleKey = GlobalKey<SaleScreenState>();
   late final List<Widget> pages = [
     DashboardScreen(app: widget.app, navigate: navigate),
@@ -30,10 +31,21 @@ class _AppShellState extends State<AppShell> {
       navigate(1);
     }),
     ReportsScreen(app: widget.app),
-    MoreScreen(app: widget.app, navigate: navigate),
+    MoreScreen(app: widget.app, navigate: navigate, menuMode: menuMode),
   ];
   static const titles = ['Home', 'POS Sale', 'Products', 'Reports', 'Modules'];
   void navigate(int i) => setState(() => selected = i);
+
+  @override
+  void dispose() {
+    menuMode.dispose();
+    super.dispose();
+  }
+
+  void openMainMenu() {
+    menuMode.value = true;
+    navigate(4);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -71,9 +83,7 @@ class _AppShellState extends State<AppShell> {
               : IconButton(
                   tooltip: 'Open Main Menu',
                   icon: const Icon(Icons.menu_rounded),
-                  onPressed: () {
-                    navigate(4);
-                  }),
+                  onPressed: openMainMenu),
             centerTitle: true,
             titleSpacing: 0,
             title: Row(mainAxisSize: MainAxisSize.min, children: [
@@ -134,7 +144,10 @@ class _AppShellState extends State<AppShell> {
               ),
               child: NavigationBar(
                 selectedIndex: selected,
-                onDestinationSelected: navigate,
+                onDestinationSelected: (index) {
+                  if (index == 4) menuMode.value = false;
+                  navigate(index);
+                },
                 backgroundColor: Colors.transparent,
                 indicatorColor: reference
                   ? const Color(0xFF06AA70) : scheme.primary,
@@ -181,13 +194,15 @@ void openSales(BuildContext context, AppController app) => Navigator.of(context)
     amountKey: 'grand_total', detailPrefix: '/api/sales')));
 
 class MoreScreen extends StatelessWidget {
-  const MoreScreen({super.key, required this.app, required this.navigate});
+  const MoreScreen({super.key, required this.app, required this.navigate,
+    required this.menuMode});
   final AppController app;
   final ValueChanged<int> navigate;
+  final ValueNotifier<bool> menuMode;
 
   @override
   Widget build(BuildContext context) =>
-      ModulesScreen(app: app, navigate: navigate);
+      ModulesScreen(app: app, navigate: navigate, menuMode: menuMode);
 }
 
 class InventoryScreen extends StatefulWidget {
