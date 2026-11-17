@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
 import '../core/api.dart';
-import '../core/appearance.dart';
 import '../core/session.dart';
 import '../widgets/common.dart';
 import 'history.dart';
