@@ -109,6 +109,64 @@ class _CatalogReferenceFieldTile extends StatelessWidget {
   }
 }
 
+/// Soft green/neutral status selector from the mobile form references.
+class _CatalogReferenceStatus extends StatelessWidget {
+  const _CatalogReferenceStatus({
+    required this.active,
+    required this.enabled,
+    required this.onChanged,
+  });
+  final bool active;
+  final bool enabled;
+  final ValueChanged<bool> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    final style = BpReferenceStyle.of(context);
+    return Row(children: [
+      for (final value in [true, false]) ...[
+        if (!value) const SizedBox(width: 8),
+        Expanded(child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            onTap: enabled ? () => onChanged(value) : null,
+            borderRadius: BorderRadius.circular(13),
+            child: Container(
+              height: 36,
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                gradient: LinearGradient(colors: active == value
+                    ? [const Color(0xFFEAFFF0), const Color(0xFFBCF6D6)]
+                    : [style.surface, style.surfaceEnd]),
+                borderRadius: BorderRadius.circular(13),
+                border: Border.all(color: active == value
+                  ? const Color(0xFF90E7B6) : style.line),
+                boxShadow: [BoxShadow(
+                  color: style.shadow.withValues(alpha: .45),
+                  blurRadius: 5, offset: const Offset(0, 3))]),
+              child: Row(mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(active == value
+                    ? Icons.check_circle_rounded
+                    : Icons.radio_button_unchecked_rounded,
+                    size: 17, color: active == value
+                      ? const Color(0xFF08A14B) : style.muted),
+                  const SizedBox(width: 6),
+                  Text(value ? 'Active' : 'Inactive',
+                    style: TextStyle(fontSize: 12,
+                      fontWeight: active == value
+                        ? FontWeight.w900 : FontWeight.w600,
+                      color: active == value
+                        ? const Color(0xFF103C29) : style.ink)),
+                ]),
+            ),
+          ),
+        )),
+      ],
+    ]);
+  }
+}
+
 class CatalogMasterScreen extends StatefulWidget {
   const CatalogMasterScreen({
     super.key, required this.app, required this.config,
@@ -569,40 +627,47 @@ class _CatalogMasterScreenState extends State<CatalogMasterScreen> {
                     onChanged: saving ? null :
                       (value) => updateSheet(() => allowsDecimal = value)),
                 ],
-                if (widget.config.needsCategory) ...[
-                  const SizedBox(height: 9),
-                  DropdownButtonFormField<String>(
-                    isExpanded: true,
-                    initialValue: categoryUlid.isEmpty ? null : categoryUlid,
-                    decoration: BpReferenceStyle.of(sheetContext).search(
-                      'Select parent category').copyWith(
-                        isDense: true,
-                        labelText: 'Parent Category *',
-                        contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 12, vertical: 10)),
-                    items: choices.map((choice) => DropdownMenuItem(
-                      value: field(choice['ulid']),
-                      child: Text(field(choice['name']),
-                        overflow: TextOverflow.ellipsis))).toList(),
-                    onChanged: saving ? null :
-                      (next) => updateSheet(() => categoryUlid = next ?? ''),
-                  ),
-                ],
+                if (widget.config.needsCategory)
+                  _CatalogReferenceFieldTile(
+                    icon: Icons.layers_rounded,
+                    tint: const Color(0xFF0DBE64),
+                    label: 'Parent Category *',
+                    child: DropdownButtonFormField<String>(
+                      isExpanded: true,
+                      initialValue: categoryUlid.isEmpty ? null : categoryUlid,
+                      decoration: BpReferenceStyle.of(sheetContext).search(
+                        'Select parent category').copyWith(
+                          isDense: true,
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 11, vertical: 8)),
+                      items: choices.map((choice) => DropdownMenuItem(
+                        value: field(choice['ulid']),
+                        child: Text(field(choice['name']),
+                          overflow: TextOverflow.ellipsis))).toList(),
+                      onChanged: saving ? null :
+                        (next) => updateSheet(() => categoryUlid = next ?? ''),
+                    )),
+
                 const SizedBox(height: 8),
-                Text('Status *',
-                  style: TextStyle(
+                if (widget.config.apiPath == '/api/categories') ...[
+                  Text('Status *', style: TextStyle(
                     color: BpReferenceStyle.of(sheetContext).ink,
-                    fontWeight: FontWeight.w800)),
-                SegmentedButton<bool>(
-                  key: const ValueKey('catalog-editor-status'),
-                  segments: const [
-                    ButtonSegment(value: true, label: Text('Active')),
-                    ButtonSegment(value: false, label: Text('Inactive')),
-                  ],
-                  selected: {active},
-                  onSelectionChanged: saving ? null :
-                    (values) => updateSheet(() => active = values.first),
-                ),
+                    fontWeight: FontWeight.w900)),
+                  const SizedBox(height: 5),
+                  _CatalogReferenceStatus(
+                    key: const ValueKey('catalog-editor-status'),
+                    active: active, enabled: !saving,
+                    onChanged: (value) => updateSheet(() => active = value)),
+                ] else
+                  _CatalogReferenceFieldTile(
+                    icon: Icons.verified_user_outlined,
+                    tint: const Color(0xFF15B967),
+                    label: 'Status *',
+                    child: _CatalogReferenceStatus(
+                      key: const ValueKey('catalog-editor-status'),
+                      active: active, enabled: !saving,
+                      onChanged: (value) => updateSheet(() => active = value))),
+
                 if (formError != null) Padding(
                   padding: const EdgeInsets.symmetric(vertical: 10),
                   child: Text(formError!, style: TextStyle(
