@@ -82,12 +82,13 @@ class _CatalogReferenceFieldTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final style = BpReferenceStyle.of(context);
     return Container(
-      margin: const EdgeInsets.only(bottom: 5),
-      padding: const EdgeInsets.fromLTRB(8, 7, 9, 8),
+      margin: const EdgeInsets.only(bottom: BpReferenceMetrics.formRowGap),
+      padding: const EdgeInsets.fromLTRB(8, 5, 9, 5),
       decoration: style.card(radius: 15),
       child: Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
         Container(
-          width: 37, height: 43,
+          width: BpReferenceMetrics.fieldIconSize,
+          height: BpReferenceMetrics.fieldIconSize + 4,
           decoration: BoxDecoration(
             color: tint.withValues(alpha: .12),
             borderRadius: BorderRadius.circular(11)),
@@ -416,12 +417,12 @@ class _CatalogMasterScreenState extends State<CatalogMasterScreen> {
                 child: Row(children: [
                   Expanded(child: OutlinedButton(
                     style: OutlinedButton.styleFrom(
-                      minimumSize: const Size(0, 51),
+                      minimumSize: const Size(0, BpReferenceMetrics.actionHeight),
                       foregroundColor: BpReferenceStyle.of(sheetContext).ink,
                       side: BorderSide(
                         color: BpReferenceStyle.of(sheetContext).line),
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(15))),
+                        borderRadius: BorderRadius.circular(BpReferenceMetrics.actionRadius))),
                     onPressed: saving ? null :
                       () => Navigator.of(sheetContext).pop(false),
                     child: const Text('Cancel',
@@ -432,9 +433,9 @@ class _CatalogMasterScreenState extends State<CatalogMasterScreen> {
                     style: FilledButton.styleFrom(
                       backgroundColor: const Color(0xFF006AF5),
                       foregroundColor: Colors.white,
-                      minimumSize: const Size(0, 51),
+                      minimumSize: const Size(0, BpReferenceMetrics.actionHeight),
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(15))),
+                        borderRadius: BorderRadius.circular(BpReferenceMetrics.actionRadius))),
                     onPressed: saving ? null :
                       () => submit(sheetContext, updateSheet),
                     icon: saving ? const SizedBox(width: 16, height: 16,
