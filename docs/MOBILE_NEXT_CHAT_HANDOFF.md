@@ -64,6 +64,32 @@ Directly inspected `9o9ame/bluepos` branch `main` in:
 - `PROJECT_UI_DESIGN_SYSTEM.md` exists in **web** repo, not mobile; apply design principles to Flutter shared widgets without copying React CSS.
 - After latest changes **Flutter tests and Android visual QA remain unexecuted**; compile errors/edge cases must be prioritized before more screens. Minimum checks: `flutter analyze` for affected files, `flutter test test/mobile_reference_26_30_test.dart`, Android manual data+ledger QA.
 
+## Latest: detail actions and reference batch 31–35 (2026-11-17)
+
+**User's current request:** Side-by-side bottom **Edit** / **View Ledger** buttons on Customer Detail and Supplier Detail matching reference PNGs, plus five more screens (31–35) and continued documentation.
+
+- `lib/widgets/reference_surface.dart`: added reusable `BpReferenceDetailActions` with small height and side-by-side permissions-sensitive Edit / View Ledger controls.
+- `lib/screens/customer_detail.dart` and `lib/screens/supplier_detail.dart`: hooked footer into the page Scaffold, with real authorized ledger navigation using existing `BpPartyLedgerScreen`. Removed redundant inline full-width Edit button.
+- `lib/screens/parties.dart`: **31 Add Supplier** form reorders visible fields to align with reference; retains required editable Code and Account Type from Laravel `StorePartyRequest`. No invented Opening Balance or Supplier Group field, both of which require domain-specific verification.
+- `lib/screens/modules.dart`: **32 Daily Entries** uses colorful reference action rows bound to existing RBAC/entitlement-aware module actions. No nonexistent direct receipts/delivery routes fabricated.
+- `lib/screens/sales_invoice_entry.dart`: **33 Sales Invoice** remains existing frozen POS `SaleScreen` with server calculation and posting; no UI geometry modification or duplicate invoice engine.
+- `lib/screens/receipt.dart`: **34 Sales Invoice Detail** reference header, real invoice line summary, totals, and pinned Print/Share actions. Existing authorized server sale detail and PDF export retained.
+- `lib/screens/transaction_widgets.dart`: **35 Purchase Invoices** now uses reference cards/header/search/Add Purchase when `referenceStyle` is enabled, while `PurchaseInvoicesScreen` still handles real existing purchase draft and posting workflows.
+- `test/mobile_reference_31_35_test.dart` added, static delimiter check performed, **Flutter compile and device QA still pending**.
+- `docs/MOBILE_REFERENCE_PROGRESS.md` updated to mark 31–35 with precise completed vs pending work.
+
+Next development batch: **36–40**, but FIRST ask user to run focused Flutter analyze/tests or inspect reported errors. User will supply Android screenshots for visual QA. Don't claim pixel-perfect parity or full runtime validation from static source checks. Continue on `feature/daily-entries`; do not switch to `main`.
+
+Suggested commands on Windows:
+
+```powershell
+cd "C:\Projects\BluePOSApp"
+git pull --ff-only origin feature/daily-entries
+flutter analyze lib/widgets/reference_surface.dart lib/screens/customer_detail.dart lib/screens/supplier_detail.dart lib/screens/parties.dart lib/screens/modules.dart lib/screens/receipt.dart lib/screens/transaction_widgets.dart
+flutter test test/mobile_reference_26_30_test.dart test/mobile_reference_31_35_test.dart
+flutter run
+```
+
 ## What is still pending / honesty boundary
 
 - **Run on user's Windows Flutter installation**: analyze 3 affected Dart files and run focused tests. Our execution environment did not have Flutter/Dart binaries. Distinguish static source inspection from actual test execution.
@@ -79,7 +105,7 @@ Directly inspected `9o9ame/bluepos` branch `main` in:
 
 1. Run latest focused Flutter checks and fix any analyzer/runtime errors. Re-read latest repo file before editing: other commits might land.
 2. Obtain screenshot comparison for 15–25, resolve only remaining visual mismatch without changing real data.
-3. Next batch is references **31–35**. Inspect existing screens, API contracts, frozen design requirements and permissions before editing.
+3. Next batch is references **36–40**. Inspect existing screens, API contracts, frozen design requirements and permissions before editing.
 4. After each batch update both `docs/MOBILE_REFERENCE_PROGRESS.md` and this handoff, report exact commit SHA, tests, pending items.
 
 ## Pull / verify commands
