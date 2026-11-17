@@ -509,8 +509,10 @@ class _CatalogMasterScreenState extends State<CatalogMasterScreen> {
       )));
       if (didSave == true && mounted) {
         await reload();
-        if (mounted) ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Saved successfully.')));
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Saved successfully.')));
+        }
       }
     } finally {
       name.dispose();
