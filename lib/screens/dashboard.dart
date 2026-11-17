@@ -175,15 +175,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
           children: [
             Text(caption, maxLines: 2,
               overflow: TextOverflow.ellipsis,
-              style: const TextStyle(fontSize: 12.5,
+              style: TextStyle(fontSize: 12.5,
                 fontWeight: FontWeight.w700,
-                color: Color(0xFF18274B))),
+                color: Theme.of(context).colorScheme.onSurface)),
             const SizedBox(height: 2),
             Text(value, maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              style: const TextStyle(
+              style: TextStyle(
               fontSize: 22, fontWeight: FontWeight.w900,
-              color: Color(0xFF0A1A43))),
+              color: Theme.of(context).colorScheme.onSurface)),
           ])),
       ])),
   );
@@ -218,8 +218,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
             const SizedBox(height: 11),
             Text(caption, textAlign: TextAlign.center,
               maxLines: 2,
-              style: const TextStyle(
-                color: Color(0xFF0A1B48),
+              style: TextStyle(
+                color: Theme.of(context).colorScheme.onSurface,
                 fontSize: 13.5,
                 fontWeight: FontWeight.w900)),
           ]),
@@ -256,8 +256,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 color: scheme.onSurfaceVariant, fontSize: 12)),
               const SizedBox(height: 2),
               Text(app.tenantName, maxLines: 1, overflow: TextOverflow.ellipsis,
-                style: const TextStyle(fontSize: 21,
-                  color: Color(0xFF0A1B48), fontWeight: FontWeight.w900)),
+                style: TextStyle(fontSize: 21,
+                  color: scheme.onSurface, fontWeight: FontWeight.w900)),
               Text('${app.branchName} • ${app.warehouseName}',
                 maxLines: 1, overflow: TextOverflow.ellipsis,
                 style: TextStyle(fontSize: 11,
@@ -359,8 +359,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
         ],
         if (canCreateSale || canViewProducts || canViewSales) ...[
         const SizedBox(height: 17),
-        const Text('Quick Actions', style: TextStyle(
-          color: Color(0xFF0A1B48), fontSize: 19,
+        Text('Quick Actions', style: TextStyle(
+          color: scheme.onSurface, fontSize: 19,
           fontWeight: FontWeight.w900)),
         GridView.count(
           crossAxisCount: 3,
