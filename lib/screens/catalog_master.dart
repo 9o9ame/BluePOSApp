@@ -223,6 +223,30 @@ class _CatalogMasterScreenState extends State<CatalogMasterScreen> {
               onNotifications: () => Navigator.of(sheetContext).push(
                 MaterialPageRoute(builder: (_) =>
                   NotificationsScreen(app: widget.app)))),
+            bottomNavigationBar: SafeArea(top: false,
+              child: Container(
+                padding: const EdgeInsets.fromLTRB(14, 9, 14, 12),
+                decoration: BoxDecoration(
+                  color: BpReferenceStyle.of(sheetContext).surface,
+                  border: Border(top: BorderSide(
+                    color: BpReferenceStyle.of(sheetContext).line))),
+                child: Row(children: [
+                  Expanded(child: OutlinedButton(
+                    onPressed: saving ? null :
+                      () => Navigator.of(sheetContext).pop(false),
+                    child: const Text('Cancel'))),
+                  const SizedBox(width: 9),
+                  Expanded(child: FilledButton.icon(
+                    key: const ValueKey('catalog-editor-save'),
+                    onPressed: saving ? null :
+                      () => submit(sheetContext, updateSheet),
+                    icon: saving ? const SizedBox(width: 16, height: 16,
+                      child: CircularProgressIndicator(strokeWidth: 2))
+                      : const Icon(Icons.save_outlined),
+                    label: Text(saving ? 'Saving…' : 'Save $singular'),
+                  )),
+                ]),
+              )),
             body: Stack(children: [
               const Positioned(top: 0, right: 0,
                 child: BpReferenceTopAccent()),
@@ -489,23 +513,6 @@ class _CatalogMasterScreenState extends State<CatalogMasterScreen> {
                   child: Text(formError!, style: TextStyle(
                     color: Theme.of(sheetContext).colorScheme.error)),
                 ),
-                const SizedBox(height: 8),
-                Row(children: [
-                  Expanded(child: OutlinedButton(
-                    onPressed: saving ? null :
-                      () => Navigator.of(sheetContext).pop(false),
-                    child: const Text('Cancel'))),
-                  const SizedBox(width: 9),
-                  Expanded(child: FilledButton.icon(
-                    key: const ValueKey('catalog-editor-save'),
-                    onPressed: saving ? null :
-                      () => submit(sheetContext, updateSheet),
-                    icon: saving ? const SizedBox(width: 16, height: 16,
-                      child: CircularProgressIndicator(strokeWidth: 2))
-                      : const Icon(Icons.save_outlined),
-                    label: Text(saving ? 'Saving…' : 'Save $singular'),
-                  )),
-                ]),
                 const SizedBox(height: 12),
               ],
             ))),
