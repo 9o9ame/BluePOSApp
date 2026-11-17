@@ -20,9 +20,11 @@ class AppShell extends StatefulWidget {
 }
 
 class _AppShellState extends State<AppShell>
-    with SingleTickerProviderStateMixin {
+    with TickerProviderStateMixin {
   int selected = 0;
   bool drawerOpen = false;
+  late final AnimationController pageMotion = AnimationController(
+    vsync: this, value: 1, duration: const Duration(milliseconds: 250));
   late final AnimationController drawerMotion = AnimationController(
     vsync: this, duration: const Duration(milliseconds: 420));
   late final Animation<double> drawerCurve = CurvedAnimation(
@@ -43,6 +45,11 @@ class _AppShellState extends State<AppShell>
     if (drawerOpen) _setDrawer(false);
     if (i == selected) return;
     setState(() => selected = i);
+    if (widget.app.appearance.animations) {
+      pageMotion.forward(from: 0);
+    } else {
+      pageMotion.value = 1;
+    }
   }
 
   void _setDrawer(bool open) {
@@ -63,6 +70,8 @@ class _AppShellState extends State<AppShell>
 
   @override
   void dispose() {
+    pageMotion.dispose();
+    drawerCurve.dispose();
     drawerMotion.dispose();
     menuMode.dispose();
     super.dispose();
@@ -174,19 +183,19 @@ class _AppShellState extends State<AppShell>
               children: pages,
             );
             return Stack(children: [
-              Positioned.fill(child: widget.app.appearance.animations
-                ? TweenAnimationBuilder<double>(
-                    key: ValueKey('screen-transition-$selected'),
-                    tween: Tween<double>(begin: 0, end: 1),
-                    duration: const Duration(milliseconds: 250),
-                    curve: Curves.easeOutCubic,
-                    builder: (context, progress, child) => Opacity(
-                      opacity: .87 + progress * .13,
-                      child: Transform.translate(
-                        offset: Offset(0, 8 * (1 - progress)),
-                        child: child)),
-                    child: content)
-                : content),
+              Positioned.fill(child: AnimatedBuilder(
+                animation: pageMotion,
+                child: content,
+                builder: (context, child) {
+                  final progress = Curves.easeOutCubic.transform(
+                    pageMotion.value);
+                  return Opacity(
+                    opacity: .87 + progress * .13,
+                    child: Transform.translate(
+                      offset: Offset(0, 8 * (1 - progress)),
+                      child: child));
+                },
+              )),
               AnimatedBuilder(
                 animation: drawerMotion,
                 builder: (context, _) {
