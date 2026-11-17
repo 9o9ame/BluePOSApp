@@ -30,8 +30,12 @@ _Source: numbered 92-image reference ZIP and live Android screenshots supplied b
 | 23 | Add Price List | **Preview only** | Reference form and fixed footer. Inputs read-only and Save disabled pending API/RBAC |
 | 24 | Sale Schemes | Real-data UI implemented | GET /api/sale-schemes; permission gate, search/filter, real status/dates |
 | 25 | Add Sale Scheme | **Preview only** | Reference fields + pinned footer. Save disabled: current server contract requires reward product ULID/quantity not included in mockup |
-| 26–30 | Customers, Suppliers and details | **Not started in current batch** | Next reference batch for inspection / implementation |
-| 31–92 | Later modules/screens | Not claimed complete by this document | Inspect existing code and prior project context before edits |
+| 26 | Customers | Reference-styled real API list | Search, filter, compact record cards, authorized Add; customer balances are not invented |
+| 27 | Add Customer | Reference-styled existing real API form | Required party code + account type retained; compact fields and centralized small footer; mocked opening balance/credit limit not submitted |
+| 28 | Customer Details | Reference-styled authorized detail view | Shared labeled rows, real ULID fetch, no fabricated receivables or transactions |
+| 29 | Suppliers | Reference-styled real API list | Search, filter, compact cards and authorized Add |
+| 30 | Supplier Details | Reference-styled authorized detail view | Shared detail rows, real ULID fetch, no invented payable summaries |
+| 31–92 | Later modules/screens | Not claimed complete by this document | Next batch 31–35; inspect existing code/API before edits |
 
 ## Current fixes from user feedback
 
@@ -41,11 +45,18 @@ _Source: numbered 92-image reference ZIP and live Android screenshots supplied b
 - Reference forms use theme-aware card colors/spacing and preserve Settings Light/Dark behavior.
 - Unit form uses valid API fields; unsupported screen mockup-only fields must not be shipped as falsely functional.
 
+## Shared component system (new in 26–30 pass)
+
+- `lib/widgets/reference_surface.dart` owns `BpReferenceMetrics`, `BpReferenceFormField`, `BpReferenceFooter` and `BpReferenceDetailLine`. Compact field padding, row gaps, action heights, and corner sizes are centralized.
+- Screens 23 and 25 now reuse the shared compact form fields/footer. Screen 27 uses the same form fields/footer. Screens 28/30 share detail rows.
+- Existing catalog editor and unrelated screens have not all been migrated. Avoid implying every screen uses the shared controls; migrate incrementally only when those screens are in scope.
+- Button height reduced to 43 logical px; preview Save remains disabled. Existing server-generated-code field removal in 15/17/19 is preserved.
+
 ## Validation
 
 - Repository files edited on `feature/daily-entries`; no main merge.
-- Focused tests: `test/reference_11_15_smoke_test.dart`, `test/catalog_reference_16_20_test.dart`, `test/mobile_reference_21_25_test.dart`.
-- **Pending:** `flutter analyze`, actual focused `flutter test` on the Windows checkout, device layout review for 15–25, API contract verification for preview-only features.
+- Focused tests: `test/reference_11_15_smoke_test.dart`, `test/catalog_reference_16_20_test.dart`, `test/mobile_reference_21_25_test.dart`, `test/mobile_reference_26_30_test.dart`.
+- **Pending:** `flutter analyze`, actual focused `flutter test` on the Windows checkout, device layout review for 15–30, API contract verification for preview-only features.
 - The agent environment has no Flutter/Dart SDK, so test execution success is **not** claimed.
 
 ## Safe update workflow
@@ -55,8 +66,8 @@ cd "C:\Projects\BluePOSApp"
 git status --short
 git branch --show-current
 git pull --ff-only origin feature/daily-entries
-flutter analyze lib/screens/catalog_master.dart lib/screens/price_lists.dart lib/screens/sale_schemes.dart
-flutter test test/reference_11_15_smoke_test.dart test/catalog_reference_16_20_test.dart test/mobile_reference_21_25_test.dart
+flutter analyze lib/widgets/reference_surface.dart lib/screens/catalog_master.dart lib/screens/price_lists.dart lib/screens/sale_schemes.dart lib/screens/parties.dart lib/screens/customer_detail.dart lib/screens/supplier_detail.dart
+flutter test test/reference_11_15_smoke_test.dart test/catalog_reference_16_20_test.dart test/mobile_reference_21_25_test.dart test/mobile_reference_26_30_test.dart
 flutter run
 ```
 
