@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class AppAppearance extends ChangeNotifier {
-  String theme = 'system';
+  // New installations start in the approved light reference appearance.
+  String theme = 'light';
+  bool explicitThemeChoice = false;
   String skin = 'classic';
   String font = 'skin-default';
   String primaryTheme = 'blue';
@@ -51,6 +53,7 @@ class AppAppearance extends ChangeNotifier {
   Future<void> load() async {
     if (_initialized) return;
     final prefs = await SharedPreferences.getInstance();
+    explicitThemeChoice = prefs.getBool('bp_explicit_theme_choice') ?? false;
     apply({
       'theme': prefs.getString('bp_theme'),
       'skin': prefs.getString('bp_skin'),
@@ -64,12 +67,19 @@ class AppAppearance extends ChangeNotifier {
     _initialized = true;
   }
 
-  void apply(Map<String, dynamic> values, {bool persist = true}) {
+  void apply(Map<String, dynamic> values, {
+    bool persist = true,
+    bool fromServer = false,
+  }) {
     String choose(String key, String current, List<String> valid) {
       final next = values[key];
       return next is String && valid.contains(next) ? next : current;
     }
-    theme = choose('theme', theme, ['system', 'light', 'dark']);
+    // Legacy server defaults of 'system' used to turn reference screens
+    // dark on phones with Android dark mode. Preserve explicit selections.
+    final proposedTheme = choose('theme', theme, ['system', 'light', 'dark']);
+    theme = fromServer && proposedTheme == 'system' && !explicitThemeChoice
+        ? 'light' : proposedTheme;
     skin = choose('skin', skin, ['classic', 'hybrid', 'advanced']);
     font = choose('font', font,
         ['skin-default', 'inter', 'roboto-condensed', 'segoe-ui', 'tahoma', 'arial']);
@@ -81,6 +91,12 @@ class AppAppearance extends ChangeNotifier {
     if (values['animations'] is bool) animations = values['animations'] as bool;
     notifyListeners();
     if (persist) _save();
+  }
+
+  Future<void> markThemeExplicit() async {
+    explicitThemeChoice = true;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('bp_explicit_theme_choice', true);
   }
 
   Future<void> _save() async {
