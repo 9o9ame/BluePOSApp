@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../core/api.dart';
 import '../core/session.dart';
 import '../widgets/common.dart';
+import '../widgets/reference_surface.dart';
 import 'catalog_master.dart';
 import 'auth_reference_chrome.dart';
 import 'sale_schemes.dart';
@@ -738,6 +739,7 @@ class _ModulesScreenState extends State<ModulesScreen> {
 
   Widget _definitionHome() {
     // Screen 11: ordered reference navigation; actions remain RBAC-gated.
+    final style = BpReferenceStyle.of(context);
     final specs = <({String group, String title, IconData icon, Color tone})>[
       (group: 'Definition', title: 'Products',
         icon: Icons.local_offer_rounded, tone: const Color(0xFF8147FF)),
@@ -785,16 +787,9 @@ class _ModulesScreenState extends State<ModulesScreen> {
                       borderRadius: BorderRadius.circular(13),
                       onTap: action.open,
                       child: Container(
-                        height: 46,
+                        height: 50,
                         padding: const EdgeInsets.symmetric(horizontal: 10),
-                        decoration: BoxDecoration(
-                          gradient: const LinearGradient(colors: [
-                            Colors.white, Color(0xFFF1F5FF)]),
-                          borderRadius: BorderRadius.circular(13),
-                          border: Border.all(color: Colors.white, width: 1.3),
-                          boxShadow: const [BoxShadow(
-                            color: Color(0x15566FAB), blurRadius: 7,
-                            offset: Offset(0, 3))]),
+                        decoration: style.card(radius: 13),
                         child: Row(children: [
                           Container(
                             width: 36, height: 34,
@@ -804,14 +799,14 @@ class _ModulesScreenState extends State<ModulesScreen> {
                             child: Icon(item.icon, size: 21, color: item.tone)),
                           const SizedBox(width: 10),
                           Container(height: 25, width: 1,
-                            color: const Color(0xFFE2E8F8)),
+                            color: style.line),
                           const SizedBox(width: 10),
                           Expanded(child: Text(item.title,
-                            style: const TextStyle(
-                              color: Color(0xFF091A40), fontSize: 13.5,
+                            style: TextStyle(
+                              color: style.ink, fontSize: 13.5,
                               fontWeight: FontWeight.w800))),
-                          const Icon(Icons.chevron_right_rounded,
-                            color: Color(0xFF142C52), size: 20),
+                          Icon(Icons.chevron_right_rounded,
+                            color: style.ink, size: 20),
                         ]),
                       ),
                     ),
