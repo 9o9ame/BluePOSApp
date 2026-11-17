@@ -450,7 +450,7 @@ class _ModulesScreenState extends State<ModulesScreen> {
   }) {
     final scheme = Theme.of(context).colorScheme;
     return Padding(
-      padding: EdgeInsets.only(bottom: compact ? 5 : 9),
+      padding: EdgeInsets.only(bottom: compact ? 4 : 6),
       child: Container(
         decoration: BoxDecoration(
           gradient: const LinearGradient(
@@ -465,17 +465,17 @@ class _ModulesScreenState extends State<ModulesScreen> {
             borderRadius: BorderRadius.circular(15),
             onTap: onTap,
             child: Padding(
-              padding: EdgeInsets.symmetric(horizontal: 11, vertical: compact ? 5 : 8),
+              padding: EdgeInsets.symmetric(horizontal: 11, vertical: compact ? 3 : 4),
               child: Row(children: [
                 Container(
-                  height: compact ? 36 : 42, width: compact ? 36 : 42,
+                  height: compact ? 34 : 38, width: compact ? 34 : 38,
                   decoration: BoxDecoration(
                     color: tone.withValues(alpha: .13),
                     borderRadius: BorderRadius.circular(10)),
-                  child: Icon(icon, color: tone, size: compact ? 22 : 25)),
+                  child: Icon(icon, color: tone, size: compact ? 21 : 23)),
                 const SizedBox(width: 12),
                 Expanded(child: Text(title,
-                  style: TextStyle(fontSize: compact ? 14.5 : 16,
+                  style: TextStyle(fontSize: compact ? 14 : 15,
                     color: const Color(0xFF091C46),
                     fontWeight: FontWeight.w900))),
                 Icon(Icons.chevron_right_rounded,
@@ -531,7 +531,7 @@ class _ModulesScreenState extends State<ModulesScreen> {
               : Icons.settings_outlined,
               color: const Color(0xFF0C275B))),
         ]),
-        const SizedBox(height: 7),
+        const SizedBox(height: 4),
         if (!main) ...[
           Container(
             decoration: BoxDecoration(
