@@ -252,35 +252,48 @@ class _DashboardScreenState extends State<DashboardScreen> {
           ),
         ],
         if (canViewSales || canViewProducts) ...[
-          const SizedBox(height: 16),
-          const Text('Business at a glance',
-            style: TextStyle(fontSize: 17,
-              color: Color(0xFF0A1B48), fontWeight: FontWeight.w900)),
+          const SizedBox(height: 15),
           if (busy) pageLoading()
-        else if (error != null) FailureState(message: error!, retry: reload)
-        else Row(children: [
-          if (canViewSales)
-            Expanded(child: _statTile('All invoices',
-              branchInvoices?.toString() ?? '—',
-              Icons.receipt_long_rounded,
-              const Color(0xFF087EF5), _sales)),
-          if (canViewSales && canViewProducts)
-            const SizedBox(width: 9),
-          if (canViewProducts)
-            Expanded(child: _statTile('Products',
-              productsCount?.toString() ?? '—',
-              Icons.inventory_2_rounded,
-              const Color(0xFFFF9813), () => widget.navigate(2))),
-        ]),
+          else if (error != null) FailureState(message: error!, retry: reload)
+          else Column(children: [
+            Row(children: [
+              if (canViewSales)
+                Expanded(child: _statTile('Invoices',
+                  branchInvoices?.toString() ?? '—',
+                  Icons.description_rounded,
+                  const Color(0xFF087EF5), _sales)),
+              if (canViewSales && canViewProducts)
+                const SizedBox(width: 10),
+              if (canViewProducts)
+                Expanded(child: _statTile('Products',
+                  productsCount?.toString() ?? '—',
+                  Icons.inventory_2_rounded,
+                  const Color(0xFFFF9813), () => widget.navigate(2))),
+            ]),
+            if (canViewSales) ...[
+              const SizedBox(height: 10),
+              Row(children: [
+                Expanded(child: _statTile("Today's invoices",
+                  todayInvoices?.toString() ?? '—',
+                  Icons.verified_rounded,
+                  const Color(0xFF0DBB64), _sales)),
+                const SizedBox(width: 10),
+                Expanded(child: _statTile('Recent (max 5)',
+                  recent.length.toString(),
+                  Icons.receipt_long_rounded,
+                  const Color(0xFFEA3864), _sales)),
+              ]),
+            ],
+          ]),
         ],
         if (canCreateSale || canViewProducts || canViewSales) ...[
-        const SizedBox(height: 16),
+        const SizedBox(height: 17),
         const Text('Quick Actions', style: TextStyle(
           color: Color(0xFF0A1B48), fontSize: 19,
           fontWeight: FontWeight.w900)),
         GridView.count(
-          crossAxisCount: MediaQuery.sizeOf(context).width < 355 ? 2 : 3,
-          childAspectRatio: MediaQuery.sizeOf(context).width < 355 ? 1.12 : 1.07,
+          crossAxisCount: 3,
+          childAspectRatio: 1.06,
           mainAxisSpacing: 8, crossAxisSpacing: 8,
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
