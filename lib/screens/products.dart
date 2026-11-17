@@ -5,6 +5,8 @@ import '../core/api.dart';
 import '../core/session.dart';
 import '../widgets/common.dart';
 import '../widgets/product_thumb.dart';
+import '../widgets/reference_surface.dart';
+import 'auth_reference_chrome.dart';
 import 'scanner.dart';
 import 'product_editor.dart';
 import 'product_details.dart';
@@ -152,6 +154,7 @@ class CatalogProductRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final stock = objectOf(product['sales_lookup'])['in_stock'];
+    final style = BpReferenceStyle.of(context);
     return Padding(
       padding: const EdgeInsets.only(bottom: 9),
       child: Material(
@@ -162,20 +165,13 @@ class CatalogProductRow extends StatelessWidget {
           onTap: onTap,
           child: Container(
             padding: const EdgeInsets.all(9),
-            decoration: BoxDecoration(
-              gradient: const LinearGradient(colors: [
-                Colors.white, Color(0xFFF2F5FF)]),
-              border: Border.all(color: Colors.white, width: 1.5),
-              borderRadius: BorderRadius.circular(16),
-              boxShadow: const [BoxShadow(
-                color: Color(0x1D536FA7), blurRadius: 9,
-                offset: Offset(0, 4))]),
+            decoration: style.card(),
             child: Row(children: [
               Container(
                 width: 70, height: 70,
                 alignment: Alignment.center,
                 decoration: BoxDecoration(
-                  color: const Color(0xFFF0F6FF),
+                  color: style.input,
                   borderRadius: BorderRadius.circular(12)),
                 child: ProductThumb(api: api,
                   imageUrl: field(product['image_url']), size: 66)),
@@ -185,31 +181,28 @@ class CatalogProductRow extends StatelessWidget {
                 children: [
                   Text(field(product['name'], 'Product'),
                     maxLines: 2, overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(fontSize: 13.5,
-                      fontWeight: FontWeight.w900,
-                      color: Color(0xFF0B1B40))),
+                    style: TextStyle(fontSize: 13.5,
+                      fontWeight: FontWeight.w900, color: style.ink)),
                   const SizedBox(height: 4),
                   Text('SKU: ${field(product['sku'], '—')}',
                     maxLines: 1, overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(fontSize: 10.5,
-                      color: Color(0xFF687796))),
+                    style: TextStyle(fontSize: 10.5, color: style.muted)),
                   const SizedBox(height: 5),
                   Container(
                     padding: const EdgeInsets.symmetric(
                       horizontal: 7, vertical: 4),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFD9FFE5),
+                      color: style.green.withValues(alpha: .13),
                       borderRadius: BorderRadius.circular(8)),
                     child: Text(stock == null ? 'Stock not shown'
                       : 'Stock: ${field(stock)}',
                       maxLines: 1, overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(fontSize: 10.5,
-                        fontWeight: FontWeight.w800,
-                        color: Color(0xFF078F46)))),
+                      style: TextStyle(fontSize: 10.5,
+                        fontWeight: FontWeight.w800, color: style.green))),
                 ])),
               const SizedBox(width: 8),
               Container(width: 1, height: 48,
-                color: const Color(0xFFE0E6F5)),
+                color: style.line),
               const SizedBox(width: 8),
               SizedBox(width: 82,
                 child: Text(retailPrice == null
@@ -217,9 +210,8 @@ class CatalogProductRow extends StatelessWidget {
                   : money(retailPrice, currency).replaceFirst('PKR ', 'Rs '),
                   textAlign: TextAlign.end,
                   maxLines: 2, overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(fontSize: 13.5,
-                    fontWeight: FontWeight.w900,
-                    color: Color(0xFF091A42)))),
+                  style: TextStyle(fontSize: 13.5,
+                    fontWeight: FontWeight.w900, color: style.ink))),
             ]),
           ),
         ),
@@ -230,8 +222,9 @@ class CatalogProductRow extends StatelessWidget {
 
 class ProductsScreen extends StatefulWidget {
   const ProductsScreen({super.key, required this.app, this.onAdd,
-    this.inlineCatalog = false, this.catalogHome = false});
+    this.inlineCatalog = false, this.catalogHome = false, this.onBack});
   final AppController app;
+  final VoidCallback? onBack;
   final ValueChanged<Map<String, dynamic>>? onAdd;
   /// Reuse the authorized search/category grid directly inside the POS page.
   // Nullable so pre-existing IndexedStack widgets survive a Flutter hot reload
@@ -382,31 +375,45 @@ class _ProductsScreenState extends State<ProductsScreen> {
     final scheme = Theme.of(context).colorScheme;
     final app = widget.app;
     final standalone = widget.catalogHome == true || widget.onAdd == null;
+    final style = BpReferenceStyle.of(context);
     return Stack(children: [
+      if (standalone) const Positioned(left: 0, right: 0, bottom: 0,
+        child: AuthReferenceWaves(height: 60)),
       RefreshIndicator(onRefresh: load, child: ListView(
         padding: EdgeInsets.fromLTRB(
           widget.inlineCatalog == true ? 7 : 16,
           5, widget.inlineCatalog == true ? 7 : 16, 16), children: [
       if (!(widget.inlineCatalog == true))
         Padding(
-          padding: const EdgeInsets.fromLTRB(3, 6, 3, 10),
+          padding: const EdgeInsets.fromLTRB(0, 8, 0, 11),
           child: Row(children: [
+            if (standalone)
+              IconButton(
+                key: const ValueKey('catalog-back'),
+                tooltip: 'Back',
+                onPressed: widget.onBack ??
+                  (Navigator.of(context).canPop()
+                    ? () => Navigator.of(context).pop() : null),
+                icon: Icon(Icons.arrow_back_rounded, color: style.ink)),
             Expanded(child: Text(standalone ? 'Products' : 'Add a product',
-              style: const TextStyle(color: Color(0xFF091B42),
+              textAlign: standalone ? TextAlign.center : TextAlign.start,
+              style: TextStyle(color: style.ink,
                 fontSize: 21, fontWeight: FontWeight.w900))),
-            if (!standalone)
-              IconButton(tooltip: 'Scan barcode',
-                onPressed: scanBusy ? null : scan,
-                icon: Icon(Icons.qr_code_scanner_rounded,
-                  color: scheme.primary)),
+            IconButton(
+              tooltip: standalone ? 'Search products' : 'Scan barcode',
+              onPressed: standalone
+                ? () => FocusScope.of(context).requestFocus(FocusNode())
+                : scanBusy ? null : scan,
+              icon: Icon(standalone ? Icons.search_rounded
+                  : Icons.qr_code_scanner_rounded,
+                color: style.ink)),
           ])),
       if (standalone)
         Row(children: [
           Expanded(child: TextField(
             controller: search, onChanged: queryChanged,
-            decoration: const InputDecoration(
-              prefixIcon: Icon(Icons.search),
-              hintText: 'Search products...'))),
+            decoration: style.search('Search products...',
+              prefixIcon: const Icon(Icons.search_rounded)))),
           const SizedBox(width: 9),
           IconButton.filledTonal(
             key: const ValueKey('catalog-filter'),
