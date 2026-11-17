@@ -9,7 +9,8 @@ import 'auth_reference_chrome.dart';
 /// are currently exposed by the BluePOS API. Other mockup alert types are
 /// intentionally not fabricated.
 class NotificationsScreen extends StatefulWidget {
-  const NotificationsScreen({super.key, required this.app});
+  const NotificationsScreen({super.key, required this.app,
+    this.onNavigate});
   final AppController app;
 
   @override
@@ -95,10 +96,16 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
           style: TextStyle(fontSize: 20,
             color: Color(0xFF081943), fontWeight: FontWeight.w900)),
         actions: [
-          IconButton(
-            tooltip: 'Refresh notifications',
-            onPressed: busy ? null : reload,
-            icon: const Icon(Icons.refresh_rounded)),
+          PopupMenuButton<int>(
+            key: const ValueKey('notification-filter-menu'),
+            tooltip: 'Filter notifications',
+            icon: const Icon(Icons.filter_alt_outlined),
+            onSelected: (value) => setState(() => tab = value),
+            itemBuilder: (context) => const [
+              PopupMenuItem(value: 0, child: Text('All notifications')),
+              PopupMenuItem(value: 1, child: Text('Alerts')),
+              PopupMenuItem(value: 2, child: Text('Activity')),
+            ]),
         ],
       ),
       body: Stack(children: [
@@ -114,6 +121,38 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
           ),
         ),
       ]),
+      bottomNavigationBar: widget.onNavigate == null
+        ? null
+        : SafeArea(top: false, child: Container(
+            decoration: const BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.vertical(
+                top: Radius.circular(22)),
+              boxShadow: [BoxShadow(
+                color: Color(0x1E5B78A9),
+                offset: Offset(0, -5), blurRadius: 12)]),
+            child: NavigationBar(
+              selectedIndex: 4,
+              onDestinationSelected: widget.onNavigate,
+              backgroundColor: Colors.transparent,
+              indicatorColor: const Color(0xFF08B779),
+              labelBehavior:
+                NavigationDestinationLabelBehavior.alwaysShow,
+              height: 71,
+              destinations: const [
+                NavigationDestination(icon: Icon(Icons.home_outlined),
+                  label: 'Home'),
+                NavigationDestination(icon: Icon(Icons.shopping_cart_outlined),
+                  label: 'POS'),
+                NavigationDestination(icon: Icon(Icons.inventory_2_outlined),
+                  label: 'Products'),
+                NavigationDestination(icon: Icon(Icons.bar_chart_outlined),
+                  label: 'Reports'),
+                NavigationDestination(icon: Icon(Icons.more_horiz_rounded),
+                  selectedIcon: Icon(Icons.more_horiz_rounded,
+                    color: Colors.white), label: 'More'),
+              ]),
+          )),
     ));
   }
 }
@@ -138,6 +177,15 @@ class NotificationsView extends StatelessWidget {
   final ValueChanged<int> onTabChanged;
   final ValueChanged<Map<String, dynamic>> onRead;
 
+  String _noticeTitle(Map<String, dynamic> notice) {
+    return switch (field(notice['kind'])) {
+      'new_device' => 'New device approval request',
+      'new_network' => 'New network approval request',
+      'device_reactivated' => 'Device approval updated',
+      _ => 'Device access notification',
+    };
+  }
+
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
@@ -155,7 +203,6 @@ class NotificationsView extends StatelessWidget {
               style: const TextStyle(color: Color(0xFF068B75),
                 fontSize: 12, fontWeight: FontWeight.w800))),
         const SizedBox(height: 6),
-        const SizedBox(height: 14),
         Row(
           key: const ValueKey('notification-filters'),
           children: [
@@ -229,15 +276,15 @@ class NotificationsView extends StatelessWidget {
                   Container(
                     width: 49, height: 49,
                     decoration: BoxDecoration(
-                      color: scheme.primaryContainer,
+                      color: const Color(0xFFDCEEFF),
                       borderRadius: BorderRadius.circular(14)),
-                    child: Icon(Icons.devices_rounded,
-                      color: scheme.primary)),
+                    child: const Icon(Icons.devices_rounded,
+                      color: Color(0xFF087DF1))),
                   const SizedBox(width: 12),
                   Expanded(child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('Device access ${field(notice['kind'], 'notification')}',
+                      Text(_noticeTitle(notice),
                         maxLines: 2, overflow: TextOverflow.ellipsis,
                         style: const TextStyle(
                           fontWeight: FontWeight.w900, fontSize: 14)),
@@ -253,13 +300,20 @@ class NotificationsView extends StatelessWidget {
                           fontSize: 11)),
                     ],
                   )),
-                  if (notice['read_at'] == null)
+                  Column(mainAxisSize: MainAxisSize.min, children: [
+                    if (notice['read_at'] == null)
+                      const Padding(
+                        padding: EdgeInsets.only(bottom: 5),
+                        child: CircleAvatar(
+                          radius: 4, backgroundColor: Color(0xFFE62944))),
                     IconButton(
                       key: ValueKey('read-${field(notice['ulid'])}'),
                       tooltip: 'Mark notification read',
-                      onPressed: () => onRead(notice),
-                      icon: Icon(Icons.mark_email_read_outlined,
-                        color: scheme.primary)),
+                      onPressed: notice['read_at'] == null
+                        ? () => onRead(notice) : null,
+                      icon: const Icon(Icons.chevron_right_rounded,
+                        color: Color(0xFF31466A))),
+                  ]),
                 ],
               ),
             ),
