@@ -576,34 +576,69 @@ class _PurchaseInvoiceEditorState extends State<PurchaseInvoiceEditor> {
         else ...[
 
           if (!hasDocument || draft) ...[
-                    Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Expanded(child: BpReferenceCompactField(label: 'Supplier *', icon: Icons.person_outline_rounded, hint: 'Choose supplier', value: field(supplier?['name']), onTap: hasDocument && (!draft || !canEdit) ? null : chooseSupplier)),
-            const SizedBox(width: 7),
-            Expanded(child: BpReferenceCompactField(label: 'Invoice Date', icon: Icons.calendar_today_outlined, value: displayDate, onTap: !hasDocument || (draft && canEdit) ? chooseDate : null)),
-          ]),
-          const SizedBox(height: 7),
-
-                    Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Expanded(child: BpReferenceCompactField(label: 'Invoice Ref. (Supplier)', icon: Icons.receipt_long_outlined, controller: supplierInvoice, hint: 'Supplier invoice no.', readOnly: hasDocument && (!draft || !canEdit))),
-            const SizedBox(width: 7),
-            Expanded(child: BpReferenceCompactField(label: 'Warehouse *', icon: Icons.warehouse_outlined, value: field(objectOf(document?['warehouse'])['name'], widget.app.warehouseName))),
-          ]),
-          const SizedBox(height: 7),
-
-                    Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Expanded(child: BpReferenceCompactField(label: 'Due Date', icon: Icons.event_outlined, value: dueDate == null ? '' : isoLocalDate(dueDate!), hint: 'Choose date', onTap: hasDocument && (!draft || !canEdit) ? null : chooseDueDate)),
-            const SizedBox(width: 7),
-            Expanded(child: BpReferenceCompactField(label: 'Payment Terms', icon: Icons.credit_card_outlined, controller: paymentTerms, hint: 'Enter terms', readOnly: hasDocument && (!draft || !canEdit))),
-          ]),
-          const SizedBox(height: 7),
-
-                    Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Expanded(child: BpReferenceCompactField(label: 'Freight Amount', icon: Icons.local_shipping_outlined, controller: freight, hint: '0.0000', keyboardType: const TextInputType.numberWithOptions(decimal: true), readOnly: hasDocument && (!draft || !canEdit))),
-            const SizedBox(width: 7),
-            Expanded(child: BpReferenceCompactField(label: 'Other Discount', icon: Icons.discount_outlined, controller: otherDiscount, hint: '0.0000', keyboardType: const TextInputType.numberWithOptions(decimal: true), readOnly: hasDocument && (!draft || !canEdit))),
-          ]),
-          const SizedBox(height: 7),
-
+            Row(children: [
+              Expanded(child: BpReferenceCompactField(
+                label: 'Supplier *', icon: Icons.person_outline_rounded,
+                hint: 'Select supplier', value: field(supplier?['name']),
+                onTap: hasDocument && (!draft || !canEdit)
+                  ? null : chooseSupplier)),
+              const SizedBox(width: 7),
+              Expanded(child: BpReferenceCompactField(
+                label: 'Invoice Number (server)',
+                icon: Icons.receipt_long_outlined,
+                value: field(document?['document_number']),
+                hint: 'Assigned on draft')),
+            ]),
+            const SizedBox(height: 7),
+            Row(children: [
+              Expanded(child: BpReferenceCompactField(
+                label: 'Invoice Date', icon: Icons.calendar_today_outlined,
+                value: displayDate,
+                onTap: !hasDocument || (draft && canEdit)
+                  ? chooseDate : null)),
+              const SizedBox(width: 7),
+              Expanded(child: BpReferenceCompactField(
+                label: 'Warehouse *', icon: Icons.warehouse_outlined,
+                value: field(objectOf(document?['warehouse'])['name'],
+                  widget.app.warehouseName))),
+            ]),
+            const SizedBox(height: 7),
+            Row(children: [
+              Expanded(child: BpReferenceCompactField(
+                label: 'Supplier Invoice Ref.',
+                icon: Icons.description_outlined,
+                controller: supplierInvoice, hint: 'Supplier reference',
+                readOnly: hasDocument && (!draft || !canEdit))),
+              const SizedBox(width: 7),
+              Expanded(child: BpReferenceCompactField(
+                label: 'Due Date', icon: Icons.event_outlined,
+                value: dueDate == null ? '' : isoLocalDate(dueDate!),
+                hint: 'Select date',
+                onTap: hasDocument && (!draft || !canEdit)
+                  ? null : chooseDueDate)),
+            ]),
+            const SizedBox(height: 7),
+            Row(children: [
+              Expanded(child: BpReferenceCompactField(
+                label: 'Payment Terms', icon: Icons.credit_card_outlined,
+                controller: paymentTerms, hint: 'Optional terms',
+                readOnly: hasDocument && (!draft || !canEdit))),
+              const SizedBox(width: 7),
+              Expanded(child: BpReferenceCompactField(
+                label: 'Freight Amount', icon: Icons.local_shipping_outlined,
+                controller: freight, hint: '0.0000',
+                keyboardType: const TextInputType.numberWithOptions(
+                  decimal: true),
+                readOnly: hasDocument && (!draft || !canEdit))),
+            ]),
+            const SizedBox(height: 7),
+            BpReferenceCompactField(
+              label: 'Other Discount', icon: Icons.discount_outlined,
+              controller: otherDiscount, hint: '0.0000',
+              keyboardType: const TextInputType.numberWithOptions(
+                decimal: true),
+              readOnly: hasDocument && (!draft || !canEdit)),
+            const SizedBox(height: 7),
           BpReferenceFormField(
             icon: Icons.chat_bubble_outline_rounded,
             label: 'Notes', hint: 'Enter remarks (optional)',
