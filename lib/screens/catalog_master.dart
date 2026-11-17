@@ -219,7 +219,11 @@ class _CatalogMasterScreenState extends State<CatalogMasterScreen> {
           builder: (sheetContext, updateSheet) => Scaffold(
             backgroundColor: BpReferenceStyle.of(sheetContext).page,
             appBar: widget.config.apiPath == '/api/categories'
-              ? BpReferenceSubpageAppBar(title: formTitle)
+              ? BpReferenceSubpageAppBar(
+                  title: formTitle,
+                  onNotifications: () => Navigator.of(sheetContext).push(
+                    MaterialPageRoute(builder: (_) =>
+                      NotificationsScreen(app: widget.app))))
               : AppBar(centerTitle: true,
                   title: Text(formTitle, style: const TextStyle(
                     fontSize: 18, fontWeight: FontWeight.w900))),
