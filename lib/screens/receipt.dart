@@ -111,10 +111,19 @@ class _ReceiptScreenState extends State<ReceiptScreen> {
     finally { if (mounted) setState(() => exporting = false); }
   }
 
+  // Display formatting only; financial values remain server-owned.
+  String compactDecimal(dynamic raw) {
+    final value = field(raw);
+    if (!value.contains('.')) return value;
+    return value.replaceFirst(RegExp(r'0+$'), '')
+      .replaceFirst(RegExp(r'\.$'), '');
+  }
+
   @override
   Widget build(BuildContext context) {
     final style = BpReferenceStyle.of(context);
     final lines = recordsOf(sale['items']);
+    final payments = recordsOf(sale['payments']);
     return Scaffold(
       backgroundColor: style.page,
       appBar: const BpReferenceSubpageAppBar(title: 'Sales Invoice Detail'),
@@ -226,20 +235,32 @@ class _ReceiptScreenState extends State<ReceiptScreen> {
                   const Divider(height: 15),
                   for (final line in lines) ...[
                     Row(children: [
-                      Expanded(flex: 5, child: Text(
-                        field(objectOf(line['product'])['name'], 'Item'),
-                        maxLines: 2, overflow: TextOverflow.ellipsis,
-                        style: TextStyle(fontSize: 10.5,
-                          fontWeight: FontWeight.w700, color: style.ink))),
-                      Expanded(child: Text(field(line['quantity']),
-                        textAlign: TextAlign.end,
+                      Expanded(flex: 5, child: Row(children: [
+                        Container(width: 27, height: 30,
+                          decoration: BoxDecoration(
+                            color: style.scheme.primary.withValues(alpha: .10),
+                            borderRadius: BorderRadius.circular(8)),
+                          child: Icon(Icons.shopping_basket_outlined,
+                            size: 16, color: style.scheme.primary)),
+                        const SizedBox(width: 5),
+                        Expanded(child: Text(
+                          field(objectOf(line['product'])['name'],
+                            field(line['line_kind'], 'Item')),
+                          maxLines: 2, overflow: TextOverflow.ellipsis,
+                          style: TextStyle(fontSize: 10,
+                            fontWeight: FontWeight.w700, color: style.ink))),
+                      ])),
+                      Expanded(child: Text(compactDecimal(line['quantity']),
+                        textAlign: TextAlign.end, maxLines: 1,
                         style: TextStyle(fontSize: 10, color: style.ink))),
-                      Expanded(flex: 2, child: Text(field(line['unit_price']),
-                        textAlign: TextAlign.end,
+                      Expanded(flex: 2, child: Text(
+                        compactDecimal(line['unit_price']),
+                        textAlign: TextAlign.end, maxLines: 1,
                         style: TextStyle(fontSize: 10, color: style.ink))),
                       Expanded(flex: 3, child: Text(
-                        field(line['net_amount'], field(line['line_total'])),
-                        textAlign: TextAlign.end,
+                        compactDecimal(field(line['net_amount'],
+                          field(line['line_total']))),
+                        textAlign: TextAlign.end, maxLines: 1,
                         style: TextStyle(fontSize: 10,
                           fontWeight: FontWeight.w800, color: style.ink))),
                     ]),
@@ -259,12 +280,50 @@ class _ReceiptScreenState extends State<ReceiptScreen> {
                   _amount('Subtotal', sale['subtotal']),
                   _amount('Discount', sale['total_discount_amount']),
                   _amount('Tax', sale['tax_amount']),
-                  const Divider(height: 13),
-                  _amount('Total', sale['grand_total'], strong: true),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 9, vertical: 9),
+                    decoration: BoxDecoration(
+                      color: style.dark ? const Color(0xFF19452E)
+                        : const Color(0xFFD9F7DC),
+                      borderRadius: BorderRadius.circular(11)),
+                    child: Row(children: [
+                      Expanded(child: Text('Grand Total',
+                        style: TextStyle(fontSize: 15,
+                          color: style.ink, fontWeight: FontWeight.w900))),
+                      Text(money(sale['grand_total'], widget.app.currency),
+                        style: TextStyle(fontSize: 15,
+                          color: style.ink, fontWeight: FontWeight.w900)),
+                    ])),
                   _amount('Received', sale['paid_amount']),
                   _amount('Balance due', sale['balance_due']),
                 ]),
               ),
+              if (payments.isNotEmpty) ...[
+                const SizedBox(height: 9),
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: style.card(radius: 14),
+                  child: Row(children: [
+                    Icon(Icons.account_balance_wallet_outlined,
+                      color: style.green, size: 27),
+                    const SizedBox(width: 9),
+                    Expanded(child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(payments.length == 1
+                          ? 'Payment: ${field(payments.first['method'])}'
+                          : '${payments.length} recorded payments',
+                          style: TextStyle(color: style.ink,
+                            fontWeight: FontWeight.w800, fontSize: 11)),
+                        Text('Received: ${money(sale['paid_amount'],
+                          widget.app.currency)}',
+                          style: TextStyle(color: style.muted, fontSize: 10)),
+                      ])),
+                    Icon(Icons.check_circle_rounded, color: style.green),
+                  ]),
+                ),
+              ],
             ],
           ],
         )),
