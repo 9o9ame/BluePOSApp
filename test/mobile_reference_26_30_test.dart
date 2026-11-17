@@ -36,6 +36,37 @@ void main() {
     expect(payload.containsKey('credit_days'), isFalse);
   });
 
+  test('web-backed customer credit policy preserves NUMERIC precision', () {
+    final payload = partyPayload(
+      type: 'customer',
+      code: 'CUS-100', name: 'Verified Customer',
+      accountTypeUlid: '01JAAABBBCCCDDDEEEFFFGGGHH',
+      isActive: true,
+      email: 'team@example.com',
+      creditLimitAmount: '123456789.1234',
+      creditLimitDays: '30',
+    );
+    expect(payload['credit_limit_amount'], '123456789.1234');
+    expect(payload['credit_limit_days'], 30);
+    expect(payload['email'], 'team@example.com');
+    expect(payload.containsKey('balance'), isFalse);
+    expect(payload.containsKey('opening_balance'), isFalse);
+  });
+
+  test('supplier credit policy is not an invented payable balance', () {
+    final payload = partyPayload(
+      type: 'vendor',
+      code: 'SUP-100', name: 'Verified Supplier',
+      accountTypeUlid: '01JAAABBBCCCDDDEEEFFFGGGHH',
+      isActive: true,
+      creditLimitAmount: '150000.0000',
+      creditLimitDays: '45',
+    );
+    expect(payload['credit_limit_amount'], '150000.0000');
+    expect(payload['credit_limit_days'], 45);
+    expect(payload.containsKey('payable_balance'), isFalse);
+  });
+
   testWidgets('shared compact field metrics stay centralized', (tester) async {
     await tester.pumpWidget(const MaterialApp(home: Scaffold(
       body: BpReferenceFormField(
