@@ -35,9 +35,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
       ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening';
 
   String _date(DateTime date) =>
-    date.year.toString().padLeft(4, '0') + '-' +
-    date.month.toString().padLeft(2, '0') + '-' +
-    date.day.toString().padLeft(2, '0');
+    '${date.year.toString().padLeft(4, '0')}-'
+    '${date.month.toString().padLeft(2, '0')}-'
+    '${date.day.toString().padLeft(2, '0')}';
 
   Future<void> reload() async {
     setState(() { busy = true; error = null; });
@@ -58,8 +58,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
           else Future.value(<String, dynamic>{}),
         if (productsEnabled) widget.app.api.get('/api/products?per_page=1')
           else Future.value(<String, dynamic>{}),
-        if (salesEnabled) widget.app.api.get('/api/sales?per_page=1&date_from=' +
-          today + '&date_to=' + today)
+        if (salesEnabled) widget.app.api.get(
+          '/api/sales?per_page=1&date_from=$today&date_to=$today')
           else Future.value(<String, dynamic>{}),
       ]);
       String? gross;
