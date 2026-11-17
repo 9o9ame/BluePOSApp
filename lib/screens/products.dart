@@ -378,6 +378,8 @@ class _ProductsScreenState extends State<ProductsScreen> {
     final standalone = widget.catalogHome == true || widget.onAdd == null;
     final style = BpReferenceStyle.of(context);
     return Stack(children: [
+      if (standalone) const Positioned(top: 0, right: 0,
+        child: BpReferenceTopAccent()),
       if (standalone) const Positioned(left: 0, right: 0, bottom: 0,
         child: AuthReferenceWaves(height: 60)),
       RefreshIndicator(onRefresh: load, child: ListView(
