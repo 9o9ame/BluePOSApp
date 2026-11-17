@@ -218,31 +218,22 @@ class _CatalogMasterScreenState extends State<CatalogMasterScreen> {
         MaterialPageRoute(builder: (_) => StatefulBuilder(
           builder: (sheetContext, updateSheet) => Scaffold(
             backgroundColor: BpReferenceStyle.of(sheetContext).page,
-            appBar: widget.config.apiPath == '/api/categories'
-              ? BpReferenceSubpageAppBar(
-                  title: formTitle,
-                  onNotifications: () => Navigator.of(sheetContext).push(
-                    MaterialPageRoute(builder: (_) =>
-                      NotificationsScreen(app: widget.app))))
-              : AppBar(centerTitle: true,
-                  title: Text(formTitle, style: const TextStyle(
-                    fontSize: 18, fontWeight: FontWeight.w900))),
+            appBar: BpReferenceSubpageAppBar(
+              title: formTitle,
+              onNotifications: () => Navigator.of(sheetContext).push(
+                MaterialPageRoute(builder: (_) =>
+                  NotificationsScreen(app: widget.app))),
             body: Stack(children: [
-              if (widget.config.apiPath == '/api/categories')
-                const Positioned(top: 0, right: 0,
-                  child: BpReferenceTopAccent()),
-              if (widget.config.apiPath == '/api/categories')
-                const Positioned(left: 0, right: 0, bottom: 0,
-                  child: AuthReferenceWaves(height: 76)),
+              const Positioned(top: 0, right: 0,
+                child: BpReferenceTopAccent()),
+              const Positioned(left: 0, right: 0, bottom: 0,
+                child: AuthReferenceWaves(height: 76)),
               SafeArea(child: Padding(
               padding: EdgeInsets.fromLTRB(12, 10, 12,
                 MediaQuery.viewInsetsOf(sheetContext).bottom + 20),
               child: SingleChildScrollView(child: Container(
-                padding: widget.config.apiPath == '/api/categories'
-                  ? const EdgeInsets.all(13) : EdgeInsets.zero,
-                decoration: widget.config.apiPath == '/api/categories'
-                  ? BpReferenceStyle.of(sheetContext).card(radius: 19)
-                  : null,
+                padding: const EdgeInsets.all(13),
+                decoration: BpReferenceStyle.of(sheetContext).card(radius: 19),
                 child: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -320,27 +311,72 @@ class _CatalogMasterScreenState extends State<CatalogMasterScreen> {
                   ),
                   const SizedBox(height: 2),
                 ] else ...[
-                  const SizedBox(height: 12),
-                  Center(child: Icon(
-                    widget.config.needsCategory ? Icons.layers_outlined
-                      : widget.config.apiPath == '/api/brands'
-                        ? Icons.sell_outlined
-                        : widget.config.isUnit ? Icons.inventory_2_outlined
-                        : Icons.category_outlined,
-                    size: 56,
-                    color: Theme.of(sheetContext).colorScheme.primary)),
-                  const SizedBox(height: 22),
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: BpReferenceStyle.of(sheetContext).surface,
+                      border: Border.all(color:
+                        BpReferenceStyle.of(sheetContext).line),
+                      borderRadius: BorderRadius.circular(16)),
+                    child: Column(crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('Choose Icon & Color',
+                          style: TextStyle(fontSize: 12,
+                            fontWeight: FontWeight.w900,
+                            color: BpReferenceStyle.of(sheetContext).ink)),
+                        const SizedBox(height: 9),
+                        Row(children: [
+                          Container(width: 64, height: 64,
+                            decoration: BoxDecoration(
+                              color: categoryPreviewColors[previewColor]
+                                .withValues(alpha: .16),
+                              borderRadius: BorderRadius.circular(15)),
+                            child: Icon(categoryPreviewIcons[previewIcon],
+                              size: 34,
+                              color: categoryPreviewColors[previewColor])),
+                          const SizedBox(width: 9),
+                          Expanded(child: Wrap(spacing: 4, runSpacing: 4,
+                            children: [
+                              for (var i = 0; i < categoryPreviewIcons.length; i++)
+                                InkWell(
+                                  onTap: () => updateSheet(() => previewIcon = i),
+                                  child: Container(width: 34, height: 34,
+                                    decoration: BoxDecoration(
+                                      color: BpReferenceStyle.of(sheetContext).input,
+                                      borderRadius: BorderRadius.circular(9),
+                                      border: Border.all(color: i == previewIcon
+                                        ? const Color(0xFF097CFF)
+                                        : BpReferenceStyle.of(sheetContext).line)),
+                                    child: Icon(categoryPreviewIcons[i], size: 18,
+                                      color: BpReferenceStyle.of(sheetContext).ink)),
+                                ),
+                            ])),
+                        ]),
+                        const SizedBox(height: 7),
+                        Wrap(spacing: 9, children: [
+                          for (var i = 0; i < categoryPreviewColors.length; i++)
+                            InkWell(
+                              onTap: () => updateSheet(() => previewColor = i),
+                              child: Container(width: 23, height: 23,
+                                decoration: BoxDecoration(
+                                  color: categoryPreviewColors[i],
+                                  shape: BoxShape.circle,
+                                  border: Border.all(color: i == previewColor
+                                    ? const Color(0xFF114BD4) : Colors.white,
+                                    width: 2.5))),
+                            ),
+                        ]),
+                      ]),
+                  ),
+                  const SizedBox(height: 9),
                 ],
-                if (widget.config.apiPath != '/api/categories')
-                  Text(formTitle, style: const TextStyle(
-                    fontSize: 21, fontWeight: FontWeight.w900)),
-                SizedBox(height: widget.config.apiPath == '/api/categories' ? 6 : 14),
-                if (widget.config.apiPath == '/api/categories') ...[
+                const SizedBox(height: 6),
+                ...[
                   Row(children: [
                     Icon(Icons.text_fields_rounded, size: 19,
                       color: Theme.of(sheetContext).colorScheme.primary),
                     const SizedBox(width: 7),
-                    Text('Category Name *', style: TextStyle(
+                    Text('$singular Name *', style: TextStyle(
                       fontSize: 12, fontWeight: FontWeight.w900,
                       color: BpReferenceStyle.of(sheetContext).ink)),
                   ]),
@@ -350,16 +386,11 @@ class _CatalogMasterScreenState extends State<CatalogMasterScreen> {
                   key: const ValueKey('catalog-editor-name'),
                   controller: name, maxLength: 160,
                   textInputAction: TextInputAction.next,
-                  decoration: widget.config.apiPath == '/api/categories'
-                    ? BpReferenceStyle.of(sheetContext).search(
-                        'Enter category name...').copyWith(
-                          isDense: true,
-                          counterText: '',
-                          contentPadding: const EdgeInsets.symmetric(
-                            horizontal: 12, vertical: 9))
-                    : InputDecoration(
-                        labelText: '$singular Name *',
-                        hintText: 'Enter name')),
+                  decoration: BpReferenceStyle.of(sheetContext).search(
+                    'Enter ${singular.toLowerCase()} name...').copyWith(
+                      isDense: true, counterText: '',
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 12, vertical: 9))),
                 // Category codes are generated by the server; the category
                 // reference does not include an unnecessary read-only field.
                 // Subcategory and brand codes remain visible when available.
@@ -385,26 +416,23 @@ class _CatalogMasterScreenState extends State<CatalogMasterScreen> {
                 ],
                 if (widget.config.hasDescription) ...[
                   const SizedBox(height: 8),
-                  if (widget.config.apiPath == '/api/categories')
-                    Padding(padding: const EdgeInsets.only(bottom: 6),
-                      child: Row(children: [
-                        Icon(Icons.description_outlined, size: 19,
-                          color: Theme.of(sheetContext).colorScheme.primary),
-                        const SizedBox(width: 7),
-                        Text('Description', style: TextStyle(
-                          fontSize: 12, fontWeight: FontWeight.w900,
-                          color: BpReferenceStyle.of(sheetContext).ink)),
-                      ])),
+                  Padding(padding: const EdgeInsets.only(bottom: 6),
+                    child: Row(children: [
+                      Icon(Icons.description_outlined, size: 19,
+                        color: Theme.of(sheetContext).colorScheme.primary),
+                      const SizedBox(width: 7),
+                      Text('Description', style: TextStyle(
+                        fontSize: 12, fontWeight: FontWeight.w900,
+                        color: BpReferenceStyle.of(sheetContext).ink)),
+                    ])),
                   TextField(controller: description,
                     maxLength: widget.config.apiPath == '/api/categories' ? 200 : 255,
-                    maxLines: widget.config.apiPath == '/api/categories' ? 2 : 2,
-                    decoration: widget.config.apiPath == '/api/categories'
-                      ? BpReferenceStyle.of(sheetContext).search(
-                          'Enter category description...').copyWith(
-                            isDense: true,
-                            contentPadding: const EdgeInsets.symmetric(
-                              horizontal: 12, vertical: 10))
-                      : const InputDecoration(labelText: 'Description')),
+                    maxLines: 2,
+                    decoration: BpReferenceStyle.of(sheetContext).search(
+                      'Enter description...').copyWith(
+                        isDense: true,
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 10))),
                 ],
                 if (widget.config.isUnit) ...[
                   const SizedBox(height: 8),
@@ -429,7 +457,12 @@ class _CatalogMasterScreenState extends State<CatalogMasterScreen> {
                   DropdownButtonFormField<String>(
                     isExpanded: true,
                     initialValue: categoryUlid.isEmpty ? null : categoryUlid,
-                    decoration: const InputDecoration(labelText: 'Category *'),
+                    decoration: BpReferenceStyle.of(sheetContext).search(
+                      'Select parent category').copyWith(
+                        isDense: true,
+                        labelText: 'Parent Category *',
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 10)),
                     items: choices.map((choice) => DropdownMenuItem(
                       value: field(choice['ulid']),
                       child: Text(field(choice['name']),
@@ -459,42 +492,22 @@ class _CatalogMasterScreenState extends State<CatalogMasterScreen> {
                     color: Theme.of(sheetContext).colorScheme.error)),
                 ),
                 const SizedBox(height: 8),
-                if (widget.config.apiPath == '/api/categories')
-                  Row(children: [
-                    Expanded(child: OutlinedButton(
-                      onPressed: saving ? null :
-                        () => Navigator.of(sheetContext).pop(false),
-                      child: const Text('Cancel'),
-                    )),
-                    const SizedBox(width: 9),
-                    Expanded(child: FilledButton.icon(
-                      key: const ValueKey('catalog-editor-save'),
-                      onPressed: saving ? null :
-                        () => submit(sheetContext, updateSheet),
-                      icon: saving ? const SizedBox(
-                        width: 16, height: 16,
-                        child: CircularProgressIndicator(strokeWidth: 2))
-                        : const Icon(Icons.save_outlined),
-                      label: Text(saving ? 'Saving…' : 'Save Category'),
-                    )),
-                  ])
-                else ...[
-                  FilledButton.icon(
-                    key: const ValueKey('catalog-editor-save'),
-                    icon: saving ? const SizedBox(width: 16, height: 16,
-                      child: CircularProgressIndicator(strokeWidth: 2))
-                      : const Icon(Icons.check_rounded),
-                    label: Text(saving ? 'Saving…' : 'Save $singular'),
-                    onPressed: saving ? null :
-                      () => submit(sheetContext, updateSheet),
-                  ),
-                  const SizedBox(height: 12),
-                  OutlinedButton(
+                Row(children: [
+                  Expanded(child: OutlinedButton(
                     onPressed: saving ? null :
                       () => Navigator.of(sheetContext).pop(false),
-                    child: const Text('Cancel'),
-                  ),
-                ],
+                    child: const Text('Cancel'))),
+                  const SizedBox(width: 9),
+                  Expanded(child: FilledButton.icon(
+                    key: const ValueKey('catalog-editor-save'),
+                    onPressed: saving ? null :
+                      () => submit(sheetContext, updateSheet),
+                    icon: saving ? const SizedBox(width: 16, height: 16,
+                      child: CircularProgressIndicator(strokeWidth: 2))
+                      : const Icon(Icons.save_outlined),
+                    label: Text(saving ? 'Saving…' : 'Save $singular'),
+                  )),
+                ]),
                 const SizedBox(height: 12),
               ],
             ))),
