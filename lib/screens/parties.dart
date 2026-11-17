@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import '../core/api.dart';
 import '../core/session.dart';
 import '../widgets/common.dart';
+import '../widgets/reference_surface.dart';
+import 'auth_reference_chrome.dart';
 import 'customer_detail.dart';
 import 'supplier_detail.dart';
 
@@ -107,78 +109,7 @@ class _PartyDirectoryState extends State<PartyDirectory> {
     var active = record?['is_active'] != false;
     var saving = false;
     String? message;
-    try {
-      final saved = await Navigator.of(context).push<bool>(
-        MaterialPageRoute(builder: (_) => StatefulBuilder(
-          builder: (sheet, update) => Scaffold(
-            appBar: AppBar(title: Text(updating ? 'Edit $title' :
-              'Add ${widget.type == 'vendor' ? 'Supplier' : widget.type == 'customer' ? 'Customer' : 'Account'}')),
-            body: SafeArea(child: Padding(
-              padding: EdgeInsets.fromLTRB(16, 12, 16,
-                MediaQuery.viewInsetsOf(sheet).bottom + 22),
-              child: SingleChildScrollView(child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                const SizedBox(height: 12),
-                Center(child: Icon(Icons.person_add_alt_1_rounded,
-                  size: 54, color: Theme.of(sheet).colorScheme.primary)),
-                const SizedBox(height: 14),
-                Text(updating ? 'Edit $title' : 'Add ${widget.type == 'vendor' ? 'Supplier' : widget.type == 'customer' ? 'Customer' : 'Account'}',
-                  style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w900)),
-                const SizedBox(height: 12),
-                TextField(controller: code, maxLength: 64,
-                  key: const ValueKey('party-editor-code'),
-                  decoration: const InputDecoration(labelText: 'Code *')),
-                Text('The party code is required by the BluePOS API.',
-                  style: TextStyle(fontSize: 11,
-                    color: Theme.of(sheet).colorScheme.onSurfaceVariant)),
-                TextField(controller: name, maxLength: 180,
-                  key: const ValueKey('party-editor-name'),
-                  decoration: const InputDecoration(labelText: 'Name *')),
-                DropdownButtonFormField<String>(
-                  isExpanded: true,
-                  initialValue: selected.isEmpty ? null : selected,
-                  decoration: const InputDecoration(labelText: 'Account type *'),
-                  items: accounts.map((row) => DropdownMenuItem<String>(
-                    value: field(row['ulid']),
-                    child: Text(field(row['name']),
-                      maxLines: 1, overflow: TextOverflow.ellipsis))).toList(),
-                  onChanged: saving ? null : (value) =>
-                    update(() => selected = value ?? ''),
-                ),
-                if (widget.type != 'account') ...[
-                  TextField(controller: contact, maxLength: 180,
-                    decoration: const InputDecoration(labelText: 'Contact person')),
-                  TextField(controller: mobile, maxLength: 64,
-                    keyboardType: TextInputType.phone,
-                    decoration: const InputDecoration(labelText: 'Mobile')),
-                ],
-                if (widget.type == 'customer' || widget.type == 'vendor')
-                  TextField(controller: area, maxLength: 120,
-                    key: const ValueKey('party-editor-area'),
-                    decoration: const InputDecoration(
-                      labelText: 'City / Area')),
-                TextField(controller: address, maxLines: 2,
-                  decoration: const InputDecoration(labelText: 'Address')),
-                const Text('Status *',
-                  style: TextStyle(fontWeight: FontWeight.w800)),
-                SegmentedButton<bool>(
-                  segments: const [
-                    ButtonSegment(value: true, label: Text('Active')),
-                    ButtonSegment(value: false, label: Text('Inactive')),
-                  ],
-                  selected: {active},
-                  onSelectionChanged: saving ? null :
-                    (values) => update(() => active = values.first)),
-                if (message != null) Text(message!, style: TextStyle(
-                  color: Theme.of(sheet).colorScheme.error)),
-                const SizedBox(height: 10),
-                FilledButton.icon(
-                  key: const ValueKey('party-editor-save'),
-                  icon: const Icon(Icons.check_rounded),
-                  label: Text(saving ? 'Saving…' : updating ? 'Save changes' : 'Create'),
-                  onPressed: saving ? null : () async {
+    Future<void> saveParty(BuildContext sheet, StateSetter update) async {
                     if (code.text.trim().isEmpty || name.text.trim().isEmpty ||
                         selected.length != 26) {
                       update(() => message = 'Enter code, name and account type.');
@@ -202,16 +133,95 @@ class _PartyDirectoryState extends State<PartyDirectory> {
                     } finally {
                       if (sheet.mounted) update(() => saving = false);
                     }
-                  }),
+                  }
+    try {
+      final saved = await Navigator.of(context).push<bool>(
+        MaterialPageRoute(builder: (_) => StatefulBuilder(
+          builder: (sheet, update) => Scaffold(
+            backgroundColor: BpReferenceStyle.of(sheet).page,
+            appBar: BpReferenceSubpageAppBar(
+              title: updating ? 'Edit $title' :
+                'Add ${widget.type == 'vendor' ? 'Supplier' : widget.type == 'customer' ? 'Customer' : 'Account'}'),
+            bottomNavigationBar: BpReferenceFooter(
+              saveKey: const ValueKey('party-editor-save'),
+              saveLabel: updating ? 'Save Changes'
+                : 'Save ${widget.type == 'vendor' ? 'Supplier' : widget.type == 'customer' ? 'Customer' : 'Account'}',
+              saving: saving,
+              onCancel: () => Navigator.pop(sheet, false),
+              onSave: () => saveParty(sheet, update)),
+            body: Stack(children: [
+              const Positioned(top: 0, right: 0,
+                child: BpReferenceTopAccent()),
+              SafeArea(child: Padding(
+              padding: EdgeInsets.fromLTRB(16, 12, 16,
+                MediaQuery.viewInsetsOf(sheet).bottom + 22),
+              child: SingleChildScrollView(child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                const SizedBox(height: 4),
+                BpReferenceFormField(
+                  label: 'Code *', hint: 'Enter party code',
+                  icon: Icons.qr_code_rounded, controller: code,
+                  maxLength: 64),
+                Text('The party code is required by the BluePOS API.',
+                  style: TextStyle(fontSize: 11,
+                    color: Theme.of(sheet).colorScheme.onSurfaceVariant)),
+                BpReferenceFormField(
+                  label: 'Name *', hint: 'Enter name',
+                  icon: Icons.person_rounded, controller: name,
+                  maxLength: 180),
+                BpReferenceFormField(
+                  label: 'Account Type *', hint: '',
+                  icon: Icons.account_balance_outlined,
+                  child: DropdownButtonFormField<String>(
+                  isExpanded: true,
+                  initialValue: selected.isEmpty ? null : selected,
+                  decoration: const InputDecoration(labelText: 'Account type *'),
+                  items: accounts.map((row) => DropdownMenuItem<String>(
+                    value: field(row['ulid']),
+                    child: Text(field(row['name']),
+                      maxLines: 1, overflow: TextOverflow.ellipsis))).toList(),
+                  onChanged: saving ? null : (value) =>
+                    update(() => selected = value ?? ''),
+                )),
+                if (widget.type != 'account') ...[
+                  BpReferenceFormField(
+                    label: 'Contact Person', hint: 'Enter contact person',
+                    icon: Icons.person_outline_rounded,
+                    controller: contact, maxLength: 180),
+                  BpReferenceFormField(
+                    label: 'Mobile Number', hint: 'Enter mobile number',
+                    icon: Icons.phone_rounded, controller: mobile,
+                    maxLength: 64, keyboardType: TextInputType.phone),
+                ],
+                if (widget.type == 'customer' || widget.type == 'vendor')
+                  BpReferenceFormField(
+                    label: 'City / Area', hint: 'Enter city / area',
+                    icon: Icons.location_on_rounded,
+                    controller: area, maxLength: 120),
+                BpReferenceFormField(
+                  label: 'Address', hint: 'Enter address',
+                  icon: Icons.home_rounded, controller: address,
+                  maxLines: 2),
+                const Text('Status *',
+                  style: TextStyle(fontWeight: FontWeight.w800)),
+                SegmentedButton<bool>(
+                  segments: const [
+                    ButtonSegment(value: true, label: Text('Active')),
+                    ButtonSegment(value: false, label: Text('Inactive')),
+                  ],
+                  selected: {active},
+                  onSelectionChanged: saving ? null :
+                    (values) => update(() => active = values.first)),
+                if (message != null) Text(message!, style: TextStyle(
+                  color: Theme.of(sheet).colorScheme.error)),
                 const SizedBox(height: 10),
-                OutlinedButton(
-                  onPressed: saving ? null : () => Navigator.pop(sheet, false),
-                  child: const Text('Cancel')),
                 const SizedBox(height: 12),
               ],
             )),
           )),
-        ))));
+        ]))));
       if (saved == true && mounted) {
         await refresh();
         if (mounted) ScaffoldMessenger.of(context).showSnackBar(
