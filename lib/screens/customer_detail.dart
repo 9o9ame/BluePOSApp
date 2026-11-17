@@ -3,6 +3,7 @@ import '../core/api.dart';
 import '../core/session.dart';
 import '../widgets/common.dart';
 import '../widgets/reference_surface.dart';
+import '../widgets/party_ledger_summary.dart';
 import 'auth_reference_chrome.dart';
 
 /// Screen 28: public-ULID server-authorized customer details.
@@ -52,6 +53,7 @@ class _CustomerDetailScreenState extends State<CustomerDetailScreen> {
       : error != null ? FailureState(message: error!, retry: load)
       : RefreshIndicator(onRefresh: load, child: CustomerDetailView(
         customer: customer ?? const {},
+        app: widget.app, partyUlid: widget.customerUlid,
         canEdit: widget.app.hasPermission('customers.edit') ||
           widget.app.hasPermission('customers.manage'),
         onEdit: widget.onEdit)),
@@ -60,10 +62,12 @@ class _CustomerDetailScreenState extends State<CustomerDetailScreen> {
 
 class CustomerDetailView extends StatelessWidget {
   const CustomerDetailView({super.key, required this.customer,
-    this.canEdit = false, this.onEdit});
+    this.canEdit = false, this.onEdit, this.app, this.partyUlid});
   final Map<String, dynamic> customer;
   final bool canEdit;
   final VoidCallback? onEdit;
+  final AppController? app;
+  final String? partyUlid;
 
   Widget _line(BuildContext context, String name, dynamic value,
       IconData icon) => BpReferenceDetailLine(
@@ -92,6 +96,7 @@ class CustomerDetailView extends StatelessWidget {
                 style: Theme.of(context).textTheme.titleLarge
                   ?.copyWith(fontWeight: FontWeight.w900)),
               Text(field(customer['code'], 'Code not available'),
+                maxLines: 1, overflow: TextOverflow.ellipsis,
                 style: TextStyle(color: scheme.onSurfaceVariant)),
               Text(customer['is_active'] == false ? 'Inactive' : 'Active',
                 style: TextStyle(fontWeight: FontWeight.w800,
@@ -115,19 +120,22 @@ class CustomerDetailView extends StatelessWidget {
             const Divider(height: 1),
             _line(context, 'Credit Limit', credit, Icons.credit_card_outlined),
           ],
+          if (customer['credit_limit_days'] != null) ...[
+            const Divider(height: 1),
+            _line(context, 'Credit Days', customer['credit_limit_days'],
+              Icons.calendar_today_outlined),
+          ],
         ])),
         const SizedBox(height: 14),
-        Container(padding: const EdgeInsets.all(12),
-          decoration: style.card(radius: 16), child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Text('Recent Transactions', style: Theme.of(context)
-              .textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w900)),
-            const SizedBox(height: 8),
-            const Text('Transaction and receivable amounts are not included '
-              'in the customer details response. No estimated balance is shown.'),
-          ],
-        )),
+        if (app != null && partyUlid != null)
+          BpPartyLedgerSummary(
+            app: app!, partyType: 'customer', partyUlid: partyUlid!)
+        else
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: style.card(radius: 16),
+            child: const Text('Ledger information is available after opening '
+              'an authorized customer record.')),
         if (canEdit && onEdit != null) ...[
           const SizedBox(height: 12),
           FilledButton.icon(
