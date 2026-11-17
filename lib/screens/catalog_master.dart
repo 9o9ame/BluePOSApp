@@ -180,6 +180,39 @@ class _CatalogMasterScreenState extends State<CatalogMasterScreen> {
       : widget.config.title == 'Units' ? 'Unit'
       : widget.config.title;
     final formTitle = isEdit ? 'Edit $singular' : 'Add $singular';
+    Future<void> submit(BuildContext sheetContext,
+        StateSetter updateSheet) async {
+                    final label = name.text.trim();
+                    if (label.isEmpty || widget.config.isUnit &&
+                        symbol.text.trim().isEmpty ||
+                        widget.config.needsCategory && categoryUlid.length != 26) {
+                      updateSheet(() => formError = 'Complete all required fields.');
+                      return;
+                    }
+                    updateSheet(() {
+                      saving = true;
+                      formError = null;
+                    });
+                    try {
+                      final payload = catalogMasterPayload(widget.config,
+                        name: label, description: description.text,
+                        symbol: symbol.text,
+                        isActive: active, allowsDecimal: allowsDecimal,
+                        categoryUlid: categoryUlid);
+                      if (isEdit) {
+                        await widget.app.api.patch('${widget.config.apiPath}/$ulid', payload);
+                      } else {
+                        await widget.app.api.post(widget.config.apiPath, payload);
+                      }
+                      if (sheetContext.mounted) Navigator.pop(sheetContext, true);
+                    } catch (ex) {
+                      if (sheetContext.mounted) {
+                        updateSheet(() => formError = ex.toString());
+                      }
+                    } finally {
+                      if (sheetContext.mounted) updateSheet(() => saving = false);
+                    }
+    }
     try {
       final didSave = await Navigator.of(context).push<bool>(
         MaterialPageRoute(builder: (_) => StatefulBuilder(
@@ -376,51 +409,42 @@ class _CatalogMasterScreenState extends State<CatalogMasterScreen> {
                     'by BluePOS server.', style: TextStyle(
                       color: Color(0xFF6D7C98), fontSize: 10.5)),
                 const SizedBox(height: 10),
-                FilledButton.icon(
-                  key: const ValueKey('catalog-editor-save'),
-                  icon: saving ? const SizedBox(width: 16, height: 16,
-                    child: CircularProgressIndicator(strokeWidth: 2)) :
-                    const Icon(Icons.check_rounded),
-                  label: Text(saving ? 'Saving…' : 'Save $singular'),
-                  onPressed: saving ? null : () async {
-                    final label = name.text.trim();
-                    if (label.isEmpty || widget.config.isUnit &&
-                        symbol.text.trim().isEmpty ||
-                        widget.config.needsCategory && categoryUlid.length != 26) {
-                      updateSheet(() => formError = 'Complete all required fields.');
-                      return;
-                    }
-                    updateSheet(() {
-                      saving = true;
-                      formError = null;
-                    });
-                    try {
-                      final payload = catalogMasterPayload(widget.config,
-                        name: label, description: description.text,
-                        symbol: symbol.text,
-                        isActive: active, allowsDecimal: allowsDecimal,
-                        categoryUlid: categoryUlid);
-                      if (isEdit) {
-                        await widget.app.api.patch('${widget.config.apiPath}/$ulid', payload);
-                      } else {
-                        await widget.app.api.post(widget.config.apiPath, payload);
-                      }
-                      if (sheetContext.mounted) Navigator.pop(sheetContext, true);
-                    } catch (ex) {
-                      if (sheetContext.mounted) {
-                        updateSheet(() => formError = ex.toString());
-                      }
-                    } finally {
-                      if (sheetContext.mounted) updateSheet(() => saving = false);
-                    }
-                  },
-                ),
-                const SizedBox(height: 12),
-                OutlinedButton(
-                  onPressed: saving ? null :
-                    () => Navigator.of(sheetContext).pop(false),
-                  child: const Text('Cancel'),
-                ),
+                if (widget.config.apiPath == '/api/categories')
+                  Row(children: [
+                    Expanded(child: OutlinedButton(
+                      onPressed: saving ? null :
+                        () => Navigator.of(sheetContext).pop(false),
+                      child: const Text('Cancel'),
+                    )),
+                    const SizedBox(width: 9),
+                    Expanded(child: FilledButton.icon(
+                      key: const ValueKey('catalog-editor-save'),
+                      onPressed: saving ? null :
+                        () => submit(sheetContext, updateSheet),
+                      icon: saving ? const SizedBox(
+                        width: 16, height: 16,
+                        child: CircularProgressIndicator(strokeWidth: 2))
+                        : const Icon(Icons.save_outlined),
+                      label: Text(saving ? 'Saving…' : 'Save Category'),
+                    )),
+                  ])
+                else ...[
+                  FilledButton.icon(
+                    key: const ValueKey('catalog-editor-save'),
+                    icon: saving ? const SizedBox(width: 16, height: 16,
+                      child: CircularProgressIndicator(strokeWidth: 2))
+                      : const Icon(Icons.check_rounded),
+                    label: Text(saving ? 'Saving…' : 'Save $singular'),
+                    onPressed: saving ? null :
+                      () => submit(sheetContext, updateSheet),
+                  ),
+                  const SizedBox(height: 12),
+                  OutlinedButton(
+                    onPressed: saving ? null :
+                      () => Navigator.of(sheetContext).pop(false),
+                    child: const Text('Cancel'),
+                  ),
+                ],
                 const SizedBox(height: 12),
               ],
             ))),
