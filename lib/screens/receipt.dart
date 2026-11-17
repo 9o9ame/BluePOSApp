@@ -111,14 +111,6 @@ class _ReceiptScreenState extends State<ReceiptScreen> {
     finally { if (mounted) setState(() => exporting = false); }
   }
 
-  // Display formatting only; financial values remain server-owned.
-  String compactDecimal(dynamic raw) {
-    final value = field(raw);
-    if (!value.contains('.')) return value;
-    return value.replaceFirst(RegExp(r'0+$'), '')
-      .replaceFirst(RegExp(r'\.$'), '');
-  }
-
   @override
   Widget build(BuildContext context) {
     final style = BpReferenceStyle.of(context);
@@ -226,15 +218,15 @@ class _ReceiptScreenState extends State<ReceiptScreen> {
                           style: TextStyle(fontSize: 10,
                             fontWeight: FontWeight.w700, color: style.ink))),
                       ])),
-                      Expanded(child: Text(compactDecimal(line['quantity']),
+                      Expanded(child: Text(bpReferenceDecimalLabel(line['quantity']),
                         textAlign: TextAlign.end, maxLines: 1,
                         style: TextStyle(fontSize: 10, color: style.ink))),
                       Expanded(flex: 2, child: Text(
-                        compactDecimal(line['unit_price']),
+                        bpReferenceDecimalLabel(line['unit_price']),
                         textAlign: TextAlign.end, maxLines: 1,
                         style: TextStyle(fontSize: 10, color: style.ink))),
                       Expanded(flex: 3, child: Text(
-                        compactDecimal(field(line['net_amount'],
+                        bpReferenceDecimalLabel(field(line['net_amount'],
                           field(line['line_total']))),
                         textAlign: TextAlign.end, maxLines: 1,
                         style: TextStyle(fontSize: 10,
