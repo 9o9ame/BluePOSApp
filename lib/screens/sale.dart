@@ -403,13 +403,13 @@ class SaleScreenState extends State<SaleScreen> {
           Expanded(child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text('POS (Sales)',
-                style: TextStyle(color: Color(0xFF0A1B48),
+              Text('POS (Sales)',
+                style: TextStyle(color: scheme.onSurface,
                   fontSize: 19, fontWeight: FontWeight.w900)),
               Text('Select products from your authorized catalog',
                 maxLines: 1, overflow: TextOverflow.ellipsis,
-                style: const TextStyle(
-                  color: Color(0xFF5B6984), fontSize: 11)),
+                style: TextStyle(
+                  color: scheme.onSurfaceVariant, fontSize: 11)),
             ])),
           Icon(Icons.shopping_cart_checkout_rounded,
             color: scheme.primary),
@@ -531,9 +531,9 @@ class SaleScreenState extends State<SaleScreen> {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 11),
         decoration: BoxDecoration(
-          gradient: const LinearGradient(colors: [
-            Colors.white, Color(0xFFEFFFF9)]),
-          border: Border.all(color: Colors.white, width: 1.5),
+          gradient: LinearGradient(colors: [
+            scheme.surface, scheme.surfaceContainerLow]),
+          border: Border.all(color: scheme.outlineVariant, width: 1.1),
           borderRadius: BorderRadius.circular(17),
           boxShadow: const [BoxShadow(color: Color(0x1F2E9A78),
             blurRadius: 12, offset: Offset(0, -3))]),
