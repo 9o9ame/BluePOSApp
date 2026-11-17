@@ -2,17 +2,21 @@ import 'package:flutter/material.dart';
 import '../core/api.dart';
 import '../core/session.dart';
 import '../widgets/common.dart';
+import '../widgets/reference_surface.dart';
+import 'auth_reference_chrome.dart';
 
-/// Screen 24: authorized real sale schemes. No client-side discount arithmetic.
+/// Screen 24 — real, permission-gated sale scheme list.
 class SaleSchemesScreen extends StatefulWidget {
   const SaleSchemesScreen({super.key, required this.app});
   final AppController app;
+
   @override
   State<SaleSchemesScreen> createState() => _SaleSchemesScreenState();
 }
 
 class _SaleSchemesScreenState extends State<SaleSchemesScreen> {
   final search = TextEditingController();
+  final searchFocus = FocusNode();
   bool loading = true;
   bool filterActive = false;
   String? error;
@@ -22,13 +26,23 @@ class _SaleSchemesScreenState extends State<SaleSchemesScreen> {
       widget.app.hasPermission('sale_schemes.manage');
 
   @override
-  void initState() { super.initState(); reload(); }
+  void initState() {
+    super.initState();
+    reload();
+  }
+
   @override
-  void dispose() { search.dispose(); super.dispose(); }
+  void dispose() {
+    search.dispose();
+    searchFocus.dispose();
+    super.dispose();
+  }
 
   Future<void> reload() async {
     if (!canView) {
-      setState(() { loading = false; error = 'Access denied.'; });
+      if (mounted) {
+        setState(() { loading = false; error = 'Access denied.'; });
+      }
       return;
     }
     setState(() { loading = true; error = null; });
@@ -44,141 +58,340 @@ class _SaleSchemesScreenState extends State<SaleSchemesScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
+    final style = BpReferenceStyle.of(context);
     final query = search.text.trim().toLowerCase();
     final filtered = schemes.where((row) =>
       (!filterActive || row['is_active'] != false) &&
-      (query.isEmpty || field(row['name']).toLowerCase().contains(query))).toList();
+      (query.isEmpty || field(row['name']).toLowerCase().contains(query)))
+      .toList();
+
     return Scaffold(
-      appBar: AppBar(title: const Text('Sale Schemes'),
-        actions: [IconButton(tooltip: 'Refresh',
-          icon: const Icon(Icons.refresh_rounded), onPressed: reload)]),
-      floatingActionButton: canView ? FloatingActionButton.extended(
-        key: const ValueKey('sale-scheme-add-preview'),
-        onPressed: () => Navigator.of(context).push(MaterialPageRoute(
-          builder: (_) => const AddSaleSchemeReferenceScreen())),
-        icon: const Icon(Icons.add_rounded),
-        label: const Text('Add Scheme')) : null,
-      body: RefreshIndicator(onRefresh: reload, child: ListView(
-        key: const ValueKey('sale-schemes-list'),
-        physics: const AlwaysScrollableScrollPhysics(),
-        padding: const EdgeInsets.all(16), children: [
-          Row(children: [
-            Expanded(child: Text('Sale Schemes',
-              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                fontWeight: FontWeight.w900))),
-            Icon(Icons.local_offer_outlined, color: scheme.primary),
-          ]),
-          const SizedBox(height: 12),
-          Row(children: [
-            Expanded(child: TextField(controller: search,
-              onChanged: (_) => setState(() {}),
-              decoration: const InputDecoration(
-                prefixIcon: Icon(Icons.search),
-                hintText: 'Search sale schemes...'))),
-            const SizedBox(width: 8),
-            IconButton.filledTonal(
-              key: const ValueKey('sale-scheme-filter'),
-              tooltip: 'Show active only',
-              onPressed: () => setState(() => filterActive = !filterActive),
-              icon: Icon(filterActive ? Icons.filter_alt : Icons.filter_alt_outlined)),
-          ]),
-          const SizedBox(height: 14),
-          if (loading) pageLoading()
-          else if (error != null) FailureState(message: error!, retry: reload)
-          else if (filtered.isEmpty) const EmptyState(title: 'No sale schemes')
-          else ...filtered.map((row) => Padding(
-            padding: const EdgeInsets.only(bottom: 9),
-            child: SaleSchemeCard(item: row))),
-          const SizedBox(height: 90),
-        ],
-      )),
+      backgroundColor: style.page,
+      appBar: BpReferenceSubpageAppBar(
+        title: 'Sale Schemes',
+        onSearch: () => searchFocus.requestFocus()),
+      floatingActionButton: canView
+        ? SizedBox(width: 86, height: 86,
+            child: FloatingActionButton(
+              key: const ValueKey('sale-scheme-add-preview'),
+              foregroundColor: Colors.white,
+              backgroundColor: const Color(0xFF09B65B),
+              shape: const CircleBorder(side: BorderSide(
+                color: Colors.white, width: 2.5)),
+              onPressed: () => Navigator.of(context).push(MaterialPageRoute(
+                builder: (_) => const AddSaleSchemeReferenceScreen())),
+              child: const Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.add_rounded, size: 31),
+                  Text('Add Scheme', style: TextStyle(
+                    fontWeight: FontWeight.w800, fontSize: 10)),
+                ]),
+            ))
+        : null,
+      body: Stack(children: [
+        const Positioned(top: 0, right: 0,
+          child: BpReferenceTopAccent()),
+        RefreshIndicator(onRefresh: reload, child: ListView(
+          key: const ValueKey('sale-schemes-list'),
+          physics: const AlwaysScrollableScrollPhysics(),
+          padding: const EdgeInsets.fromLTRB(12, 12, 12, 110),
+          children: [
+            Row(children: [
+              Expanded(child: TextField(
+                controller: search, focusNode: searchFocus,
+                onChanged: (_) => setState(() {}),
+                decoration: style.search('Search sale schemes...',
+                  prefixIcon: const Icon(Icons.search_rounded))
+                  .copyWith(isDense: true))),
+              const SizedBox(width: 8),
+              Container(
+                decoration: style.card(radius: 13),
+                child: IconButton(
+                  key: const ValueKey('sale-scheme-filter'),
+                  tooltip: 'Show active only',
+                  onPressed: () => setState(
+                    () => filterActive = !filterActive),
+                  icon: Icon(filterActive
+                    ? Icons.filter_alt : Icons.filter_alt_outlined,
+                    color: style.scheme.primary)),
+              ),
+            ]),
+            const SizedBox(height: 15),
+            if (loading) pageLoading()
+            else if (error != null)
+              FailureState(message: error!, retry: reload)
+            else if (filtered.isEmpty)
+              EmptyState(title: schemes.isEmpty
+                ? 'No sale schemes yet' : 'No matching sale schemes',
+                subtitle: 'Only authorized server records are shown.')
+            else
+              for (var i = 0; i < filtered.length; i++)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 8),
+                  child: SaleSchemeCard(item: filtered[i], index: i)),
+          ],
+        )),
+        const Positioned(left: 0, right: 0, bottom: 0,
+          child: IgnorePointer(
+            child: AuthReferenceWaves(height: 60))),
+      ]),
     );
   }
 }
 
+/// Presentation only: every displayed value comes from a sale scheme response.
 class SaleSchemeCard extends StatelessWidget {
-  const SaleSchemeCard({super.key, required this.item});
+  const SaleSchemeCard({
+    super.key,
+    required this.item,
+    this.index = 0,
+  });
+
   final Map<String, dynamic> item;
+  final int index;
+
   @override
   Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
+    final style = BpReferenceStyle.of(context);
+    const icons = <IconData>[
+      Icons.card_giftcard_rounded, Icons.savings_rounded,
+      Icons.calendar_month_rounded, Icons.inventory_2_rounded,
+      Icons.local_drink_rounded,
+    ];
+    const colors = <Color>[
+      Color(0xFFFF9910), Color(0xFF13BA60),
+      Color(0xFF9A51F5), Color(0xFF118EF3),
+      Color(0xFFED4A82),
+    ];
+    final color = colors[index % colors.length];
     final active = item['is_active'] != false;
     final starts = field(item['starts_on']);
     final ends = field(item['ends_on']);
-    return Surface(child: Row(crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Container(height: 48, width: 48,
-          decoration: BoxDecoration(color: scheme.primaryContainer,
+    final code = field(item['code']);
+    final kind = field(item['scheme_type']);
+    final description = field(item['description']);
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 9),
+      decoration: style.card(radius: 15),
+      child: Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
+        Container(
+          width: 49, height: 49,
+          decoration: BoxDecoration(
+            color: color.withValues(alpha: .14),
             borderRadius: BorderRadius.circular(12)),
-          child: Icon(Icons.card_giftcard_outlined, color: scheme.primary)),
-        const SizedBox(width: 12),
+          child: Icon(icons[index % icons.length],
+            color: color, size: 26)),
+        const SizedBox(width: 10),
         Expanded(child: Column(
           crossAxisAlignment: CrossAxisAlignment.start, children: [
+            if (code.isNotEmpty)
+              Text(code, style: TextStyle(fontSize: 9,
+                color: style.muted, fontWeight: FontWeight.w700)),
             Text(field(item['name'], 'Sale scheme'),
-              style: const TextStyle(fontWeight: FontWeight.w900)),
-            const SizedBox(height: 4),
-            Text(field(item['scheme_type'], 'Type not available'),
-              style: TextStyle(color: scheme.onSurfaceVariant, fontSize: 12)),
-            Text('Apply mode: ${field(item['apply_mode'], 'Not available')}',
-              style: TextStyle(color: scheme.onSurfaceVariant, fontSize: 11)),
-            if (starts.isNotEmpty || ends.isNotEmpty)
-              Text([starts, ends].where((v) => v.isNotEmpty).join(' – '),
-                style: TextStyle(fontSize: 11, color: scheme.onSurfaceVariant)),
+              maxLines: 1, overflow: TextOverflow.ellipsis,
+              style: TextStyle(fontSize: 14.5,
+                color: style.ink, fontWeight: FontWeight.w900)),
+            if (description.isNotEmpty)
+              Text(description, maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(fontSize: 10.5, color: style.muted))
+            else if (kind.isNotEmpty)
+              Text(kind, maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(fontSize: 10.5, color: style.muted)),
+            if (starts.isNotEmpty || ends.isNotEmpty) ...[
+              const SizedBox(height: 4),
+              Row(children: [
+                Icon(Icons.calendar_today_outlined,
+                  size: 12, color: style.muted),
+                const SizedBox(width: 3),
+                Expanded(child: Text(
+                  [starts, ends].where((value) => value.isNotEmpty).join(' – '),
+                  maxLines: 1, overflow: TextOverflow.ellipsis,
+                  style: TextStyle(fontSize: 9.5, color: style.muted))),
+              ]),
+            ],
           ],
         )),
         const SizedBox(width: 5),
-        Text(active ? 'Active' : 'Inactive',
-          style: TextStyle(color: active ? scheme.primary : scheme.error,
-            fontSize: 11, fontWeight: FontWeight.w800)),
-      ],
-    ));
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
+          decoration: BoxDecoration(
+            color: active
+              ? const Color(0xFFDBF9E9) : const Color(0xFFFFE9EB),
+            borderRadius: BorderRadius.circular(18)),
+          child: Text(active ? '✓ Active' : 'Inactive',
+            style: TextStyle(fontSize: 10,
+              fontWeight: FontWeight.w900,
+              color: active
+                ? const Color(0xFF06853B) : const Color(0xFFAF3853))),
+        ),
+      ]),
+    );
   }
 }
 
-/// Screen 25 is an intentionally non-submittable design reference.
-/// Live SaleScheme API requires a reward product ULID and quantity,
-/// which the illustrative mockup form does not collect.
-class AddSaleSchemeReferenceScreen extends StatelessWidget {
-  const AddSaleSchemeReferenceScreen({super.key});
+class _SchemePreviewField extends StatelessWidget {
+  const _SchemePreviewField({
+    required this.label, required this.hint, required this.icon,
+    this.twoLines = false, this.dropdown = false,
+  });
+
+  final String label;
+  final String hint;
+  final IconData icon;
+  final bool twoLines;
+  final bool dropdown;
+
   @override
-  Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(title: const Text('Add Sale Scheme')),
-    body: ListView(key: const ValueKey('add-sale-scheme-preview'),
-      padding: const EdgeInsets.all(16), children: [
-        Surface(child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-            const Center(child: Icon(Icons.local_offer_outlined, size: 56)),
-            const SizedBox(height: 16),
-            for (final label in [
-              'Scheme Name', 'Scheme Code', 'Scheme Type', 'Apply On',
-              'Discount Value', 'Start Date', 'End Date', 'Description',
-              'Applicable Products/Categories'
-            ]) ...[
-              Text(label, style: const TextStyle(fontWeight: FontWeight.w800)),
-              const SizedBox(height: 6),
-              TextField(readOnly: true,
-                decoration: const InputDecoration(
-                  hintText: 'Design reference — not editable')),
-              const SizedBox(height: 11),
-            ],
-            const Text('Status: Active / Inactive'),
-            const SizedBox(height: 12),
-            const Text('A reward product and quantity are required by the '
-              'current Sale Schemes API. This design preview cannot be saved.'),
+  Widget build(BuildContext context) {
+    final style = BpReferenceStyle.of(context);
+    return Container(
+      margin: const EdgeInsets.only(bottom: 5),
+      padding: const EdgeInsets.fromLTRB(8, 6, 8, 7),
+      decoration: style.card(radius: 13),
+      child: Row(children: [
+        Container(
+          width: 35, height: 39,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(10),
+            color: style.scheme.primary.withValues(alpha: .12)),
+          child: Icon(icon, color: style.scheme.primary, size: 19)),
+        const SizedBox(width: 9),
+        Expanded(child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text(label, style: TextStyle(fontSize: 11,
+              color: style.ink, fontWeight: FontWeight.w900)),
+            const SizedBox(height: 3),
+            TextField(
+              readOnly: true,
+              maxLines: twoLines ? 2 : 1,
+              decoration: style.search(hint).copyWith(
+                isDense: true,
+                suffixIcon: dropdown
+                  ? const Icon(Icons.keyboard_arrow_down_rounded) : null,
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 10, vertical: 7))),
           ],
         )),
-        const SizedBox(height: 12),
-        Row(children: [
-          Expanded(child: OutlinedButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Cancel'))),
-          const SizedBox(width: 8),
-          const Expanded(child: FilledButton(
-            key: ValueKey('sale-scheme-save-disabled'),
-            onPressed: null, child: Text('Save Scheme'))),
-        ]),
-      ],
-    ),
-  );
+      ]),
+    );
+  }
+}
+
+/// Screen 25 preview, not a writable sale scheme editor. Existing server
+/// validation requires reward product/quantity not covered by the mockup.
+class AddSaleSchemeReferenceScreen extends StatelessWidget {
+  const AddSaleSchemeReferenceScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final style = BpReferenceStyle.of(context);
+    return Scaffold(
+      backgroundColor: style.page,
+      appBar: const BpReferenceSubpageAppBar(title: 'Add Sale Scheme'),
+      bottomNavigationBar: Column(
+        mainAxisSize: MainAxisSize.min, children: [
+          const AuthReferenceWaves(height: 48),
+          SafeArea(top: false, child: Container(
+            padding: const EdgeInsets.fromLTRB(12, 9, 12, 12),
+            decoration: BoxDecoration(
+              color: style.surface,
+              borderRadius: const BorderRadius.vertical(
+                top: Radius.circular(22)),
+              border: Border.all(color: style.line)),
+            child: Row(children: [
+              Expanded(child: OutlinedButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: const Text('Cancel'))),
+              const SizedBox(width: 9),
+              Expanded(child: FilledButton.icon(
+                key: const ValueKey('sale-scheme-save-disabled'),
+                onPressed: null,
+                icon: const Icon(Icons.save_outlined),
+                label: const FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Text('Save Scheme', maxLines: 1)),
+              )),
+            ]),
+          )),
+        ],
+      ),
+      body: Stack(children: [
+        const Positioned(top: 0, right: 0,
+          child: BpReferenceTopAccent()),
+        ListView(
+          key: const ValueKey('add-sale-scheme-preview'),
+          padding: const EdgeInsets.fromLTRB(12, 10, 12, 24),
+          children: [
+            const _SchemePreviewField(
+              icon: Icons.sell_rounded,
+              label: 'Scheme Name *', hint: 'Enter scheme name'),
+            const _SchemePreviewField(
+              icon: Icons.qr_code_rounded,
+              label: 'Scheme Code *', hint: 'Enter scheme code'),
+            const _SchemePreviewField(
+              icon: Icons.percent_rounded,
+              label: 'Scheme Type', hint: 'Select scheme type',
+              dropdown: true),
+            const _SchemePreviewField(
+              icon: Icons.layers_rounded,
+              label: 'Apply On', hint: 'Select apply on',
+              dropdown: true),
+            const _SchemePreviewField(
+              icon: Icons.discount_outlined,
+              label: 'Discount Value',
+              hint: 'Enter discount value'),
+            const _SchemePreviewField(
+              icon: Icons.calendar_today_outlined,
+              label: 'Start Date', hint: 'Select start date'),
+            const _SchemePreviewField(
+              icon: Icons.calendar_month_outlined,
+              label: 'End Date', hint: 'Select end date'),
+            const _SchemePreviewField(
+              icon: Icons.description_outlined,
+              label: 'Description', hint: 'Enter description',
+              twoLines: true),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: style.card(radius: 14),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('Applicable Products / Categories',
+                    style: TextStyle(fontSize: 11,
+                      color: style.ink, fontWeight: FontWeight.w900)),
+                  const SizedBox(height: 7),
+                  Text('Category    Product    Customer Group',
+                    style: TextStyle(fontSize: 11, color: style.muted)),
+                ],
+              ),
+            ),
+            const SizedBox(height: 6),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: style.card(radius: 14),
+              child: Row(children: [
+                Icon(Icons.verified_user_outlined,
+                  color: style.scheme.primary),
+                const SizedBox(width: 10),
+                Text('Status', style: TextStyle(
+                  fontWeight: FontWeight.w900, color: style.ink)),
+                const Spacer(),
+                Text('Active / Inactive',
+                  style: TextStyle(fontSize: 12, color: style.muted)),
+              ]),
+            ),
+            const SizedBox(height: 10),
+            Text('Preview only: the current server contract requires a '
+              'reward product and quantity. Saving is disabled.',
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 11, color: style.muted)),
+          ],
+        ),
+      ]),
+    );
+  }
 }
