@@ -69,10 +69,12 @@ class ModuleAction {
 
 class ModulesScreen extends StatefulWidget {
   const ModulesScreen({super.key, required this.app, required this.navigate,
-    this.menuMode});
+    this.menuMode, this.drawerMode = false, this.onDrawerAction});
   final AppController app;
   final ValueChanged<int> navigate;
   final ValueNotifier<bool>? menuMode;
+  final bool drawerMode;
+  final VoidCallback? onDrawerAction;
 
   @override
   State<ModulesScreen> createState() => _ModulesScreenState();
@@ -86,6 +88,8 @@ class _ModulesScreenState extends State<ModulesScreen> {
       widget.menuMode ?? ValueNotifier<bool>(false);
   bool showMainMenu = false;
   bool showDirectory = false;
+  bool drawerSearch = false;
+  String? expandedDrawerGroup;
 
   @override
   void initState() {
@@ -803,8 +807,201 @@ class _ModulesScreenState extends State<ModulesScreen> {
     ]);
   }
 
+  Widget _floatingDrawer() {
+    final motion = widget.app.appearance.animations
+        ? const Duration(milliseconds: 260) : Duration.zero;
+    final query = search.text.trim().toLowerCase();
+    final categories = <({String name, IconData icon, Color color})>[
+      (name: 'Definition', icon: Icons.layers_rounded,
+        color: const Color(0xFF14B75B)),
+      (name: 'Daily Entries', icon: Icons.calendar_month_rounded,
+        color: const Color(0xFF02BAC1)),
+      (name: 'Reports', icon: Icons.bar_chart_rounded,
+        color: const Color(0xFF8A50ED)),
+      (name: 'Tools', icon: Icons.handyman_rounded,
+        color: const Color(0xFFF69A14)),
+      (name: 'Administration', icon: Icons.settings_suggest_rounded,
+        color: const Color(0xFF087DF6)),
+    ];
+    return Material(
+      color: const Color(0xFFF7F9FF),
+      child: Column(children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(15, 17, 10, 7),
+          child: Row(children: [
+            Container(
+              height: 40, width: 40,
+              decoration: BoxDecoration(
+                color: const Color(0xFFE2F7EC),
+                borderRadius: BorderRadius.circular(13)),
+              child: const Icon(Icons.apps_rounded,
+                color: Color(0xFF079960))),
+            const SizedBox(width: 10),
+            const Expanded(child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('Main Menu', style: TextStyle(
+                  color: Color(0xFF0B2049), fontSize: 19,
+                  fontWeight: FontWeight.w900)),
+                Text('Explore your business modules',
+                  style: TextStyle(
+                    color: Color(0xFF647393), fontSize: 10.5)),
+              ])),
+            IconButton(
+              key: const ValueKey('drawer-search'),
+              tooltip: 'Search menu',
+              icon: Icon(drawerSearch ? Icons.close_rounded
+                  : Icons.search_rounded,
+                color: const Color(0xFF102852)),
+              onPressed: () => setState(() {
+                drawerSearch = !drawerSearch;
+                if (!drawerSearch) search.clear();
+              })),
+          ]),
+        ),
+        AnimatedSize(
+          duration: motion,
+          curve: Curves.easeInOutCubic,
+          child: drawerSearch
+            ? Padding(
+                padding: const EdgeInsets.fromLTRB(13, 3, 13, 8),
+                child: TextField(
+                  key: const ValueKey('drawer-search-input'),
+                  controller: search,
+                  onChanged: (_) => setState(() {}),
+                  decoration: InputDecoration(
+                    isDense: true,
+                    filled: true,
+                    fillColor: Colors.white,
+                    hintText: 'Search submenus…',
+                    prefixIcon: const Icon(Icons.search_rounded, size: 20),
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 10, vertical: 10),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12))),
+                ))
+            : const SizedBox.shrink(),
+        ),
+        Expanded(child: ListView(
+          key: const ValueKey('floating-main-menu-list'),
+          padding: const EdgeInsets.fromLTRB(12, 6, 12, 22),
+          children: [
+            for (final category in categories)
+              Builder(builder: (context) {
+                final actions = (groups[category.name] ?? const <ModuleAction>[])
+                  .where((action) => action.visible(widget.app))
+                  .where((action) => query.isEmpty ||
+                    '${category.name} ${action.title} ${action.description}'
+                      .toLowerCase().contains(query))
+                  .toList();
+                if (actions.isEmpty) return const SizedBox.shrink();
+                final expanded = expandedDrawerGroup == category.name ||
+                    query.isNotEmpty;
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 7),
+                  child: DecoratedBox(
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(15),
+                      border: Border.all(
+                        color: expanded
+                          ? category.color.withValues(alpha: .28)
+                          : const Color(0xFFE6EBF8)),
+                      boxShadow: const [BoxShadow(
+                        color: Color(0x17557CAC),
+                        blurRadius: 7, offset: Offset(0, 3))]),
+                    child: Column(children: [
+                      InkWell(
+                        key: ValueKey('drawer-group-${category.name}'),
+                        borderRadius: BorderRadius.circular(15),
+                        onTap: () => setState(() {
+                          expandedDrawerGroup = expandedDrawerGroup ==
+                            category.name ? null : category.name;
+                        }),
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10, vertical: 9),
+                          child: Row(children: [
+                            Container(
+                              width: 35, height: 35,
+                              decoration: BoxDecoration(
+                                color: category.color.withValues(alpha: .13),
+                                borderRadius: BorderRadius.circular(10)),
+                              child: Icon(category.icon,
+                                size: 22, color: category.color)),
+                            const SizedBox(width: 9),
+                            Expanded(child: Text(category.name,
+                              style: const TextStyle(
+                                fontSize: 13.5,
+                                color: Color(0xFF0B1D43),
+                                fontWeight: FontWeight.w800))),
+                            AnimatedRotation(
+                              turns: expanded ? .25 : 0,
+                              duration: motion,
+                              child: const Icon(
+                                Icons.chevron_right_rounded,
+                                color: Color(0xFF344C72))),
+                          ]),
+                        ),
+                      ),
+                      AnimatedSize(
+                        duration: motion,
+                        curve: Curves.easeInOutCubic,
+                        alignment: Alignment.topCenter,
+                        child: expanded
+                          ? Padding(
+                              padding: const EdgeInsets.fromLTRB(7, 0, 7, 8),
+                              child: Column(children: [
+                                const Divider(
+                                  color: Color(0xFFEAF0FB), height: 8),
+                                for (final action in actions)
+                                  InkWell(
+                                    key: ValueKey(
+                                      'drawer-action-${action.title}'),
+                                    onTap: () {
+                                      // Permission gates are checked above.
+                                      // Close the overlay, then use the existing
+                                      // live module navigation callback.
+                                      widget.onDrawerAction?.call();
+                                      action.open();
+                                    },
+                                    borderRadius: BorderRadius.circular(10),
+                                    child: Padding(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 10, vertical: 10),
+                                      child: Row(children: [
+                                        Icon(action.icon, size: 18,
+                                          color: category.color),
+                                        const SizedBox(width: 9),
+                                        Expanded(child: Text(action.title,
+                                          maxLines: 2,
+                                          overflow: TextOverflow.ellipsis,
+                                          style: const TextStyle(
+                                            fontSize: 12.5,
+                                            color: Color(0xFF263456),
+                                            fontWeight: FontWeight.w700))),
+                                        const Icon(
+                                          Icons.arrow_forward_ios_rounded,
+                                          size: 12, color: Color(0xFF7485A2)),
+                                      ]),
+                                    ),
+                                  ),
+                              ]))
+                          : const SizedBox.shrink(),
+                      ),
+                    ]),
+                  ),
+                );
+              }),
+          ],
+        )),
+      ]),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    if (widget.drawerMode) return _floatingDrawer();
     if (activeGroup == 'Daily Entries' && !showDirectory) {
       return _dailyEntriesHome();
     }
