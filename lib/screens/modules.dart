@@ -649,20 +649,11 @@ class _ModulesScreenState extends State<ModulesScreen> {
             ),
           ),
         ],
-        const SizedBox(height: 8),
-        TextButton.icon(
-          onPressed: () => setState(() {
-            showDirectory = true;
-            activeGroup = null;
-          }),
-          icon: const Icon(Icons.grid_view_rounded),
-          label: const Text('Browse all available modules'),
-        ),
-        const SizedBox(height: 12),
+        const SizedBox(height: 10),
       ],
     ),
     const Positioned(left: 0, right: 0, bottom: 0,
-      child: AuthReferenceWaves(height: 60)),
+      child: IgnorePointer(child: AuthReferenceWaves(height: 60))),
     ]);
   }
 
