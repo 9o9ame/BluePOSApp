@@ -5,7 +5,6 @@ import '../core/sale_attempt.dart';
 import '../core/session.dart';
 import '../widgets/common.dart';
 import '../widgets/reference_surface.dart';
-import 'auth_reference_chrome.dart';
 import 'transaction_widgets.dart';
 import 'money_actions.dart';
 
@@ -466,6 +465,13 @@ class _ReturnDocumentEditorState extends State<ReturnDocumentEditor> {
     final style = BpReferenceStyle.of(context);
     final isSale = widget.kind == ReturnDocumentKind.sale;
     final canCreate = widget.app.hasPermission(widget.kind.createPermission);
+    final detailData = objectOf(document);
+    final sourceData = objectOf(source);
+    final partyKey = isSale ? 'customer' : 'supplier';
+    final partyNameKey = isSale ? 'customer_name' : 'supplier_name';
+    final partyName = field(objectOf(detailData[partyKey])['name'],
+      field(objectOf(sourceData[partyKey])['name'],
+        field(sourceData[partyNameKey], 'From posted invoice')));
     return Scaffold(
       backgroundColor: style.page,
       appBar: BpReferenceSubpageAppBar(title: created
@@ -505,12 +511,7 @@ class _ReturnDocumentEditorState extends State<ReturnDocumentEditor> {
             Expanded(child: BpReferenceCompactField(
               label: isSale ? 'Customer' : 'Supplier',
               icon: Icons.person_rounded,
-              value: field(objectOf(isSale
-                    ? document?['customer'] : document?['supplier'])['name'],
-                field(objectOf(isSale
-                    ? source?['customer'] : source?['supplier'])['name'],
-                  field(isSale ? source?['customer_name']
-                    : source?['supplier_name'], 'From posted invoice'))))),
+              value: partyName)),
           ]),
           const SizedBox(height: 7),
           Row(children: [
