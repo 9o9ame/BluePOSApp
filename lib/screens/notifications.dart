@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../core/api.dart';
 import '../core/session.dart';
 import '../widgets/common.dart';
+import '../widgets/reference_navigation.dart';
 import 'auth_reference_chrome.dart';
 
 /// Reference screen 10: only owner-authorized device access notifications
@@ -10,9 +11,10 @@ import 'auth_reference_chrome.dart';
 /// intentionally not fabricated.
 class NotificationsScreen extends StatefulWidget {
   const NotificationsScreen({super.key, required this.app,
-    this.onNavigate});
+    this.onNavigate, this.onScan});
   final AppController app;
   final ValueChanged<int>? onNavigate;
+  final VoidCallback? onScan;
 
   @override
   State<NotificationsScreen> createState() => _NotificationsScreenState();
@@ -124,36 +126,11 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
       ]),
       bottomNavigationBar: widget.onNavigate == null
         ? null
-        : SafeArea(top: false, child: Container(
-            decoration: const BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.vertical(
-                top: Radius.circular(22)),
-              boxShadow: [BoxShadow(
-                color: Color(0x1E5B78A9),
-                offset: Offset(0, -5), blurRadius: 12)]),
-            child: NavigationBar(
-              selectedIndex: 4,
-              onDestinationSelected: widget.onNavigate,
-              backgroundColor: Colors.transparent,
-              indicatorColor: const Color(0xFF08B779),
-              labelBehavior:
-                NavigationDestinationLabelBehavior.alwaysShow,
-              height: 71,
-              destinations: const [
-                NavigationDestination(icon: Icon(Icons.home_outlined),
-                  label: 'Home'),
-                NavigationDestination(icon: Icon(Icons.shopping_cart_outlined),
-                  label: 'POS'),
-                NavigationDestination(icon: Icon(Icons.inventory_2_outlined),
-                  label: 'Products'),
-                NavigationDestination(icon: Icon(Icons.bar_chart_outlined),
-                  label: 'Reports'),
-                NavigationDestination(icon: Icon(Icons.more_horiz_rounded),
-                  selectedIcon: Icon(Icons.more_horiz_rounded,
-                    color: Colors.white), label: 'More'),
-              ]),
-          )),
+        : BlueposReferenceNav(
+            selectedIndex: 4,
+            onSelect: widget.onNavigate!,
+            onScan: widget.onScan ?? () {},
+          ),
     ));
   }
 }
