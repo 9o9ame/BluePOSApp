@@ -160,6 +160,14 @@ flutter run
 - `test/mobile_reference_33_40_web_contract_test.dart` also covers shared decimal labels; not executed yet.
 - Before declaring screens approved, run Flutter analyzer/tests, test real tenant records including empty return lists/draft purchases, then compare Android screenshots to reference.
 
+## Flutter analyzer incident correction — 2026-11-17
+
+Windows verification after `b3bf748` successfully fast-forwarded the mobile branch, but failed to compile `lib/screens/returns.dart:509–513` due to an ambiguous nested conditional with null-aware map reads. Both focused test suites failed **to load**, not because their assertions failed.
+
+**Committed fix:** Return detail/customer-or-supplier name is resolved from already-converted `objectOf(document)` and `objectOf(source)` maps using one type-safe party key before rendering. Removed unused imports from affected files, migrated PDF `Table.fromTextArray` to `TableHelper.fromTextArray`, added braces around the logged guarded flows in Purchase/Return/Transaction widgets, and cleaned the shared display-label interpolation warning. No backend/schema/posting calculations changed.
+
+**Validation:** Structural bracket/quote checks across five touched Dart files passed; **Flutter analyzer/tests have not been rerun in the assistant runtime**. The prior Windows run reported 38 diagnostics including compile errors; user must pull latest branch and rerun targeted checks. Their local `analysis_options.yaml` modification and untracked `.idea/`, `.metadata`, `android/`, `bluepos_app.iml`, `widget_test.generated.bak` were deliberately untouched. Never reset or delete them without explicit approval.
+
 ## What is still pending / honesty boundary
 
 - **Run on user's Windows Flutter installation**: analyze 3 affected Dart files and run focused tests. Our execution environment did not have Flutter/Dart binaries. Distinguish static source inspection from actual test execution.
