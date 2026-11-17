@@ -177,7 +177,7 @@ class _AppShellState extends State<AppShell>
               Positioned.fill(child: widget.app.appearance.animations
                 ? TweenAnimationBuilder<double>(
                     key: ValueKey('screen-transition-$selected'),
-                    tween: Tween(begin: 0, end: 1),
+                    tween: Tween<double>(begin: 0, end: 1),
                     duration: const Duration(milliseconds: 250),
                     curve: Curves.easeOutCubic,
                     builder: (context, progress, child) => Opacity(
