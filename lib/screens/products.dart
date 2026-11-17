@@ -352,7 +352,7 @@ class _ProductsScreenState extends State<ProductsScreen> {
                 Color(0xFF08CF77), Color(0xFF008F50)])
             : LinearGradient(colors: [
                 tint.withValues(alpha: .13),
-                Colors.white]),
+                Theme.of(context).colorScheme.surface]),
           border: Border.all(color: Colors.white, width: 1.3),
           borderRadius: BorderRadius.circular(25),
           boxShadow: const [BoxShadow(
@@ -364,7 +364,7 @@ class _ProductsScreenState extends State<ProductsScreen> {
             const SizedBox(width: 5),
           ],
           Text(title, style: TextStyle(
-            color: selected ? Colors.white : const Color(0xFF172549),
+            color: selected ? Colors.white : Theme.of(context).colorScheme.onSurface,
             fontSize: 11.5, fontWeight: FontWeight.w800)),
         ]),
       ),
