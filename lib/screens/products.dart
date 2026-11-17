@@ -312,7 +312,9 @@ class _ProductsScreenState extends State<ProductsScreen> {
     final standalone = widget.catalogHome == true || widget.onAdd == null;
     return Stack(children: [
       RefreshIndicator(onRefresh: load, child: ListView(
-        padding: const EdgeInsets.all(16), children: [
+        padding: EdgeInsets.fromLTRB(
+          widget.inlineCatalog == true ? 7 : 16,
+          10, widget.inlineCatalog == true ? 7 : 16, 16), children: [
       if (!(widget.inlineCatalog == true))
         SectionHeading(standalone ? 'Products' : 'Add a product',
           trailing: IconButton(
@@ -358,12 +360,34 @@ class _ProductsScreenState extends State<ProductsScreen> {
       if (categories.isNotEmpty && (!standalone || showCatalogFilters)) ...[
         const SizedBox(height: 12),
         SizedBox(height: 42, child: ListView(scrollDirection: Axis.horizontal, children: [
-          Padding(padding: const EdgeInsets.only(right: 8), child: ChoiceChip(
-            label: const Text('All'), selected: categoryUlid == null,
+          Padding(padding: const EdgeInsets.only(right: 7), child: ChoiceChip(
+            label: const Text('All'),
+            selected: categoryUlid == null,
+            showCheckmark: false,
+            selectedColor: const Color(0xFF05B46E),
+            backgroundColor: Colors.white,
+            side: BorderSide.none,
+            labelStyle: TextStyle(
+              fontWeight: FontWeight.w800,
+              color: categoryUlid == null
+                ? Colors.white : const Color(0xFF1A2C53)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(21)),
             onSelected: (_) { setState(() => categoryUlid = null); load(); })),
-          ...categories.map((c) => Padding(padding: const EdgeInsets.only(right: 8),
-            child: ChoiceChip(label: Text(field(c['name'])),
+          ...categories.map((c) => Padding(padding: const EdgeInsets.only(right: 7),
+            child: ChoiceChip(
+              label: Text(field(c['name'])),
               selected: categoryUlid == c['ulid'],
+              selectedColor: const Color(0xFF05B46E),
+              backgroundColor: const Color(0xFFE9F0FF),
+              showCheckmark: false,
+              side: BorderSide.none,
+              labelStyle: TextStyle(
+                fontSize: 12, fontWeight: FontWeight.w700,
+                color: categoryUlid == c['ulid']
+                  ? Colors.white : const Color(0xFF1A2C53)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(21)),
               onSelected: (_) { setState(() => categoryUlid = field(c['ulid'])); load(); }))),
         ])),
       ],
