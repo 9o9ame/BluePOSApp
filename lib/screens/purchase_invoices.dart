@@ -491,6 +491,7 @@ class _PurchaseInvoiceEditorState extends State<PurchaseInvoiceEditor> {
               rightKey: const ValueKey('purchase-detail-ledger'),
               leftLabel: 'Print',
               rightLabel: 'View Ledger',
+              rightColor: const Color(0xFF006DF6),
               leftIcon: Icons.print_outlined,
               rightIcon: Icons.layers_outlined,
               onLeft: saving || field(document?['status']) != 'posted'
