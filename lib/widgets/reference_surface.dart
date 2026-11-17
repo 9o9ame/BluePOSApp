@@ -193,6 +193,61 @@ class BpReferenceFooterWave extends StatelessWidget {
   }
 }
 
+/// Reusable compact Active/Inactive selector for server-backed forms.
+class BpReferenceStatusSelector extends StatelessWidget {
+  const BpReferenceStatusSelector({
+    super.key, required this.active, required this.onChanged,
+    this.enabled = true,
+  });
+
+  final bool active;
+  final bool enabled;
+  final ValueChanged<bool> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    final style = BpReferenceStyle.of(context);
+    return Row(children: [
+      for (final value in [true, false]) ...[
+        if (!value) const SizedBox(width: 7),
+        Expanded(child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            onTap: enabled ? () => onChanged(value) : null,
+            borderRadius: BorderRadius.circular(11),
+            child: Container(
+              height: 34,
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(11),
+                color: active == value
+                  ? const Color(0xFFDCF8E6) : style.surface,
+                border: Border.all(
+                  color: active == value
+                    ? const Color(0xFF87DCAD) : style.line)),
+              child: Row(mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(active == value
+                    ? Icons.check_circle_rounded
+                    : Icons.radio_button_unchecked_rounded,
+                    size: 16,
+                    color: active == value
+                      ? const Color(0xFF11974C) : style.muted),
+                  const SizedBox(width: 4),
+                  Text(value ? 'Active' : 'Inactive',
+                    style: TextStyle(fontSize: 11,
+                      color: active == value
+                        ? const Color(0xFF176337) : style.ink,
+                      fontWeight: FontWeight.w800)),
+                ]),
+            ),
+          ),
+        )),
+      ],
+    ]);
+  }
+}
+
 /// Consistent two-column detail rows used by Customer/Supplier screens.
 class BpReferenceDetailLine extends StatelessWidget {
   const BpReferenceDetailLine({
