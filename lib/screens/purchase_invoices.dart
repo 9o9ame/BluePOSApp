@@ -53,8 +53,12 @@ class PurchaseInvoiceEditor extends StatefulWidget {
 class _PurchaseInvoiceEditorState extends State<PurchaseInvoiceEditor> {
   final notes = TextEditingController();
   final supplierInvoice = TextEditingController();
+  final freight = TextEditingController();
+  final otherDiscount = TextEditingController();
+  final paymentTerms = TextEditingController();
   Map<String, dynamic>? supplier, document;
   DateTime date = DateTime.now();
+  DateTime? dueDate;
   bool loading = false, saving = false, uncertainCreate = false;
   String? error;
   bool get hasDocument => validPublicUlid(field(document?['ulid']));
@@ -75,6 +79,7 @@ class _PurchaseInvoiceEditorState extends State<PurchaseInvoiceEditor> {
   void dispose() {
     notes.dispose();
     supplierInvoice.dispose();
+    freight.dispose(); otherDiscount.dispose(); paymentTerms.dispose();
     super.dispose();
   }
 
@@ -90,6 +95,10 @@ class _PurchaseInvoiceEditorState extends State<PurchaseInvoiceEditor> {
         supplier = objectOf(data['supplier']);
         notes.text = field(data['notes']);
         supplierInvoice.text = field(data['supplier_invoice_number']);
+        freight.text = field(data['freight_amount']);
+        otherDiscount.text = field(data['other_discount']);
+        paymentTerms.text = field(data['payment_terms']);
+        dueDate = DateTime.tryParse(field(data['due_date']));
         date = DateTime.tryParse(field(data['invoice_date'])) ?? DateTime.now();
       });
     } catch (ex) {
@@ -112,6 +121,30 @@ class _PurchaseInvoiceEditorState extends State<PurchaseInvoiceEditor> {
     if (d != null && mounted) setState(() => date = d);
   }
 
+  bool get validHeaderMoney =>
+    (freight.text.trim().isEmpty ||
+      validNonNegativeDecimal(freight.text.trim(), 4)) &&
+    (otherDiscount.text.trim().isEmpty ||
+      validNonNegativeDecimal(otherDiscount.text.trim(), 4));
+
+  Map<String, dynamic> get supportedHeaderFields => {
+    if (freight.text.trim().isNotEmpty)
+      'freight_amount': freight.text.trim(),
+    if (otherDiscount.text.trim().isNotEmpty)
+      'other_discount': otherDiscount.text.trim(),
+    if (paymentTerms.text.trim().isNotEmpty)
+      'payment_terms': paymentTerms.text.trim(),
+    if (dueDate != null) 'due_date': isoLocalDate(dueDate!),
+  };
+
+  Future<void> chooseDueDate() async {
+    if (hasDocument && (!draft || !canEdit)) return;
+    final chosen = await showDatePicker(context: context,
+      initialDate: dueDate ?? date, firstDate: DateTime(2020),
+      lastDate: DateTime(2100));
+    if (chosen != null && mounted) setState(() => dueDate = chosen);
+  }
+
   Future<void> createDraft() async {
     if (saving || hasDocument || uncertainCreate ||
       !widget.app.hasPermission('purchases.create')) return;
@@ -120,6 +153,10 @@ class _PurchaseInvoiceEditorState extends State<PurchaseInvoiceEditor> {
         !validPublicUlid(warehouseUlid)) {
       setState(() => error =
         'Select an active supplier and active warehouse before creating a draft.');
+      return;
+    }
+    if (!validHeaderMoney) {
+      setState(() => error = 'Freight and Other Discount must be non-negative amounts with up to four decimal places.');
       return;
     }
     if (!await confirmMutation(context,
@@ -134,6 +171,7 @@ class _PurchaseInvoiceEditorState extends State<PurchaseInvoiceEditor> {
         'invoice_date': isoLocalDate(date),
         'supplier_invoice_number': supplierInvoice.text.trim(),
         'notes': notes.text.trim(),
+        ...supportedHeaderFields,
       }));
       if (!validPublicUlid(field(result['ulid']))) {
         throw const ApiFailure('UNCONFIRMED_PURCHASE',
@@ -162,6 +200,10 @@ class _PurchaseInvoiceEditorState extends State<PurchaseInvoiceEditor> {
   Future<void> saveHeader() async {
     if (saving || !hasDocument || !draft || !canEdit) return;
     if (!validPublicUlid(field(supplier?['ulid']))) return;
+    if (!validHeaderMoney) {
+      setState(() => error = 'Enter valid non-negative freight and discount amounts.');
+      return;
+    }
     setState(() { saving = true; error = null; });
     try {
       await widget.app.api.patch('/api/purchases/$ulid', {
@@ -169,6 +211,7 @@ class _PurchaseInvoiceEditorState extends State<PurchaseInvoiceEditor> {
         'invoice_date': isoLocalDate(date),
         'supplier_invoice_number': supplierInvoice.text.trim(),
         'notes': notes.text.trim(),
+        ...supportedHeaderFields,
       });
       await refresh();
     } catch (ex) {
@@ -476,52 +519,40 @@ class _PurchaseInvoiceEditorState extends State<PurchaseInvoiceEditor> {
         const SizedBox(height: 8),
         if (loading) pageLoading()
         else ...[
-          BpReferenceFormField(
-            icon: Icons.person_outline_rounded,
-            label: 'Supplier *',
-            hint: '',
-            child: ListTile(
-              dense: true,
-              contentPadding: const EdgeInsets.symmetric(horizontal: 7),
-              title: Text(field(supplier?['name'], 'Choose supplier'),
-                maxLines: 1, overflow: TextOverflow.ellipsis),
-              trailing: const Icon(Icons.chevron_right_rounded, size: 18),
-              onTap: hasDocument && (!draft || !canEdit)
-                ? null : chooseSupplier,
-            )),
-          BpReferenceFormField(
-            icon: Icons.calendar_today_outlined,
-            label: 'Invoice Date *',
-            hint: '',
-            child: InkWell(
-              onTap: !hasDocument || (draft && canEdit)
-                ? chooseDate : null,
-              child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 9),
-                child: Text(displayDate, style: TextStyle(
-                  fontSize: 12, color: style.ink))),
-            )),
-          BpReferenceFormField(
-            icon: Icons.receipt_long_outlined,
-            label: 'Supplier Invoice Number',
-            hint: 'Enter invoice number',
-            controller: supplierInvoice, maxLength: 100,
-            readOnly: hasDocument && (!draft || !canEdit)),
+
+                    Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Expanded(child: BpReferenceCompactField(label: 'Supplier *', icon: Icons.person_outline_rounded, hint: 'Choose supplier', value: field(supplier?['name']), onTap: hasDocument && (!draft || !canEdit) ? null : chooseSupplier)),
+            const SizedBox(width: 7),
+            Expanded(child: BpReferenceCompactField(label: 'Invoice Date', icon: Icons.calendar_today_outlined, value: displayDate, onTap: !hasDocument || (draft && canEdit) ? chooseDate : null)),
+          ]),
+          const SizedBox(height: 7),
+
+                    Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Expanded(child: BpReferenceCompactField(label: 'Invoice Ref. (Supplier)', icon: Icons.receipt_long_outlined, controller: supplierInvoice, hint: 'Supplier invoice no.', readOnly: hasDocument && (!draft || !canEdit))),
+            const SizedBox(width: 7),
+            Expanded(child: BpReferenceCompactField(label: 'Warehouse *', icon: Icons.warehouse_outlined, value: field(objectOf(document?['warehouse'])['name'], widget.app.warehouseName))),
+          ]),
+          const SizedBox(height: 7),
+
+                    Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Expanded(child: BpReferenceCompactField(label: 'Due Date', icon: Icons.event_outlined, value: dueDate == null ? '' : isoLocalDate(dueDate!), hint: 'Choose date', onTap: hasDocument && (!draft || !canEdit) ? null : chooseDueDate)),
+            const SizedBox(width: 7),
+            Expanded(child: BpReferenceCompactField(label: 'Payment Terms', icon: Icons.credit_card_outlined, controller: paymentTerms, hint: 'Enter terms', readOnly: hasDocument && (!draft || !canEdit))),
+          ]),
+          const SizedBox(height: 7),
+
+                    Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Expanded(child: BpReferenceCompactField(label: 'Freight Amount', icon: Icons.local_shipping_outlined, controller: freight, hint: '0.0000', keyboardType: const TextInputType.numberWithOptions(decimal: true), readOnly: hasDocument && (!draft || !canEdit))),
+            const SizedBox(width: 7),
+            Expanded(child: BpReferenceCompactField(label: 'Other Discount', icon: Icons.discount_outlined, controller: otherDiscount, hint: '0.0000', keyboardType: const TextInputType.numberWithOptions(decimal: true), readOnly: hasDocument && (!draft || !canEdit))),
+          ]),
+          const SizedBox(height: 7),
+
           BpReferenceFormField(
             icon: Icons.chat_bubble_outline_rounded,
-            label: 'Remarks',
-            hint: 'Enter remarks (optional)',
+            label: 'Notes', hint: 'Enter remarks (optional)',
             controller: notes, maxLength: 5000, maxLines: 2,
             readOnly: hasDocument && (!draft || !canEdit)),
-          BpReferenceFormField(
-            icon: Icons.warehouse_outlined,
-            label: 'Warehouse',
-            hint: '',
-            child: Padding(
-              padding: const EdgeInsets.symmetric(vertical: 9),
-              child: Text(widget.app.warehouseName,
-                style: TextStyle(fontSize: 12, color: style.ink))),
-          ),
           if (hasDocument) ...[
             const SizedBox(height: 13),
             Surface(child: Row(children: [
