@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../core/api.dart';
 import '../core/session.dart';
 import '../widgets/common.dart';
+import '../widgets/reference_navigation.dart';
 import 'history.dart';
 import 'dashboard.dart';
 import 'modules.dart';
@@ -40,6 +41,13 @@ class _AppShellState extends State<AppShell> {
   void dispose() {
     menuMode.dispose();
     super.dispose();
+  }
+
+  void openScanner() {
+    navigate(1);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) saleKey.currentState?.scan();
+    });
   }
 
   void openMainMenu() {
@@ -112,7 +120,10 @@ class _AppShellState extends State<AppShell> {
                 icon: const Icon(Icons.notifications_none_rounded),
                 onPressed: () => Navigator.of(ctx).push(
                   MaterialPageRoute(builder: (_) =>
-                    NotificationsScreen(app: app, onNavigate: (index) {
+                    NotificationsScreen(app: app, onScan: () {
+                      Navigator.of(ctx).pop();
+                      openScanner();
+                    }, onNavigate: (index) {
                       Navigator.of(ctx).pop();
                       if (index == 4) menuMode.value = false;
                       navigate(index);
@@ -135,55 +146,13 @@ class _AppShellState extends State<AppShell> {
               children: pages,
             ),
           )),
-          bottomNavigationBar: SafeArea(
-            top: false,
-            child: Container(
-              decoration: BoxDecoration(
-                color: reference ? Colors.white : Theme.of(ctx).cardColor,
-                borderRadius: const BorderRadius.vertical(
-                  top: Radius.circular(20)),
-                boxShadow: const [BoxShadow(
-                  color: Color(0x23527AA4),
-                  offset: Offset(0, -3), blurRadius: 15)],
-              ),
-              child: NavigationBar(
-                selectedIndex: selected,
-                onDestinationSelected: (index) {
-                  if (index == 4) menuMode.value = false;
-                  navigate(index);
-                },
-                backgroundColor: Colors.transparent,
-                indicatorColor: reference
-                  ? const Color(0xFF06AA70) : scheme.primary,
-                indicatorShape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(20)),
-                labelBehavior:
-                  NavigationDestinationLabelBehavior.alwaysShow,
-                height: app.appearance.density == 'compact' ? 62 : 71,
-                destinations: const [
-                  NavigationDestination(
-                    icon: Icon(Icons.home_outlined),
-                    selectedIcon: Icon(Icons.home_rounded,
-                      color: Colors.white), label: 'Home'),
-                  NavigationDestination(
-                    icon: Icon(Icons.shopping_cart_outlined),
-                    selectedIcon: Icon(Icons.shopping_cart_rounded,
-                      color: Colors.white), label: 'POS'),
-                  NavigationDestination(
-                    icon: Icon(Icons.inventory_2_outlined),
-                    selectedIcon: Icon(Icons.inventory_2_rounded,
-                      color: Colors.white), label: 'Products'),
-                  NavigationDestination(
-                    icon: Icon(Icons.bar_chart_outlined),
-                    selectedIcon: Icon(Icons.bar_chart_rounded,
-                      color: Colors.white), label: 'Reports'),
-                  NavigationDestination(
-                    icon: Icon(Icons.more_horiz_rounded),
-                    selectedIcon: Icon(Icons.more_horiz_rounded,
-                      color: Colors.white), label: 'More'),
-                ],
-              ),
-            ),
+          bottomNavigationBar: BlueposReferenceNav(
+            selectedIndex: selected,
+            onSelect: (index) {
+              if (index == 4) menuMode.value = false;
+              navigate(index);
+            },
+            onScan: openScanner,
           ),
         );
       }),
