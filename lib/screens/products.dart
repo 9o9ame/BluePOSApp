@@ -373,7 +373,6 @@ class _ProductsScreenState extends State<ProductsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
     final app = widget.app;
     final standalone = widget.catalogHome == true || widget.onAdd == null;
     final style = BpReferenceStyle.of(context);
