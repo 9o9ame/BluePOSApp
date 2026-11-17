@@ -673,140 +673,183 @@ class _CatalogMasterScreenState extends State<CatalogMasterScreen> {
     if (config.apiPath == '/api/categories') {
       return _categoryReferenceScreen(context, filtered);
     }
+    // Reference screens 16, 18 and 20 reuse real authorized catalog data.
+    final style = BpReferenceStyle.of(context);
+    const tones = <Color>[
+      Color(0xFF078FF5), Color(0xFFFF990A), Color(0xFF8B42F5),
+      Color(0xFF00BA75), Color(0xFFEE4A83), Color(0xFF21B9D8),
+    ];
+    final referenceIcons = isSub
+      ? <IconData>[
+          Icons.local_drink_rounded, Icons.fastfood_rounded,
+          Icons.cookie_rounded, Icons.shopping_basket_rounded,
+          Icons.ac_unit_rounded, Icons.cleaning_services_rounded]
+      : isBrand
+        ? <IconData>[
+            Icons.local_drink_rounded, Icons.inventory_2_rounded,
+            Icons.shopping_bag_rounded, Icons.sell_rounded,
+            Icons.grid_on_rounded, Icons.storefront_rounded]
+        : <IconData>[
+            Icons.inventory_2_rounded, Icons.all_inbox_rounded,
+            Icons.inbox_rounded, Icons.water_drop_rounded,
+            Icons.scale_rounded, Icons.local_drink_rounded];
     return Scaffold(
-      appBar: AppBar(
-        title: Text(config.title),
-        actions: [
-          IconButton(onPressed: reload, tooltip: 'Refresh',
-            icon: const Icon(Icons.refresh_rounded)),
-        ],
+      backgroundColor: style.page,
+      appBar: BpReferenceSubpageAppBar(
+        title: config.title,
+        onSearch: () => searchFocus.requestFocus(),
+        onNotifications: () => Navigator.of(context).push(
+          MaterialPageRoute(builder: (_) =>
+            NotificationsScreen(app: widget.app))),
       ),
-      floatingActionButton: canCreate ? FloatingActionButton.extended(
-        key: const ValueKey('catalog-add'),
-        onPressed: () => openEditor(),
-        icon: const Icon(Icons.add_rounded),
-        label: Text('Add $singular')) : null,
-      body: RefreshIndicator(
-        onRefresh: reload,
-        child: ListView(
-          key: const ValueKey('catalog-master-list'),
-          physics: const AlwaysScrollableScrollPhysics(),
-          padding: const EdgeInsets.all(16),
-          children: [
-            Row(children: [
-              Expanded(child: Text(config.title,
-                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                  fontWeight: FontWeight.w900))),
-              Icon(icon, color: scheme.primary, size: 26),
+      floatingActionButton: canCreate ? SizedBox(
+        width: 86, height: 86,
+        child: FloatingActionButton(
+          key: const ValueKey('catalog-add'),
+          backgroundColor: const Color(0xFF05B95B),
+          foregroundColor: Colors.white,
+          shape: const CircleBorder(
+            side: BorderSide(color: Colors.white, width: 2.5)),
+          onPressed: () => openEditor(),
+          child: Column(mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(Icons.add_rounded, size: 31),
+              Text('Add $singular', textAlign: TextAlign.center,
+                style: const TextStyle(fontSize: 9.5,
+                  fontWeight: FontWeight.w900)),
             ]),
-            const SizedBox(height: 14),
-            Row(children: [
-              Expanded(child: TextField(
-                key: const ValueKey('catalog-search'),
-                controller: search,
-                onChanged: (_) => setState(() {}),
-                decoration: InputDecoration(
-                  prefixIcon: const Icon(Icons.search_rounded),
-                  hintText: 'Search ${config.title.toLowerCase()}...'))),
-              const SizedBox(width: 8),
-              IconButton.filledTonal(
-                key: const ValueKey('catalog-status-filter'),
-                tooltip: 'Filter status',
-                onPressed: () => setState(() => showFilters = !showFilters),
-                icon: const Icon(Icons.filter_alt_outlined)),
-            ]),
-            if (showFilters) ...[
-              const SizedBox(height: 8),
-              Wrap(spacing: 8, children: [
-                ChoiceChip(
-                  label: const Text('All'),
-                  selected: !activeOnly,
-                  onSelected: (_) => setState(() => activeOnly = false)),
-                ChoiceChip(
-                  label: const Text('Active'),
-                  selected: activeOnly,
-                  onSelected: (_) => setState(() => activeOnly = true)),
+        ),
+      ) : null,
+      body: Stack(children: [
+        RefreshIndicator(
+          onRefresh: reload,
+          child: ListView(
+            key: const ValueKey('catalog-master-list'),
+            physics: const AlwaysScrollableScrollPhysics(),
+            padding: const EdgeInsets.fromLTRB(12, 10, 12, 105),
+            children: [
+              Row(children: [
+                Expanded(child: TextField(
+                  key: const ValueKey('catalog-search'),
+                  controller: search,
+                  focusNode: searchFocus,
+                  onChanged: (_) => setState(() {}),
+                  decoration: style.search(
+                    'Search ${config.title.toLowerCase()}...',
+                    prefixIcon: const Icon(Icons.search_rounded))
+                    .copyWith(isDense: true,
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 10, vertical: 9)))),
+                const SizedBox(width: 7),
+                IconButton.filledTonal(
+                  key: const ValueKey('catalog-status-filter'),
+                  tooltip: 'Filter status',
+                  onPressed: () => setState(() => showFilters = !showFilters),
+                  icon: const Icon(Icons.filter_alt_outlined)),
               ]),
-            ],
-            const SizedBox(height: 13),
-            if (!loading && error == null)
-              Text('${filtered.length} ${config.title.toLowerCase()}',
-                style: TextStyle(fontSize: 12,
-                  color: scheme.onSurfaceVariant)),
-            const SizedBox(height: 10),
-            if (loading) pageLoading()
-            else if (error != null)
-              FailureState(message: error!, retry: reload)
-            else if (filtered.isEmpty)
-              EmptyState(
-                title: rows.isEmpty ? 'No records yet' : 'No matching records',
-                subtitle: 'Try a different search or status filter.')
-            else
-              ...filtered.map((row) => Padding(
-                padding: const EdgeInsets.only(bottom: 10),
-                child: Surface(
-                  padding: EdgeInsets.zero,
-                  child: InkWell(
-                    key: ValueKey('catalog-row-${field(row['ulid'])}'),
-                    onTap: canEdit ? () => openEditor(item: row) : null,
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12, vertical: 12),
-                      child: Row(children: [
-                        Container(
-                          height: 49, width: 49,
-                          decoration: BoxDecoration(
-                            color: scheme.primaryContainer,
-                            borderRadius: BorderRadius.circular(13)),
-                          child: Icon(icon, size: 26,
-                            color: scheme.primary)),
-                        const SizedBox(width: 12),
-                        Expanded(child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(field(row['name'], '—'),
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
-                              style: const TextStyle(
-                                fontSize: 15, fontWeight: FontWeight.w800)),
-                            if (field(row['code']).isNotEmpty) ...[
-                              const SizedBox(height: 3),
-                              Text('Code: ${field(row['code'])}',
-                                style: TextStyle(fontSize: 11,
-                                  color: scheme.onSurfaceVariant)),
-                            ],
-                            if (config.isUnit && field(row['symbol']).isNotEmpty) ...[
-                              const SizedBox(height: 4),
-                              Text(field(row['symbol']),
-                                style: TextStyle(fontSize: 12,
-                                  color: scheme.primary,
-                                  fontWeight: FontWeight.w800)),
-                            ],
-                            if (isSub) ...[
-                              const SizedBox(height: 4),
-                              Text('Parent: ${field(objectOf(row['category'])['name'], 'Not available')}',
-                                maxLines: 1, overflow: TextOverflow.ellipsis,
-                                style: TextStyle(fontSize: 11,
-                                  color: scheme.onSurfaceVariant)),
-                            ],
-                          ],
-                        )),
-                        const SizedBox(width: 8),
-                        if (row['is_active'] == false)
-                          Icon(Icons.remove_circle_outline,
-                            color: scheme.error, size: 18),
-                        if (canEdit)
-                          Icon(Icons.chevron_right_rounded,
-                            color: scheme.onSurfaceVariant),
-                      ]),
+              if (showFilters) ...[
+                const SizedBox(height: 7),
+                Wrap(spacing: 8, children: [
+                  ChoiceChip(label: const Text('All'),
+                    selected: !activeOnly,
+                    onSelected: (_) => setState(() => activeOnly = false)),
+                  ChoiceChip(label: const Text('Active'),
+                    selected: activeOnly,
+                    onSelected: (_) => setState(() => activeOnly = true)),
+                ]),
+              ],
+              const SizedBox(height: 12),
+              if (loading) pageLoading()
+              else if (error != null)
+                FailureState(message: error!, retry: reload)
+              else if (filtered.isEmpty)
+                EmptyState(title: rows.isEmpty
+                    ? 'No ${config.title.toLowerCase()} yet'
+                    : 'No matching ${config.title.toLowerCase()}',
+                  subtitle: 'Try a different search or status filter.')
+              else
+                for (var i = 0; i < filtered.length; i++)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 8),
+                    child: Material(
+                      color: Colors.transparent,
+                      child: InkWell(
+                        key: ValueKey('catalog-row-${field(filtered[i]['ulid'])}'),
+                        borderRadius: BorderRadius.circular(15),
+                        onTap: canEdit
+                          ? () => openEditor(item: filtered[i]) : null,
+                        child: Container(
+                          height: isBrand ? 70 : 64,
+                          padding: const EdgeInsets.symmetric(horizontal: 10),
+                          decoration: style.card(radius: 15),
+                          child: Row(children: [
+                            Container(
+                              width: 46, height: 46,
+                              decoration: BoxDecoration(
+                                color: tones[i % tones.length]
+                                  .withValues(alpha: .13),
+                                borderRadius: BorderRadius.circular(12)),
+                              child: Icon(referenceIcons[i % referenceIcons.length],
+                                size: 25, color: tones[i % tones.length])),
+                            const SizedBox(width: 10),
+                            Expanded(child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(field(filtered[i]['name'], '—'),
+                                  maxLines: 1, overflow: TextOverflow.ellipsis,
+                                  style: TextStyle(fontSize: 14,
+                                    fontWeight: FontWeight.w900,
+                                    color: style.ink)),
+                                if (isSub)
+                                  Text(field(
+                                    objectOf(filtered[i]['category'])['name'],
+                                    'Parent category unavailable'),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: TextStyle(fontSize: 10.5,
+                                      color: style.muted)),
+                                if (isBrand &&
+                                    field(filtered[i]['code']).isNotEmpty)
+                                  Text(field(filtered[i]['code']),
+                                    maxLines: 1,
+                                    style: TextStyle(fontSize: 10,
+                                      color: style.muted)),
+                              ]),
+                            )),
+                            if (config.isUnit &&
+                                field(filtered[i]['symbol']).isNotEmpty)
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 12, vertical: 6),
+                                decoration: BoxDecoration(
+                                  color: tones[i % tones.length]
+                                    .withValues(alpha: .12),
+                                  borderRadius: BorderRadius.circular(18)),
+                                child: Text(field(filtered[i]['symbol']),
+                                  style: TextStyle(fontSize: 11,
+                                    color: style.ink,
+                                    fontWeight: FontWeight.w900))),
+                            if (filtered[i]['is_active'] == false)
+                              Padding(padding: const EdgeInsets.only(left: 6),
+                                child: Icon(Icons.pause_circle_outline,
+                                  color: Theme.of(context).colorScheme.error,
+                                  size: 17)),
+                            if (canEdit && !config.isUnit) Padding(
+                              padding: const EdgeInsets.only(left: 4),
+                              child: Icon(Icons.chevron_right_rounded,
+                                size: 21, color: style.ink)),
+                          ]),
+                        ),
+                      ),
                     ),
                   ),
-                ),
-              )),
-            const SizedBox(height: 100),
-          ],
+            ],
+          ),
         ),
-      ),
+        const Positioned(left: 0, right: 0, bottom: 0,
+          child: IgnorePointer(child: AuthReferenceWaves(height: 60))),
+      ]),
     );
   }
 }
