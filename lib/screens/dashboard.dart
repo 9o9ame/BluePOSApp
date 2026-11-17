@@ -88,7 +88,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     onTap: onTap,
     borderRadius: BorderRadius.circular(16),
     child: Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 15),
+      padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 14),
       decoration: BoxDecoration(
         gradient: const LinearGradient(colors: [
           Colors.white, Color(0xFFF1F5FF)]),
@@ -98,21 +98,26 @@ class _DashboardScreenState extends State<DashboardScreen> {
           color: Color(0x205F7BB3), blurRadius: 11,
           offset: Offset(0, 5))]),
       child: Row(children: [
-        Container(width: 36, height: 38,
+        Container(width: 44, height: 47,
           decoration: BoxDecoration(
             color: tint.withValues(alpha: .13),
             borderRadius: BorderRadius.circular(10)),
-          child: Icon(icon, size: 22, color: tint)),
-        const SizedBox(width: 8),
+          child: Icon(icon, size: 26, color: tint)),
+        const SizedBox(width: 9),
         Expanded(child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
           children: [
             Text(caption, maxLines: 2,
-              style: const TextStyle(fontSize: 11,
-                color: Color(0xFF4D5C77))),
-            Text(value, style: const TextStyle(
-              fontSize: 19, fontWeight: FontWeight.w900,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(fontSize: 12.5,
+                fontWeight: FontWeight.w700,
+                color: Color(0xFF18274B))),
+            const SizedBox(height: 2),
+            Text(value, maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(
+              fontSize: 22, fontWeight: FontWeight.w900,
               color: Color(0xFF0A1A43))),
           ])),
       ])),
@@ -150,8 +155,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
               maxLines: 2,
               style: const TextStyle(
                 color: Color(0xFF0A1B48),
-                fontSize: 12,
-                fontWeight: FontWeight.w800)),
+                fontSize: 13.5,
+                fontWeight: FontWeight.w900)),
           ]),
       ),
     );
@@ -228,24 +233,29 @@ class _DashboardScreenState extends State<DashboardScreen> {
               Column(crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Row(children: [
-                    Icon(Icons.receipt_long_outlined, color: Colors.white),
-                    SizedBox(width: 9),
                     Expanded(child: Text("Today's invoices",
                       style: TextStyle(
-                        color: Colors.white, fontSize: 16,
+                        color: Colors.white, fontSize: 20,
                         fontWeight: FontWeight.w800))),
                   ]),
-                  const SizedBox(height: 14),
+                  const SizedBox(height: 11),
                   if (busy)
                     const CircularProgressIndicator(color: Colors.white)
                   else Text(error != null ? '—'
                       : todayInvoices?.toString() ?? '—',
                     style: const TextStyle(color: Colors.white,
-                      fontSize: 34, fontWeight: FontWeight.w900)),
+                      fontSize: 36, fontWeight: FontWeight.w900)),
                   const SizedBox(height: 8),
-                  const Text('Current branch • live invoice count',
-                    style: TextStyle(
-                      color: Colors.white, fontSize: 11)),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10, vertical: 5),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF20CB45),
+                      borderRadius: BorderRadius.circular(20)),
+                    child: const Text('Current branch · live count',
+                      style: TextStyle(
+                        color: Colors.white, fontSize: 12,
+                        fontWeight: FontWeight.w800))),
                 ]),
             ]),
           ),
