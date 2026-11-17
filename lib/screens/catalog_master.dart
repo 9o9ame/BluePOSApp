@@ -181,13 +181,22 @@ class _CatalogMasterScreenState extends State<CatalogMasterScreen> {
       final didSave = await Navigator.of(context).push<bool>(
         MaterialPageRoute(builder: (_) => StatefulBuilder(
           builder: (sheetContext, updateSheet) => Scaffold(
-            appBar: AppBar(centerTitle: true,
-              title: Text(formTitle, style: const TextStyle(
-                fontSize: 18, fontWeight: FontWeight.w900))),
+            backgroundColor: BpReferenceStyle.of(sheetContext).page,
+            appBar: widget.config.apiPath == '/api/categories'
+              ? BpReferenceSubpageAppBar(title: formTitle)
+              : AppBar(centerTitle: true,
+                  title: Text(formTitle, style: const TextStyle(
+                    fontSize: 18, fontWeight: FontWeight.w900))),
             body: SafeArea(child: Padding(
-              padding: EdgeInsets.fromLTRB(16, 12, 16,
+              padding: EdgeInsets.fromLTRB(12, 10, 12,
                 MediaQuery.viewInsetsOf(sheetContext).bottom + 20),
-              child: SingleChildScrollView(child: Column(
+              child: SingleChildScrollView(child: Container(
+                padding: widget.config.apiPath == '/api/categories'
+                  ? const EdgeInsets.all(13) : EdgeInsets.zero,
+                decoration: widget.config.apiPath == '/api/categories'
+                  ? BpReferenceStyle.of(sheetContext).card(radius: 19)
+                  : null,
+                child: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
@@ -195,19 +204,15 @@ class _CatalogMasterScreenState extends State<CatalogMasterScreen> {
                   Container(
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      gradient: const LinearGradient(colors: [
-                        Colors.white, Color(0xFFF0F4FF)]),
-                      border: Border.all(color: Colors.white, width: 1.3),
-                      borderRadius: BorderRadius.circular(16),
-                      boxShadow: const [BoxShadow(
-                        color: Color(0x1A5374AE), blurRadius: 10,
-                        offset: Offset(0, 4))]),
+                      color: Colors.transparent,
+                      borderRadius: BorderRadius.circular(16)),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text('Category Icon & Color',
+                        Text('Category Icon & Color',
                           style: TextStyle(fontWeight: FontWeight.w900,
-                            color: Color(0xFF10234D), fontSize: 13)),
+                            color: BpReferenceStyle.of(sheetContext).ink,
+                            fontSize: 13)),
                         const SizedBox(height: 12),
                         Row(children: [
                           Container(
@@ -231,13 +236,14 @@ class _CatalogMasterScreenState extends State<CatalogMasterScreen> {
                                     decoration: BoxDecoration(
                                       borderRadius: BorderRadius.circular(9),
                                       color: i == previewIcon
-                                        ? const Color(0xFFE2F0FF) : Colors.white,
+                                        ? BpReferenceStyle.of(sheetContext).input
+                                        : BpReferenceStyle.of(sheetContext).surface,
                                       border: Border.all(color: i == previewIcon
                                         ? const Color(0xFF087AF8)
-                                        : const Color(0xFFE0E6F6))),
+                                        : BpReferenceStyle.of(sheetContext).line)),
                                     child: Icon(categoryPreviewIcons[i],
                                       size: 18,
-                                      color: const Color(0xFF445780))),
+                                      color: BpReferenceStyle.of(sheetContext).ink)),
                                 ),
                             ])),
                         ]),
@@ -258,10 +264,10 @@ class _CatalogMasterScreenState extends State<CatalogMasterScreen> {
                               ),
                           ]),
                         const SizedBox(height: 6),
-                        const Text('Icon and color are preview only; '
+                        Text('Icon and color are preview only; '
                           'the current Category API does not save them.',
                           style: TextStyle(fontSize: 10,
-                            color: Color(0xFF667494))),
+                            color: BpReferenceStyle.of(sheetContext).muted)),
                       ],
                     ),
                   ),
@@ -414,7 +420,7 @@ class _CatalogMasterScreenState extends State<CatalogMasterScreen> {
                 ),
                 const SizedBox(height: 12),
               ],
-            )),
+            ))),
           )),
         ),
       )));
