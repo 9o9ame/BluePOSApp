@@ -8,7 +8,6 @@ import '../core/session.dart';
 import '../widgets/common.dart';
 import '../widgets/reference_surface.dart';
 import '../widgets/party_ledger_summary.dart';
-import 'auth_reference_chrome.dart';
 import 'transaction_widgets.dart';
 import 'money_actions.dart';
 
@@ -427,7 +426,7 @@ class _PurchaseInvoiceEditorState extends State<PurchaseInvoiceEditor> {
           pw.Text('Status: ${field(purchase['status'])}'),
           pw.Text('Supplier: ${field(supplier?['name'])}'),
           pw.SizedBox(height: 12),
-          pw.Table.fromTextArray(
+          pw.TableHelper.fromTextArray(
             headers: ['Product', 'Qty', 'Rate', 'Line total'],
             data: rows.map((line) => [
               field(objectOf(line['product'])['name']),
