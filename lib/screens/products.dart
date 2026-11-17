@@ -75,9 +75,8 @@ class PosCatalogProductCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Container(
+            Expanded(child: Container(
               width: double.infinity,
-              height: premium ? 91 : 86,
               alignment: Alignment.center,
               decoration: BoxDecoration(
                 gradient: const LinearGradient(colors: [
@@ -86,8 +85,8 @@ class PosCatalogProductCard extends StatelessWidget {
               child: ProductThumb(
                 api: api,
                 imageUrl: field(product['image_url']),
-                size: premium ? 79 : 67),
-            ),
+                size: premium ? 78 : 67),
+            )),
             const SizedBox(height: 4),
             Text(field(product['name'], 'Product'),
               maxLines: 2,
@@ -105,7 +104,7 @@ class PosCatalogProductCard extends StatelessWidget {
                 fontSize: premium ? 17 : 15,
                 fontWeight: FontWeight.w900,
                 color: const Color(0xFF081B4C))),
-            const Spacer(),
+            const SizedBox(height: 5),
             Row(children: [
               Expanded(child: Text(_stockLabel(stock),
                 maxLines: 1, overflow: TextOverflow.ellipsis,
@@ -467,7 +466,7 @@ class _ProductsScreenState extends State<ProductsScreen> {
           itemCount: items.length,
           gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
             crossAxisCount: columns, crossAxisSpacing: 9, mainAxisSpacing: 9,
-            mainAxisExtent: (widget.inlineCatalog == true) ? 207 : 194),
+            mainAxisExtent: (widget.inlineCatalog == true) ? 214 : 194),
           itemBuilder: (context, index) {
             final p = items[index];
             return PosCatalogProductCard(
