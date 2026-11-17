@@ -34,7 +34,8 @@ class _AppShellState extends State<AppShell>
   late final List<Widget> pages = [
     DashboardScreen(app: widget.app, navigate: navigate),
     SaleScreen(key: saleKey, app: widget.app),
-    ProductsScreen(app: widget.app, catalogHome: true, onAdd: (product) {
+    ProductsScreen(app: widget.app, catalogHome: true,
+      onBack: () => navigate(4), onAdd: (product) {
       saleKey.currentState?.addProduct(product);
       navigate(1);
     }),
