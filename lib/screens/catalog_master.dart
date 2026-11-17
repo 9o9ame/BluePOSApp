@@ -225,19 +225,38 @@ class _CatalogMasterScreenState extends State<CatalogMasterScreen> {
                   NotificationsScreen(app: widget.app)))),
             bottomNavigationBar: SafeArea(top: false,
               child: Container(
-                padding: const EdgeInsets.fromLTRB(14, 9, 14, 12),
+                padding: const EdgeInsets.fromLTRB(12, 9, 12, 12),
                 decoration: BoxDecoration(
                   color: BpReferenceStyle.of(sheetContext).surface,
-                  border: Border(top: BorderSide(
-                    color: BpReferenceStyle.of(sheetContext).line))),
+                  borderRadius: const BorderRadius.vertical(
+                    top: Radius.circular(23)),
+                  border: Border.all(
+                    color: BpReferenceStyle.of(sheetContext).line),
+                  boxShadow: const [BoxShadow(
+                    color: Color(0x253A74D3), blurRadius: 16,
+                    offset: Offset(0, -4))]),
                 child: Row(children: [
                   Expanded(child: OutlinedButton(
+                    style: OutlinedButton.styleFrom(
+                      minimumSize: const Size(0, 51),
+                      foregroundColor: BpReferenceStyle.of(sheetContext).ink,
+                      side: BorderSide(
+                        color: BpReferenceStyle.of(sheetContext).line),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(15))),
                     onPressed: saving ? null :
                       () => Navigator.of(sheetContext).pop(false),
-                    child: const Text('Cancel'))),
+                    child: const Text('Cancel',
+                      style: TextStyle(fontWeight: FontWeight.w800)))),
                   const SizedBox(width: 9),
                   Expanded(child: FilledButton.icon(
                     key: const ValueKey('catalog-editor-save'),
+                    style: FilledButton.styleFrom(
+                      backgroundColor: const Color(0xFF006AF5),
+                      foregroundColor: Colors.white,
+                      minimumSize: const Size(0, 51),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(15))),
                     onPressed: saving ? null :
                       () => submit(sheetContext, updateSheet),
                     icon: saving ? const SizedBox(width: 16, height: 16,
@@ -256,7 +275,7 @@ class _CatalogMasterScreenState extends State<CatalogMasterScreen> {
               padding: EdgeInsets.fromLTRB(12, 10, 12,
                 MediaQuery.viewInsetsOf(sheetContext).bottom + 20),
               child: SingleChildScrollView(child: Container(
-                padding: const EdgeInsets.all(13),
+                padding: const EdgeInsets.all(12),
                 decoration: BpReferenceStyle.of(sheetContext).card(radius: 19),
                 child: Column(
               mainAxisSize: MainAxisSize.min,
@@ -333,7 +352,7 @@ class _CatalogMasterScreenState extends State<CatalogMasterScreen> {
                       ],
                     ),
                   ),
-                  const SizedBox(height: 2),
+                  const SizedBox(height: 1),
                 ] else ...[
                   Container(
                     padding: const EdgeInsets.all(12),
@@ -344,11 +363,18 @@ class _CatalogMasterScreenState extends State<CatalogMasterScreen> {
                       borderRadius: BorderRadius.circular(16)),
                     child: Column(crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('Choose Icon & Color',
+                        Text(widget.config.apiPath == '/api/brands'
+                          ? 'Brand Icon & Color' : 'Choose Icon & Color',
                           style: TextStyle(fontSize: 12,
                             fontWeight: FontWeight.w900,
                             color: BpReferenceStyle.of(sheetContext).ink)),
-                        const SizedBox(height: 9),
+                        if (widget.config.apiPath == '/api/brands')
+                          Padding(
+                            padding: const EdgeInsets.only(top: 3, bottom: 7),
+                            child: Text('Choose an icon and theme color for the brand.',
+                              style: TextStyle(fontSize: 10,
+                                color: BpReferenceStyle.of(sheetContext).muted))),
+                        const SizedBox(height: 7),
                         Row(children: [
                           Container(width: 64, height: 64,
                             decoration: BoxDecoration(
