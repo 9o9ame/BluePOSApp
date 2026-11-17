@@ -7,6 +7,8 @@ import 'package:printing/printing.dart';
 import '../core/api.dart';
 import '../core/session.dart';
 import '../widgets/common.dart';
+import '../widgets/reference_surface.dart';
+import 'auth_reference_chrome.dart';
 
 /// Generates invoices exclusively from server-confirmed, tenant-scoped sale details.
 /// The OS print/share sheet is used; no unapproved thermal-printer integration.
@@ -111,64 +113,162 @@ class _ReceiptScreenState extends State<ReceiptScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
+    final style = BpReferenceStyle.of(context);
     final lines = recordsOf(sale['items']);
-    return Scaffold(appBar: AppBar(title: const Text('Sales Invoice Detail'),
-      actions: [IconButton(onPressed: fetch, icon: const Icon(Icons.refresh))]),
-      body: ListView(padding: const EdgeInsets.all(16), children: [
-        if (busy) pageLoading()
-        else if (error != null) FailureState(message: error!, retry: fetch)
-        else Surface(child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-          const Center(child: BlueposBrandMark(size: 64)),
-          const SizedBox(height: 10),
-          Text(widget.app.tenantName, textAlign: TextAlign.center,
-            style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 17)),
-          Text('${widget.app.branchName} · ${widget.app.warehouseName}',
-            textAlign: TextAlign.center, style: TextStyle(color: scheme.onSurfaceVariant, fontSize: 11)),
-          const Divider(height: 22),
-          Row(children: [
-            Icon(Icons.receipt_long_outlined, color: scheme.primary),
-            const SizedBox(width: 9),
-            Expanded(child: Text(
-              field(sale['document_number'], 'Sales invoice'),
-              style: const TextStyle(fontWeight: FontWeight.w900))),
-            Text(field(sale['status'], 'Unknown'),
-              style: TextStyle(color: scheme.primary,
-                fontSize: 12, fontWeight: FontWeight.w800)),
-          ]),
-          const Divider(height: 22),
-          Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-            Text(field(sale['document_number']), style: const TextStyle(fontWeight: FontWeight.w900)),
-            Text(field(sale['sale_date'])),
-          ]),
-          const Divider(height: 26),
-          ...lines.map((line) => Padding(padding: const EdgeInsets.only(bottom: 12),
-            child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                Text(field(objectOf(line['product'])['name'], 'Item'),
-                  style: const TextStyle(fontWeight: FontWeight.w700)),
-                Text('${field(line['quantity'])} × ${field(line['unit_price'])}',
-                  style: TextStyle(fontSize: 11, color: scheme.onSurfaceVariant)),
-              ])),
-              Text(money(line['net_amount'], widget.app.currency),
-                style: const TextStyle(fontWeight: FontWeight.w700)),
-            ]))),
-          const Divider(height: 24),
-          _amount('Subtotal', sale['subtotal']),
-          _amount('Discount', sale['total_discount_amount']),
-          _amount('Tax', sale['tax_amount']),
-          const Divider(height: 18),
-          _amount('Net amount', sale['grand_total'], strong: true),
-          _amount('Received', sale['paid_amount']),
-          _amount('Balance due', sale['balance_due']),
-          const SizedBox(height: 19),
-          FilledButton.icon(onPressed: exporting ? null : () => export(false),
-            icon: const Icon(Icons.print_outlined), label: const Text('Print receipt')),
-          const SizedBox(height: 9),
-          OutlinedButton.icon(onPressed: exporting ? null : () => export(true),
-            icon: const Icon(Icons.share_outlined), label: const Text('Share as PDF')),
-        ])),
-        const SizedBox(height: 18),
+    return Scaffold(
+      backgroundColor: style.page,
+      appBar: const BpReferenceSubpageAppBar(title: 'Sales Invoice Detail'),
+      bottomNavigationBar: !busy && error == null
+        ? Column(mainAxisSize: MainAxisSize.min, children: [
+            const BpReferenceFooterWave(),
+            SafeArea(top: false, child: Container(
+              padding: const EdgeInsets.fromLTRB(10, 7, 10, 11),
+              decoration: BoxDecoration(
+                color: style.surface,
+                borderRadius: const BorderRadius.vertical(
+                  top: Radius.circular(20)),
+                border: Border.all(color: style.line)),
+              child: Row(children: [
+                Expanded(child: OutlinedButton.icon(
+                  key: const ValueKey('sale-detail-print'),
+                  style: OutlinedButton.styleFrom(
+                    minimumSize: const Size(0, BpReferenceMetrics.actionHeight),
+                    shape: RoundedRectangleBorder(borderRadius:
+                      BorderRadius.circular(BpReferenceMetrics.actionRadius))),
+                  onPressed: exporting ? null : () => export(false),
+                  icon: const Icon(Icons.print_outlined, size: 18),
+                  label: const Text('Print'))),
+                const SizedBox(width: 8),
+                Expanded(child: FilledButton.icon(
+                  key: const ValueKey('sale-detail-share'),
+                  style: FilledButton.styleFrom(
+                    backgroundColor: const Color(0xFF006DF6),
+                    minimumSize: const Size(0, BpReferenceMetrics.actionHeight),
+                    shape: RoundedRectangleBorder(borderRadius:
+                      BorderRadius.circular(BpReferenceMetrics.actionRadius))),
+                  onPressed: exporting ? null : () => export(true),
+                  icon: const Icon(Icons.share_outlined, size: 17),
+                  label: const FittedBox(fit: BoxFit.scaleDown,
+                    child: Text('Share Invoice', maxLines: 1)),
+                )),
+              ]),
+            )),
+          ])
+        : null,
+      body: Stack(children: [
+        const Positioned(top: 0, right: 0,
+          child: BpReferenceTopAccent()),
+        RefreshIndicator(onRefresh: fetch, child: ListView(
+          key: const ValueKey('reference-sale-invoice-detail'),
+          physics: const AlwaysScrollableScrollPhysics(),
+          padding: const EdgeInsets.fromLTRB(12, 10, 12, 28),
+          children: [
+            if (busy) pageLoading()
+            else if (error != null) FailureState(message: error!, retry: fetch)
+            else ...[
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: style.card(radius: 16),
+                child: Row(children: [
+                  Container(
+                    width: 50, height: 50,
+                    decoration: BoxDecoration(
+                      color: style.scheme.primary.withValues(alpha: .12),
+                      borderRadius: BorderRadius.circular(12)),
+                    child: Icon(Icons.storefront_rounded,
+                      size: 26, color: style.scheme.primary)),
+                  const SizedBox(width: 10),
+                  Expanded(child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(field(sale['document_number'], 'Sales invoice'),
+                        maxLines: 1, overflow: TextOverflow.ellipsis,
+                        style: TextStyle(fontSize: 15,
+                          fontWeight: FontWeight.w900, color: style.ink)),
+                      Text(field(sale['customer_name'], 'Walk-in customer'),
+                        maxLines: 1, overflow: TextOverflow.ellipsis,
+                        style: TextStyle(color: style.muted, fontSize: 11)),
+                      Text(field(sale['sale_date']),
+                        style: TextStyle(color: style.muted, fontSize: 10)),
+                    ]),
+                  )),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 9, vertical: 5),
+                    decoration: BoxDecoration(
+                      color: style.scheme.primary.withValues(alpha: .11),
+                      borderRadius: BorderRadius.circular(12)),
+                    child: Text(field(sale['status'], 'Unknown'),
+                      style: TextStyle(color: style.ink,
+                        fontWeight: FontWeight.w800, fontSize: 11))),
+                ]),
+              ),
+              const SizedBox(height: 10),
+              Container(
+                padding: const EdgeInsets.all(9),
+                decoration: style.card(radius: 14),
+                child: Column(children: [
+                  Row(children: [
+                    Expanded(flex: 5, child: Text('Product',
+                      style: TextStyle(fontSize: 11,
+                        fontWeight: FontWeight.w900, color: style.ink))),
+                    Expanded(child: Text('Qty', textAlign: TextAlign.end,
+                      style: TextStyle(fontSize: 10,
+                        fontWeight: FontWeight.w900, color: style.ink))),
+                    Expanded(flex: 2, child: Text('Rate',
+                      textAlign: TextAlign.end,
+                      style: TextStyle(fontSize: 10,
+                        fontWeight: FontWeight.w900, color: style.ink))),
+                    Expanded(flex: 3, child: Text('Amount',
+                      textAlign: TextAlign.end,
+                      style: TextStyle(fontSize: 10,
+                        fontWeight: FontWeight.w900, color: style.ink))),
+                  ]),
+                  const Divider(height: 15),
+                  for (final line in lines) ...[
+                    Row(children: [
+                      Expanded(flex: 5, child: Text(
+                        field(objectOf(line['product'])['name'], 'Item'),
+                        maxLines: 2, overflow: TextOverflow.ellipsis,
+                        style: TextStyle(fontSize: 10.5,
+                          fontWeight: FontWeight.w700, color: style.ink))),
+                      Expanded(child: Text(field(line['quantity']),
+                        textAlign: TextAlign.end,
+                        style: TextStyle(fontSize: 10, color: style.ink))),
+                      Expanded(flex: 2, child: Text(field(line['unit_price']),
+                        textAlign: TextAlign.end,
+                        style: TextStyle(fontSize: 10, color: style.ink))),
+                      Expanded(flex: 3, child: Text(
+                        field(line['net_amount'], field(line['line_total'])),
+                        textAlign: TextAlign.end,
+                        style: TextStyle(fontSize: 10,
+                          fontWeight: FontWeight.w800, color: style.ink))),
+                    ]),
+                    const Divider(height: 12),
+                  ],
+                  if (lines.isEmpty)
+                    Text('No invoice items in the server response.',
+                      style: TextStyle(color: style.muted, fontSize: 11)),
+                ]),
+              ),
+              const SizedBox(height: 10),
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 11, vertical: 9),
+                decoration: style.card(radius: 14),
+                child: Column(children: [
+                  _amount('Subtotal', sale['subtotal']),
+                  _amount('Discount', sale['total_discount_amount']),
+                  _amount('Tax', sale['tax_amount']),
+                  const Divider(height: 13),
+                  _amount('Total', sale['grand_total'], strong: true),
+                  _amount('Received', sale['paid_amount']),
+                  _amount('Balance due', sale['balance_due']),
+                ]),
+              ),
+            ],
+          ],
+        )),
       ]),
     );
   }
