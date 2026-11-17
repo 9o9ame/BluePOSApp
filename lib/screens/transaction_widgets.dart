@@ -250,6 +250,7 @@ class _TransactionDirectoryState extends State<TransactionDirectory> {
         ...uri.queryParameters,
         'per_page': '25', 'page': '$targetPage',
         if (search.text.trim().isNotEmpty) 'q': search.text.trim(),
+        if (statusFilter != 'all') 'status': statusFilter,
       }).toString();
       final result = objectOf(await widget.app.api.get(path));
       if (!mounted || request != version) return;
@@ -348,9 +349,7 @@ class _TransactionDirectoryState extends State<TransactionDirectory> {
     final style = BpReferenceStyle.of(context);
     final isReturns = widget.endpoint == '/api/sales-returns' ||
       widget.endpoint == '/api/purchase-returns';
-    final visibleRows = rows.where((item) =>
-      statusFilter == 'all' ||
-      field(item['status']).toLowerCase() == statusFilter).toList();
+    final visibleRows = rows; // Backend already applies tenant-safe status filters.
     final allowCreate = widget.onCreate != null &&
       (widget.createPermission == null ||
         widget.app.hasPermission(widget.createPermission!));
@@ -387,7 +386,11 @@ class _TransactionDirectoryState extends State<TransactionDirectory> {
               delay = Timer(const Duration(milliseconds: 300), load);
             },
             decoration: widget.referenceStyle
-              ? style.search('Search invoice number, supplier...',
+              ? style.search(isReturns
+                  ? 'Search return, party, invoice...'
+                  : widget.endpoint == '/api/sales'
+                    ? 'Search invoice or customer...'
+                    : 'Search invoice or supplier...',
                   prefixIcon: const Icon(Icons.search_rounded))
                   .copyWith(isDense: true)
               : const InputDecoration(
@@ -399,18 +402,28 @@ class _TransactionDirectoryState extends State<TransactionDirectory> {
                 decoration: style.card(radius: 12),
                 child: PopupMenuButton<String>(
                   key: const ValueKey('transaction-status-filter'),
-                  tooltip: 'Filter loaded documents by status',
+                  tooltip: 'Filter server documents by status',
                   icon: Icon(statusFilter == 'all'
                     ? Icons.filter_alt_outlined : Icons.filter_alt,
                     color: style.scheme.primary),
-                  onSelected: (value) =>
-                    setState(() => statusFilter = value),
-                  itemBuilder: (_) => const [
-                    PopupMenuItem(value: 'all', child: Text('All statuses')),
-                    PopupMenuItem(value: 'draft', child: Text('Draft')),
-                    PopupMenuItem(value: 'posted', child: Text('Posted')),
-                    PopupMenuItem(value: 'refunded', child: Text('Refunded')),
-                    PopupMenuItem(value: 'adjusted', child: Text('Adjusted')),
+                  onSelected: (value) {
+                    setState(() => statusFilter = value);
+                    load();
+                  },
+                  itemBuilder: (_) => [
+                    const PopupMenuItem(value: 'all',
+                      child: Text('All statuses')),
+                    if (widget.endpoint != '/api/sales')
+                      const PopupMenuItem(value: 'draft',
+                        child: Text('Draft')),
+                    const PopupMenuItem(value: 'posted',
+                      child: Text('Posted')),
+                    if (widget.endpoint == '/api/purchases')
+                      const PopupMenuItem(value: 'cancelled',
+                        child: Text('Cancelled')),
+                    if (widget.endpoint == '/api/sales')
+                      const PopupMenuItem(value: 'void',
+                        child: Text('Void')),
                   ]),
               ),
             ],
