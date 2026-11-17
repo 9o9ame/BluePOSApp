@@ -122,6 +122,85 @@ class BpReferenceFormField extends StatelessWidget {
   }
 }
 
+/// Dense reference tile for invoice/return two-column metadata.
+/// Inputs remain caller-controlled; never infer finance values here.
+class BpReferenceCompactField extends StatelessWidget {
+  const BpReferenceCompactField({
+    super.key, required this.label, required this.icon, this.hint = '',
+    this.controller, this.onTap, this.value, this.readOnly = false,
+    this.keyboardType, this.fieldKey,
+  });
+
+  final String label;
+  final IconData icon;
+  final String hint;
+  final TextEditingController? controller;
+  final VoidCallback? onTap;
+  final String? value;
+  final bool readOnly;
+  final TextInputType? keyboardType;
+  final Key? fieldKey;
+
+  @override
+  Widget build(BuildContext context) {
+    final style = BpReferenceStyle.of(context);
+    final disabled = readOnly || (controller == null && onTap == null);
+    return Container(
+      constraints: const BoxConstraints(minHeight: 55),
+      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 5),
+      decoration: style.card(radius: 12),
+      child: Row(children: [
+        Container(
+          width: 27, height: 29,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(8),
+            color: style.scheme.primary.withValues(alpha: .10)),
+          child: Icon(icon, size: 17, color: style.scheme.primary)),
+        const SizedBox(width: 6),
+        Expanded(child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(label, maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(color: style.ink, fontSize: 9,
+                fontWeight: FontWeight.w900)),
+            const SizedBox(height: 2),
+            if (controller != null)
+              SizedBox(height: 27, child: TextField(
+                key: fieldKey,
+                controller: controller,
+                readOnly: readOnly,
+                keyboardType: keyboardType,
+                maxLines: 1,
+                style: TextStyle(fontSize: 11, color: style.ink),
+                decoration: style.search(hint).copyWith(
+                  isDense: true,
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 6, vertical: 4)),
+              ))
+            else InkWell(
+              onTap: disabled ? null : onTap,
+              borderRadius: BorderRadius.circular(7),
+              child: Row(children: [
+                Expanded(child: Text(value?.isNotEmpty == true
+                    ? value! : hint,
+                  maxLines: 1, overflow: TextOverflow.ellipsis,
+                  style: TextStyle(fontSize: 10.5,
+                    color: value?.isNotEmpty == true
+                      ? style.ink : style.muted))),
+                if (onTap != null)
+                  Icon(Icons.chevron_right_rounded,
+                    size: 14, color: style.muted),
+              ]),
+            ),
+          ],
+        )),
+      ]),
+    );
+  }
+}
+
 /// Shared small, single-line bottom actions; Wave stays outside content.
 class BpReferenceFooter extends StatelessWidget {
   const BpReferenceFooter({
