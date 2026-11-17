@@ -324,19 +324,47 @@ class _CatalogMasterScreenState extends State<CatalogMasterScreen> {
                   Text(formTitle, style: const TextStyle(
                     fontSize: 21, fontWeight: FontWeight.w900)),
                 const SizedBox(height: 14),
+                if (widget.config.apiPath == '/api/categories') ...[
+                  Row(children: [
+                    Icon(Icons.text_fields_rounded, size: 19,
+                      color: Theme.of(sheetContext).colorScheme.primary),
+                    const SizedBox(width: 7),
+                    Text('Category Name *', style: TextStyle(
+                      fontSize: 12, fontWeight: FontWeight.w900,
+                      color: BpReferenceStyle.of(sheetContext).ink)),
+                  ]),
+                  const SizedBox(height: 6),
+                ],
                 TextField(
                   key: const ValueKey('catalog-editor-name'),
                   controller: name, maxLength: 160,
                   textInputAction: TextInputAction.next,
-                  decoration: InputDecoration(
-                    labelText: '$singular Name *',
-                    hintText: 'Enter name')),
+                  decoration: widget.config.apiPath == '/api/categories'
+                    ? BpReferenceStyle.of(sheetContext).search(
+                        'Enter category name...')
+                    : InputDecoration(
+                        labelText: '$singular Name *',
+                        hintText: 'Enter name')),
                 if (widget.config.apiPath == '/api/categories' ||
                     widget.config.needsCategory ||
                     widget.config.apiPath == '/api/brands') ...[
                   const SizedBox(height: 8),
+                  if (widget.config.apiPath == '/api/categories')
+                    Padding(padding: const EdgeInsets.only(bottom: 6),
+                      child: Row(children: [
+                        Icon(Icons.qr_code_rounded, size: 19,
+                          color: Theme.of(sheetContext).colorScheme.primary),
+                        const SizedBox(width: 7),
+                        Text('Category Code',
+                          style: TextStyle(
+                            fontSize: 12, fontWeight: FontWeight.w900,
+                            color: BpReferenceStyle.of(sheetContext).ink)),
+                      ])),
                   InputDecorator(
-                    decoration: const InputDecoration(labelText: 'Code'),
+                    decoration: widget.config.apiPath == '/api/categories'
+                      ? BpReferenceStyle.of(sheetContext).search(
+                          'Automatically generated')
+                      : const InputDecoration(labelText: 'Code'),
                     child: Text(isEdit
                       ? field(item['code'], 'Automatically generated')
                       : 'Automatically generated',
@@ -349,9 +377,22 @@ class _CatalogMasterScreenState extends State<CatalogMasterScreen> {
                 ],
                 if (widget.config.hasDescription) ...[
                   const SizedBox(height: 8),
+                  if (widget.config.apiPath == '/api/categories')
+                    Padding(padding: const EdgeInsets.only(bottom: 6),
+                      child: Row(children: [
+                        Icon(Icons.description_outlined, size: 19,
+                          color: Theme.of(sheetContext).colorScheme.primary),
+                        const SizedBox(width: 7),
+                        Text('Description', style: TextStyle(
+                          fontSize: 12, fontWeight: FontWeight.w900,
+                          color: BpReferenceStyle.of(sheetContext).ink)),
+                      ])),
                   TextField(controller: description, maxLength: 255,
-                    maxLines: 2,
-                    decoration: const InputDecoration(labelText: 'Description')),
+                    maxLines: widget.config.apiPath == '/api/categories' ? 3 : 2,
+                    decoration: widget.config.apiPath == '/api/categories'
+                      ? BpReferenceStyle.of(sheetContext).search(
+                          'Enter category description...')
+                      : const InputDecoration(labelText: 'Description')),
                 ],
                 if (widget.config.isUnit) ...[
                   const SizedBox(height: 8),
@@ -386,8 +427,10 @@ class _CatalogMasterScreenState extends State<CatalogMasterScreen> {
                   ),
                 ],
                 const SizedBox(height: 10),
-                const Text('Status *',
-                  style: TextStyle(fontWeight: FontWeight.w800)),
+                Text('Status *',
+                  style: TextStyle(
+                    color: BpReferenceStyle.of(sheetContext).ink,
+                    fontWeight: FontWeight.w800)),
                 SegmentedButton<bool>(
                   key: const ValueKey('catalog-editor-status'),
                   segments: const [
@@ -405,9 +448,10 @@ class _CatalogMasterScreenState extends State<CatalogMasterScreen> {
                 ),
                 const SizedBox(height: 12),
                 if (widget.config.apiPath == '/api/categories')
-                  const Text('Category changes are validated and saved '
+                  Text('Category changes are validated and saved '
                     'by BluePOS server.', style: TextStyle(
-                      color: Color(0xFF6D7C98), fontSize: 10.5)),
+                      color: BpReferenceStyle.of(sheetContext).muted,
+                      fontSize: 10.5)),
                 const SizedBox(height: 10),
                 if (widget.config.apiPath == '/api/categories')
                   Row(children: [
