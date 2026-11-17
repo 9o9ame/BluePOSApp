@@ -152,6 +152,14 @@ flutter test test/mobile_reference_33_40_web_contract_test.dart test/mobile_refe
 flutter run
 ```
 
+### Additional detail cleanup in the same correction pass
+
+- `lib/screens/purchase_invoices.dart`: screen 37 **posted** invoice now renders a dense read-only Product/Qty/Rate/Amount table with actual server values. Screen 36 and draft 37 retain editable line cards and existing save/post flow.
+- `lib/widgets/reference_surface.dart`: `bpReferenceDecimalLabel` shared **display-only** decimal string shortening. Never feed shortened labels into accounting, stock, quantity or money payloads.
+- `lib/screens/receipt.dart`: replaces local decimal formatter with the shared helper; uses `BpReferenceWorkflowActions` for Print/Share.
+- `test/mobile_reference_33_40_web_contract_test.dart` also covers shared decimal labels; not executed yet.
+- Before declaring screens approved, run Flutter analyzer/tests, test real tenant records including empty return lists/draft purchases, then compare Android screenshots to reference.
+
 ## What is still pending / honesty boundary
 
 - **Run on user's Windows Flutter installation**: analyze 3 affected Dart files and run focused tests. Our execution environment did not have Flutter/Dart binaries. Distinguish static source inspection from actual test execution.
