@@ -248,6 +248,69 @@ class BpReferenceStatusSelector extends StatelessWidget {
   }
 }
 
+/// Shared compact two-action footer for safe draft/save/post workflows.
+/// Callers own authorization, confirmation, idempotency and server posting.
+class BpReferenceWorkflowActions extends StatelessWidget {
+  const BpReferenceWorkflowActions({
+    super.key,
+    required this.leftLabel, required this.rightLabel,
+    this.onLeft, this.onRight,
+    this.leftIcon = Icons.save_outlined,
+    this.rightIcon = Icons.verified_outlined,
+    this.leftKey, this.rightKey,
+  });
+  final String leftLabel;
+  final String rightLabel;
+  final IconData leftIcon;
+  final IconData rightIcon;
+  final VoidCallback? onLeft;
+  final VoidCallback? onRight;
+  final Key? leftKey;
+  final Key? rightKey;
+
+  @override
+  Widget build(BuildContext context) {
+    final style = BpReferenceStyle.of(context);
+    return Column(mainAxisSize: MainAxisSize.min, children: [
+      const BpReferenceFooterWave(),
+      SafeArea(top: false, child: Container(
+        padding: const EdgeInsets.fromLTRB(9, 7, 9, 10),
+        decoration: BoxDecoration(color: style.surface,
+          borderRadius: const BorderRadius.vertical(
+            top: Radius.circular(19)),
+          border: Border.all(color: style.line)),
+        child: Row(children: [
+          Expanded(child: OutlinedButton.icon(
+            key: leftKey,
+            style: OutlinedButton.styleFrom(
+              minimumSize: const Size(0, BpReferenceMetrics.actionHeight),
+              padding: const EdgeInsets.symmetric(horizontal: 4),
+              shape: RoundedRectangleBorder(borderRadius:
+                BorderRadius.circular(BpReferenceMetrics.actionRadius))),
+            onPressed: onLeft, icon: Icon(leftIcon, size: 17),
+            label: FittedBox(fit: BoxFit.scaleDown,
+              child: Text(leftLabel, softWrap: false, maxLines: 1)),
+          )),
+          const SizedBox(width: 7),
+          Expanded(child: FilledButton.icon(
+            key: rightKey,
+            style: FilledButton.styleFrom(
+              backgroundColor: const Color(0xFF05B74D),
+              foregroundColor: Colors.white,
+              minimumSize: const Size(0, BpReferenceMetrics.actionHeight),
+              padding: const EdgeInsets.symmetric(horizontal: 4),
+              shape: RoundedRectangleBorder(borderRadius:
+                BorderRadius.circular(BpReferenceMetrics.actionRadius))),
+            onPressed: onRight, icon: Icon(rightIcon, size: 17),
+            label: FittedBox(fit: BoxFit.scaleDown,
+              child: Text(rightLabel, softWrap: false, maxLines: 1)),
+          )),
+        ]),
+      )),
+    ]);
+  }
+}
+
 /// Shared bottom detail actions for customers and suppliers.
 /// These are navigation actions only: no client-authoritative ledger mutation.
 class BpReferenceDetailActions extends StatelessWidget {
