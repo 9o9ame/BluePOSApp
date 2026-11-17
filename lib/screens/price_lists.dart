@@ -115,6 +115,7 @@ class AddPriceListReferenceScreen extends StatelessWidget {
       backgroundColor: style.page,
       appBar: const BpReferenceSubpageAppBar(title: 'Add Price List'),
       bottomNavigationBar: BpReferenceFooter(
+        saveKey: const ValueKey('price-list-save-disabled'),
         saveLabel: 'Save Price List',
         onCancel: () => Navigator.of(context).pop()),
       body: Stack(children: [
