@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import '../core/api.dart';
 import '../core/session.dart';
 import '../widgets/common.dart';
+import '../widgets/reference_surface.dart';
+import 'auth_reference_chrome.dart';
 
 /// Screen 28: public-ULID server-authorized customer details.
 /// Never display fabricated receivables, limits, or transaction figures.
@@ -44,9 +46,8 @@ class _CustomerDetailScreenState extends State<CustomerDetailScreen> {
 
   @override
   Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(title: const Text('Customer Detail'),
-      actions: [IconButton(onPressed: load,
-        icon: const Icon(Icons.refresh_rounded), tooltip: 'Refresh')]),
+    backgroundColor: BpReferenceStyle.of(context).page,
+    appBar: const BpReferenceSubpageAppBar(title: 'Customer Detail'),
     body: loading ? const Center(child: CircularProgressIndicator())
       : error != null ? FailureState(message: error!, retry: load)
       : RefreshIndicator(onRefresh: load, child: CustomerDetailView(
@@ -65,30 +66,20 @@ class CustomerDetailView extends StatelessWidget {
   final VoidCallback? onEdit;
 
   Widget _line(BuildContext context, String name, dynamic value,
-      IconData icon) {
-    final scheme = Theme.of(context).colorScheme;
-    final result = field(value);
-    return Padding(padding: const EdgeInsets.symmetric(vertical: 10),
-      child: Row(children: [
-        Icon(icon, color: scheme.primary, size: 21),
-        const SizedBox(width: 10),
-        Expanded(child: Text(name,
-          style: const TextStyle(fontWeight: FontWeight.w700))),
-        Flexible(child: Text(result.isEmpty ? 'Not available' : result,
-          textAlign: TextAlign.end, maxLines: 3,
-          overflow: TextOverflow.ellipsis)),
-      ]));
-  }
+      IconData icon) => BpReferenceDetailLine(
+        label: name, value: field(value), icon: icon);
 
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
+    final style = BpReferenceStyle.of(context);
     final credit = customer['credit_limit_amount'];
     return ListView(
       key: const ValueKey('customer-detail-view'),
       physics: const AlwaysScrollableScrollPhysics(),
-      padding: const EdgeInsets.all(16), children: [
-        Surface(child: Row(children: [
+      padding: const EdgeInsets.fromLTRB(12, 10, 12, 85), children: [
+        Container(padding: const EdgeInsets.all(11),
+          decoration: style.card(radius: 16), child: Row(children: [
           Container(width: 62, height: 62, decoration: BoxDecoration(
             color: scheme.primaryContainer,
             borderRadius: BorderRadius.circular(14)),
@@ -109,7 +100,7 @@ class CustomerDetailView extends StatelessWidget {
             ])),
         ])),
         const SizedBox(height: 12),
-        Surface(child: Column(children: [
+        Container(decoration: style.card(radius: 16), child: Column(children: [
           _line(context, 'Mobile Number', customer['mobile'], Icons.phone_outlined),
           const Divider(height: 1),
           _line(context, 'Area / City', customer['area'], Icons.location_on_outlined),
@@ -126,7 +117,8 @@ class CustomerDetailView extends StatelessWidget {
           ],
         ])),
         const SizedBox(height: 14),
-        Surface(child: Column(
+        Container(padding: const EdgeInsets.all(12),
+          decoration: style.card(radius: 16), child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Text('Recent Transactions', style: Theme.of(context)
@@ -137,7 +129,7 @@ class CustomerDetailView extends StatelessWidget {
           ],
         )),
         if (canEdit && onEdit != null) ...[
-          const SizedBox(height: 16),
+          const SizedBox(height: 12),
           FilledButton.icon(
             key: const ValueKey('customer-detail-edit'),
             onPressed: onEdit,
