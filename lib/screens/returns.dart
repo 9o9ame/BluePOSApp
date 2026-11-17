@@ -538,6 +538,49 @@ class _ReturnDocumentEditorState extends State<ReturnDocumentEditor> {
             label: 'Notes (optional)', hint: 'Enter remarks',
             controller: notes, maxLength: 5000, maxLines: 2,
             readOnly: !canEditNow),
+          if (!created && available.isNotEmpty) ...[
+            const SizedBox(height: 10),
+            Row(children: [
+              Expanded(child: Text(
+                'Returnable Items (${available.length})',
+                style: TextStyle(fontWeight: FontWeight.w900,
+                  color: style.ink, fontSize: 13))),
+              Text('Server quantities', style: TextStyle(
+                color: style.muted, fontSize: 10)),
+            ]),
+            const SizedBox(height: 6),
+            for (final item in available)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 6),
+                child: Container(
+                  decoration: style.card(radius: 12),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 9, vertical: 9),
+                  child: Row(children: [
+                    Container(width: 31, height: 33,
+                      decoration: BoxDecoration(
+                        color: style.scheme.primary.withValues(alpha: .10),
+                        borderRadius: BorderRadius.circular(8)),
+                      child: Icon(Icons.inventory_2_outlined,
+                        color: style.scheme.primary, size: 18)),
+                    const SizedBox(width: 8),
+                    Expanded(child: Text(
+                      field(objectOf(item['product'])['name'], 'Product'),
+                      maxLines: 2, overflow: TextOverflow.ellipsis,
+                      style: TextStyle(fontWeight: FontWeight.w800,
+                        color: style.ink, fontSize: 11))),
+                    const SizedBox(width: 8),
+                    Text('Max: ${field(item[
+                      isSale ? 'remaining_returnable_quantity'
+                        : 'remaining_returnable_base_quantity'], '0')}',
+                      style: TextStyle(color: style.muted,
+                        fontWeight: FontWeight.w800, fontSize: 10)),
+                  ]),
+                )),
+            const SizedBox(height: 7),
+            Text('Create the draft to choose return quantities; posting stays on the server.',
+              style: TextStyle(color: style.muted, fontSize: 10)),
+          ],
           if (created) ...[
             if (widget.kind == ReturnDocumentKind.purchase) ...[
               Surface(child: Row(children: [
