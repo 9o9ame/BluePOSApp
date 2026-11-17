@@ -320,16 +320,32 @@ class _CatalogMasterScreenState extends State<CatalogMasterScreen> {
     String? formError;
     int previewIcon = 0;
     int previewColor = 0;
-    final categoryPreviewIcons = <IconData>[
-      Icons.shopping_basket_rounded, Icons.sell_rounded,
-      Icons.restaurant_rounded, Icons.inventory_2_rounded,
-      Icons.grid_view_rounded,
-    ];
-    final categoryPreviewColors = <Color>[
-      const Color(0xFFFF9900), const Color(0xFF5A9DFF),
-      const Color(0xFF42C875), const Color(0xFF984AF7),
-      const Color(0xFFF5759B), const Color(0xFF60D2EA),
-    ];
+    final isSubForm = widget.config.needsCategory;
+    final isBrandForm = widget.config.apiPath == '/api/brands';
+    final categoryPreviewIcons = isSubForm
+      ? <IconData>[
+          Icons.fastfood_rounded, Icons.local_drink_rounded,
+          Icons.cookie_rounded, Icons.icecream_rounded,
+          Icons.set_meal_rounded, Icons.cleaning_services_rounded]
+      : isBrandForm
+        ? <IconData>[
+            Icons.sell_rounded, Icons.shopping_bag_outlined,
+            Icons.workspace_premium_outlined,
+            Icons.storefront_outlined, Icons.star_outline_rounded]
+        : <IconData>[
+            Icons.shopping_basket_rounded, Icons.sell_rounded,
+            Icons.restaurant_rounded, Icons.inventory_2_rounded,
+            Icons.grid_view_rounded];
+    final categoryPreviewColors = isSubForm || isBrandForm
+      ? <Color>[
+          const Color(0xFF9747FF), const Color(0xFF389DFF),
+          const Color(0xFF17C8E7), const Color(0xFF4DDF86),
+          const Color(0xFFFFD43D), const Color(0xFFFF963B),
+          const Color(0xFFF576A4), const Color(0xFFE35A78)]
+      : <Color>[
+          const Color(0xFFFF9900), const Color(0xFF5A9DFF),
+          const Color(0xFF42C875), const Color(0xFF984AF7),
+          const Color(0xFFF5759B), const Color(0xFF60D2EA)];
     final singular = widget.config.title == 'Categories' ? 'Category'
       : widget.config.title == 'Subcategories' ? 'Subcategory'
       : widget.config.title == 'Brands' ? 'Brand'
