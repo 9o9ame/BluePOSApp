@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../core/api.dart';
 import '../core/session.dart';
 import '../widgets/common.dart';
+import '../widgets/reference_surface.dart';
 import 'auth_reference_chrome.dart';
 
 /// Master-data forms backed by the actual BluePOS Catalog FormRequests.
@@ -433,6 +434,7 @@ class _CatalogMasterScreenState extends State<CatalogMasterScreen> {
   // Reference icons are decorative: no unsupported category icon data is sent.
   Widget _categoryReferenceScreen(
       BuildContext context, List<Map<String, dynamic>> filtered) {
+    final style = BpReferenceStyle.of(context);
     const tones = <Color>[
       Color(0xFF00BD66), Color(0xFF158EF7),
       Color(0xFFFF9810), Color(0xFF8D4CF6),
@@ -444,24 +446,33 @@ class _CatalogMasterScreenState extends State<CatalogMasterScreen> {
       Icons.ac_unit_rounded, Icons.category_rounded,
     ];
     return Scaffold(
-      backgroundColor: const Color(0xFFF7F9FF),
+      backgroundColor: style.page,
       appBar: AppBar(
         centerTitle: true,
-        title: const Text('Categories', style: TextStyle(
-          fontSize: 18, fontWeight: FontWeight.w900)),
+        title: Text('Categories', style: TextStyle(
+          color: style.ink, fontSize: 18, fontWeight: FontWeight.w900)),
         actions: [
           IconButton(onPressed: reload, tooltip: 'Refresh',
             icon: const Icon(Icons.refresh_rounded)),
         ],
       ),
       floatingActionButton: canCreate
-        ? FloatingActionButton.extended(
-            key: const ValueKey('catalog-add'),
-            backgroundColor: const Color(0xFF05AA54),
-            foregroundColor: Colors.white,
-            onPressed: () => openEditor(),
-            icon: const Icon(Icons.add_rounded),
-            label: const Text('Add Category'))
+        ? SizedBox(width: 94, height: 94,
+            child: FloatingActionButton(
+              key: const ValueKey('catalog-add'),
+              backgroundColor: const Color(0xFF04AA54),
+              foregroundColor: Colors.white,
+              shape: const CircleBorder(
+                side: BorderSide(color: Colors.white, width: 2.5)),
+              onPressed: () => openEditor(),
+              child: const Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.add_rounded, size: 31),
+                  Text('Add Category', style: TextStyle(
+                    fontSize: 10, fontWeight: FontWeight.w800)),
+                ]),
+            ))
         : null,
       body: Stack(children: [
         RefreshIndicator(
@@ -476,19 +487,8 @@ class _CatalogMasterScreenState extends State<CatalogMasterScreen> {
                   key: const ValueKey('catalog-search'),
                   controller: search,
                   onChanged: (_) => setState(() {}),
-                  decoration: InputDecoration(
-                    filled: true, fillColor: Colors.white,
-                    prefixIcon: const Icon(Icons.search_rounded),
-                    hintText: 'Search categories...',
-                    isDense: true,
-                    contentPadding: const EdgeInsets.symmetric(vertical: 13),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(14),
-                      borderSide: const BorderSide(color: Color(0xFFE2E9F8))),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(14),
-                      borderSide: const BorderSide(color: Color(0xFFE2E9F8))),
-                  ))),
+                  decoration: style.search('Search categories...',
+                    prefixIcon: const Icon(Icons.search_rounded)))),
                 const SizedBox(width: 8),
                 IconButton.filledTonal(
                   key: const ValueKey('catalog-status-filter'),
@@ -528,15 +528,7 @@ class _CatalogMasterScreenState extends State<CatalogMasterScreen> {
                         child: Container(
                           height: 67,
                           padding: const EdgeInsets.symmetric(horizontal: 11),
-                          decoration: BoxDecoration(
-                            gradient: const LinearGradient(colors: [
-                              Colors.white, Color(0xFFF3F6FF)]),
-                            borderRadius: BorderRadius.circular(16),
-                            border: Border.all(
-                              color: Colors.white, width: 1.4),
-                            boxShadow: const [BoxShadow(
-                              color: Color(0x175476AC), blurRadius: 10,
-                              offset: Offset(0, 4))]),
+                          decoration: style.card(),
                           child: Row(children: [
                             Container(
                               width: 47, height: 47,
@@ -548,19 +540,19 @@ class _CatalogMasterScreenState extends State<CatalogMasterScreen> {
                                 color: tones[i % tones.length])),
                             const SizedBox(width: 12),
                             Container(height: 37, width: 1,
-                              color: const Color(0xFFE1E8F6)),
+                              color: style.line),
                             const SizedBox(width: 11),
                             Expanded(child: Text(field(filtered[i]['name'], '—'),
                               maxLines: 2, overflow: TextOverflow.ellipsis,
-                              style: const TextStyle(color: Color(0xFF0E1F48),
+                              style: TextStyle(color: style.ink,
                                 fontSize: 15, fontWeight: FontWeight.w900))),
                             if (filtered[i]['is_active'] == false)
                               const Padding(
                                 padding: EdgeInsets.only(right: 6),
                                 child: Icon(Icons.pause_circle_outline,
                                   color: Color(0xFFE07065), size: 18)),
-                            if (canEdit) const Icon(Icons.chevron_right_rounded,
-                              color: Color(0xFF1A2C53)),
+                            if (canEdit) Icon(Icons.chevron_right_rounded,
+                              color: style.ink),
                           ]),
                         ),
                       ),
