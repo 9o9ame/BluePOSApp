@@ -770,10 +770,10 @@ class _ModulesScreenState extends State<ModulesScreen> {
         key: const ValueKey('approved-definition-home'),
         padding: const EdgeInsets.fromLTRB(12, 8, 12, 90),
         children: [
-          const Padding(
-            padding: EdgeInsets.fromLTRB(3, 2, 0, 11),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(3, 2, 0, 11),
             child: Text('Definition', style: TextStyle(
-              color: Color(0xFF0A1C45), fontSize: 23,
+              color: style.ink, fontSize: 23,
               fontWeight: FontWeight.w900))),
           for (final item in specs)
             for (final action in groups[item.group] ?? const <ModuleAction>[])
