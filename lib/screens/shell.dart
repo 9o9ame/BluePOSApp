@@ -126,7 +126,7 @@ class _AppShellState extends State<AppShell>
               const SizedBox(width: 7),
               Column(crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text.rich(const TextSpan(children: [
+                  Text.rich(TextSpan(children: [
                     TextSpan(text: 'Blue',
                       style: TextStyle(color: ink)),
                     TextSpan(text: 'POS',
@@ -134,7 +134,7 @@ class _AppShellState extends State<AppShell>
                   ]), style: const TextStyle(fontSize: 20,
                     fontWeight: FontWeight.w900)),
                   if (selected == 0 || selected == 4)
-                    const Text('P O S  &  E R P',
+                    Text('P O S  &  E R P',
                       style: TextStyle(fontSize: 7,
                         color: muted,
                         fontWeight: FontWeight.w700)),
