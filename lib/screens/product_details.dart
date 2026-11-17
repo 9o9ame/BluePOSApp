@@ -59,7 +59,9 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
 
   @override
   Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(title: const Text('Product Detail')),
+    appBar: AppBar(centerTitle: true,
+      title: const Text('Product Detail', style: TextStyle(
+        fontSize: 18, fontWeight: FontWeight.w900))),
     body: loading
       ? const Center(child: CircularProgressIndicator())
       : error != null
@@ -114,22 +116,24 @@ class ProductDetailsView extends StatelessWidget {
       IconData icon) {
     final scheme = Theme.of(context).colorScheme;
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 11),
+      padding: const EdgeInsets.symmetric(vertical: 5),
       child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Container(
-          width: 36, height: 36,
+          width: 27, height: 27,
           decoration: BoxDecoration(
             color: scheme.primaryContainer,
-            borderRadius: BorderRadius.circular(10)),
-          child: Icon(icon, size: 20, color: scheme.primary)),
-        const SizedBox(width: 12),
+            borderRadius: BorderRadius.circular(8)),
+          child: Icon(icon, size: 17, color: scheme.primary)),
+        const SizedBox(width: 9),
         Expanded(child: Padding(
-          padding: const EdgeInsets.only(top: 6),
-          child: Text(title, style: const TextStyle(fontWeight: FontWeight.w800)))),
+          padding: const EdgeInsets.only(top: 4),
+          child: Text(title, style: const TextStyle(
+            fontSize: 12, fontWeight: FontWeight.w800)))),
         const SizedBox(width: 8),
         Flexible(child: Padding(
-          padding: const EdgeInsets.only(top: 6),
+          padding: const EdgeInsets.only(top: 4),
           child: Text(value, textAlign: TextAlign.end,
+            style: const TextStyle(fontSize: 11.5),
             maxLines: 3, overflow: TextOverflow.ellipsis))),
       ]),
     );
@@ -146,19 +150,19 @@ class ProductDetailsView extends StatelessWidget {
     return ListView(
       key: const ValueKey('product-detail-page'),
       physics: const AlwaysScrollableScrollPhysics(),
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.fromLTRB(11, 12, 11, 20),
       children: [
         Surface(child: Row(crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             ProductThumb(api: api,
-              imageUrl: field(product['image_url']), size: 106),
+              imageUrl: field(product['image_url']), size: 78),
             const SizedBox(width: 14),
             Expanded(child: Column(
               crossAxisAlignment: CrossAxisAlignment.start, children: [
                 Text(_display(product['name']),
                   maxLines: 3, overflow: TextOverflow.ellipsis,
                   style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.w900)),
+                    fontWeight: FontWeight.w900, fontSize: 15)),
                 const SizedBox(height: 4),
                 Text('SKU: ${_display(product['sku'])}',
                   style: TextStyle(color: scheme.onSurfaceVariant)),
@@ -180,7 +184,7 @@ class ProductDetailsView extends StatelessWidget {
                     fontWeight: FontWeight.w900, fontSize: 16)),
               ])),
           ])),
-        const SizedBox(height: 13),
+        const SizedBox(height: 9),
         Surface(child: Column(children: [
           _detail(context, 'Category',
             _display(objectOf(product['category'])['name']),
@@ -217,12 +221,15 @@ class ProductDetailsView extends StatelessWidget {
               field(product['description']), Icons.description_outlined),
           ],
         ])),
-        const SizedBox(height: 13),
+        const SizedBox(height: 9),
         Surface(child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Price & Stock', style: Theme.of(context)
-              .textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w900)),
+            Row(children: [const Icon(Icons.bar_chart_rounded,
+              color: Color(0xFF8056F5), size: 20),
+              const SizedBox(width: 8),
+              Text('Price & Stock', style: Theme.of(context)
+              .textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w900))]),
             const SizedBox(height: 14),
             Row(children: [
               Expanded(child: Column(
