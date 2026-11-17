@@ -109,6 +109,8 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
       : error != null
         ? FailureState(message: error!, retry: load)
         : Stack(children: [
+            const Positioned(top: 0, right: 0,
+              child: BpReferenceTopAccent()),
             const Positioned(left: 0, right: 0, bottom: 0,
               child: AuthReferenceWaves(height: 75)),
             RefreshIndicator(
