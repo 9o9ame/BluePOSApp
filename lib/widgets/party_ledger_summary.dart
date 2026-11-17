@@ -227,7 +227,6 @@ class _BpLedgerEntryRow extends StatelessWidget {
             Text(field(entry['date']), style: TextStyle(
               fontSize: 10, color: style.muted)),
           ])),
-        ),
         Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
           Text('Dr ${field(entry['debit'], '0.0000')}',
             style: TextStyle(fontSize: 10, color: style.ink)),
