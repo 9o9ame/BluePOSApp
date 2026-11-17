@@ -146,7 +146,7 @@ class _PurchaseInvoiceEditorState extends State<PurchaseInvoiceEditor> {
 
   Future<void> createDraft() async {
     if (saving || hasDocument || uncertainCreate ||
-      !widget.app.hasPermission('purchases.create')) return;
+      !widget.app.hasPermission('purchases.create')) { return; }
     final supplierUlid = field(supplier?['ulid']);
     if (!validPublicUlid(supplierUlid) ||
         !validPublicUlid(warehouseUlid)) {
@@ -161,7 +161,7 @@ class _PurchaseInvoiceEditorState extends State<PurchaseInvoiceEditor> {
     if (!await confirmMutation(context,
       title: 'Create purchase draft?',
       warning: 'The purchase will remain DRAFT until you add lines and post it.',
-      actionLabel: 'Create Draft')) return;
+      actionLabel: 'Create Draft')) { return; }
     setState(() { saving = true; error = null; uncertainCreate = true; });
     try {
       final result = resourceOf(await widget.app.api.post('/api/purchases', {
@@ -189,8 +189,8 @@ class _PurchaseInvoiceEditorState extends State<PurchaseInvoiceEditor> {
         ? 'Draft save is unconfirmed. Check Purchase Invoices history before starting another draft.'
         : ex.message);
     } catch (_) {
-      if (mounted) setState(() => error =
-        'Draft save is unconfirmed. Check Purchase Invoices history before creating again.');
+      if (mounted) { setState(() => error =
+        'Draft save is unconfirmed. Check Purchase Invoices history before creating again.'); }
     } finally {
       if (mounted) setState(() => saving = false);
     }
@@ -333,17 +333,17 @@ class _PurchaseInvoiceEditorState extends State<PurchaseInvoiceEditor> {
                     }
                     if (sheet.mounted) Navigator.pop(sheet, true);
                   } on ApiFailure catch (ex) {
-                    if (sheet.mounted) change(() {
+                    if (sheet.mounted) { change(() {
                       ambiguous = ex.status == 0 || ex.status >= 500;
                       formError = ambiguous
                         ? 'Save status uncertain. Close and refresh the invoice before retrying this line.'
                         : ex.message;
-                    });
+                    }); }
                   } catch (_) {
-                    if (sheet.mounted) change(() {
+                    if (sheet.mounted) { change(() {
                       ambiguous = true;
                       formError = 'Save status uncertain. Close and refresh before trying again.';
-                    });
+                    }); }
                   } finally {
                     if (sheet.mounted) change(() => inFlight = false);
                   }
@@ -365,7 +365,7 @@ class _PurchaseInvoiceEditorState extends State<PurchaseInvoiceEditor> {
     if (!await confirmMutation(context,
       title: 'Remove draft line?',
       warning: 'Only this unposted line will be removed.',
-      actionLabel: 'Remove')) return;
+      actionLabel: 'Remove')) { return; }
     setState(() => saving = true);
     try {
       await widget.app.api.request('DELETE', '/api/purchases/$ulid/lines/$lineUlid');
@@ -384,7 +384,7 @@ class _PurchaseInvoiceEditorState extends State<PurchaseInvoiceEditor> {
       title: 'Post Purchase Invoice?',
       warning: 'This action posts supplier accounting and stock movements '
         'through the BluePOS server. Posted records are immutable.',
-      actionLabel: 'Post Invoice')) return;
+      actionLabel: 'Post Invoice')) { return; }
     setState(() { saving = true; error = null; });
     try {
       await widget.app.api.post('/api/purchases/$ulid/post', {});
@@ -392,8 +392,8 @@ class _PurchaseInvoiceEditorState extends State<PurchaseInvoiceEditor> {
     } catch (ex) {
       if (mounted) {
         await refresh();
-        if (mounted) setState(() => error =
-          'Posting could not be confirmed. Review the server status before retrying. $ex');
+        if (mounted) { setState(() => error =
+          'Posting could not be confirmed. Review the server status before retrying. $ex'); }
       }
     } finally {
       if (mounted) setState(() => saving = false);
@@ -402,7 +402,7 @@ class _PurchaseInvoiceEditorState extends State<PurchaseInvoiceEditor> {
 
   Future<void> printPurchase() async {
     if (!hasDocument || field(document?['status']) != 'posted' ||
-        saving) return;
+        saving) { return; }
     setState(() => saving = true);
     try {
       // Read-only document: all amounts, rates and quantities come from the
