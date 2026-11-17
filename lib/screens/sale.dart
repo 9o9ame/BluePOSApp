@@ -550,7 +550,10 @@ class SaleScreenState extends State<SaleScreen> {
                   style: TextStyle(fontSize: 11,
                     color: scheme.onSurfaceVariant), maxLines: 1,
                   overflow: TextOverflow.ellipsis),
-                Text(money(estimatedSubtotal, app.currency),
+                Text(app.currency == 'PKR'
+                  ? money(estimatedSubtotal, app.currency)
+                      .replaceFirst('PKR ', 'Rs ')
+                  : money(estimatedSubtotal, app.currency),
                   style: const TextStyle(fontWeight: FontWeight.w900,
                     fontSize: 19)),
               ])),
