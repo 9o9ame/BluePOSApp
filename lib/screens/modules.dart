@@ -766,6 +766,8 @@ class _ModulesScreenState extends State<ModulesScreen> {
         tone: const Color(0xFFE62E68)),
     ];
     return Stack(children: [
+      const Positioned(top: 0, right: 0,
+        child: BpReferenceTopAccent()),
       ListView(
         key: const ValueKey('approved-definition-home'),
         padding: const EdgeInsets.fromLTRB(12, 8, 12, 90),
