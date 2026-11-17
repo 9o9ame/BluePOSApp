@@ -89,22 +89,11 @@ class _AppShellState extends State<AppShell>
   @override
   Widget build(BuildContext context) {
     final app = widget.app;
-    final reference = selected == 0 || selected == 1 || selected == 4;
     final base = Theme.of(context);
-    final refTheme = ThemeData(
-      useMaterial3: true,
-      brightness: Brightness.light,
-      colorScheme: ColorScheme.fromSeed(
-        seedColor: const Color(0xFF008F65),
-        brightness: Brightness.light,
-        surface: const Color(0xFFF7F8FF)),
-      scaffoldBackgroundColor: const Color(0xFFF7F8FF),
-      cardColor: Colors.white,
-      appBarTheme: const AppBarTheme(
-        backgroundColor: Color(0xFFF7F8FF),
-        foregroundColor: Color(0xFF081943),
-        elevation: 0),
-    );
+    final reference = selected == 0 || selected == 1 || selected == 4;
+    final refTheme = base;
+    final ink = base.colorScheme.onSurface;
+    final muted = base.colorScheme.onSurfaceVariant;
     return PopScope(
       canPop: !drawerOpen,
       onPopInvokedWithResult: (didPop, result) {
@@ -115,8 +104,7 @@ class _AppShellState extends State<AppShell>
       child: Builder(builder: (ctx) {
         return Scaffold(
           appBar: AppBar(
-            backgroundColor: reference
-              ? const Color(0xFFF7F8FF) : null,
+            backgroundColor: reference ? base.scaffoldBackgroundColor : null,
             leadingWidth: 47,
             leading: IconButton(
               key: const ValueKey('main-menu-toggle'),
@@ -139,15 +127,15 @@ class _AppShellState extends State<AppShell>
                 children: [
                   Text.rich(const TextSpan(children: [
                     TextSpan(text: 'Blue',
-                      style: TextStyle(color: Color(0xFF071947))),
+                      style: TextStyle(color: ink)),
                     TextSpan(text: 'POS',
-                      style: TextStyle(color: Color(0xFF079BFA))),
+                      style: TextStyle(color: base.colorScheme.primary)),
                   ]), style: const TextStyle(fontSize: 20,
                     fontWeight: FontWeight.w900)),
                   if (selected == 0 || selected == 4)
                     const Text('P O S  &  E R P',
                       style: TextStyle(fontSize: 7,
-                        color: Color(0xFF071947),
+                        color: muted,
                         fontWeight: FontWeight.w700)),
                 ]),
             ]),
