@@ -52,6 +52,30 @@ _Source: numbered 92-image reference ZIP and live Android screenshots supplied b
 - Existing catalog editor and unrelated screens have not all been migrated. Avoid implying every screen uses the shared controls; migrate incrementally only when those screens are in scope.
 - Button height reduced to 43 logical px; preview Save remains disabled. Existing server-generated-code field removal in 15/17/19 is preserved.
 
+## Web API contract inspection — 2026-11-17
+
+Source: `9o9ame/bluepos` `main` (`PROJECT_UI_DESIGN_SYSTEM.md`, `backend/routes/api.php`,
+`StorePartyRequest.php`, `UpdatePartyRequest.php`, `PartyResource.php`,
+`PartyLedgerController.php`, `PartyLedgerBalanceSummary.php`, `AccountLedgerBuilder.php`).
+This was an **inspection only** of the web repository; it was not edited.
+
+- The create/update contract **requires** `party_type`, `code`, `name`, `account_type_ulid` on create. Retain real code and account-type fields; do not fake auto-generated codes.
+- For customers/vendors `email`, `credit_limit_amount` with NUMERIC(20,4)-style regex, and integer `credit_limit_days` (0..99999) are supported.
+- `credit_limit_amount` is **not** an account balance. There is a real tenant/branch-scoped `POST /api/parties/ledger-balances` returning `balances` keyed `customer:<ulid>` or `vendor:<ulid>`. Screens 26/29 now show the posted balance when the authorized endpoint responds instead of mislabeling the credit limit. On failure, omit the amount.
+- `GET /api/parties/{partyUlid}/ledger?type=customer|vendor&page=N&per_page=50` returns posted-only `rows`, `totals.closing_balance` and pagination. Screens 28/30 now display the real ledger and a pageable View Ledger route. No fabricated invoices, payable/receivable summaries or client arithmetic.
+- `GET/POST /api/parties/{ulid}/opening-balances` and dedicated `.../post` exist, but opening balances are a **separate accounting/posting workflow**. Do not add an arbitrary opening balance amount to party-create payload. Full posting integration requires transaction/idempotency/authZ tests on `bluepos_test` and domain review.
+- Price Lists routes are **absent** from current `backend/routes/api.php`; Screens 22/23 remain disabled previews. Sale Schemes CRUD routes are present, but Screen 25 requires a verified full request contract before write enablement.
+- Web `PROJECT_UI_DESIGN_SYSTEM.md` exists in the **web** repository. The Flutter application uses its own shared `BpReference*` components; do not copy React CSS directly into Flutter.
+
+### Updated UI implementation status
+
+- **26 Customers:** compact, server-backed list with correct posted ledger balance (not credit limit); long LEG codes truncated to one line.
+- **27 Add Customer:** maintained required `code` and `account_type_ulid`; added verified email, credit limit and credit days; compact Account Type dropdown and shared green status selector. Money remains string precision, validated by the server.
+- **28 Customer Details:** valid ULID-driven detail, supported Credit Limit/Days and real posted ledger totals, recent 5 entries and pageable View Ledger.
+- **29 Suppliers:** same posted balance endpoint with `vendor` request type and server-driven list.
+- **30 Supplier Details:** same real ledger, supported credit policy fields and supplier-only authorized data.
+- New `lib/widgets/party_ledger_summary.dart` owns shared ledger UI; `BpReferenceStatusSelector` is in the common reference style file.
+
 ## Validation
 
 - Repository files edited on `feature/daily-entries`; no main merge.
@@ -66,7 +90,7 @@ cd "C:\Projects\BluePOSApp"
 git status --short
 git branch --show-current
 git pull --ff-only origin feature/daily-entries
-flutter analyze lib/widgets/reference_surface.dart lib/screens/catalog_master.dart lib/screens/price_lists.dart lib/screens/sale_schemes.dart lib/screens/parties.dart lib/screens/customer_detail.dart lib/screens/supplier_detail.dart
+flutter analyze lib/widgets/reference_surface.dart lib/widgets/party_ledger_summary.dart lib/screens/parties.dart lib/screens/customer_detail.dart lib/screens/supplier_detail.dart
 flutter test test/reference_11_15_smoke_test.dart test/catalog_reference_16_20_test.dart test/mobile_reference_21_25_test.dart test/mobile_reference_26_30_test.dart
 flutter run
 ```
