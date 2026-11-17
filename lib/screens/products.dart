@@ -238,6 +238,7 @@ class ProductsScreen extends StatefulWidget {
 
 class _ProductsScreenState extends State<ProductsScreen> {
   final search = TextEditingController();
+  final searchFocus = FocusNode();
   Timer? debounce;
   List<Map<String, dynamic>> items = [], categories = [];
   bool busy = true, loadingMore = false, scanBusy = false;
@@ -249,7 +250,7 @@ class _ProductsScreenState extends State<ProductsScreen> {
   @override
   void initState() { super.initState(); loadCategories(); load(); }
   @override
-  void dispose() { debounce?.cancel(); search.dispose(); super.dispose(); }
+  void dispose() { debounce?.cancel(); search.dispose(); searchFocus.dispose(); super.dispose(); }
 
   Future<void> loadCategories() async {
     try {
@@ -402,7 +403,7 @@ class _ProductsScreenState extends State<ProductsScreen> {
             IconButton(
               tooltip: standalone ? 'Search products' : 'Scan barcode',
               onPressed: standalone
-                ? () => FocusScope.of(context).requestFocus(FocusNode())
+                ? () => searchFocus.requestFocus()
                 : scanBusy ? null : scan,
               icon: Icon(standalone ? Icons.search_rounded
                   : Icons.qr_code_scanner_rounded,
@@ -411,7 +412,8 @@ class _ProductsScreenState extends State<ProductsScreen> {
       if (standalone)
         Row(children: [
           Expanded(child: TextField(
-            controller: search, onChanged: queryChanged,
+            controller: search, focusNode: searchFocus,
+            onChanged: queryChanged,
             decoration: style.search('Search products...',
               prefixIcon: const Icon(Icons.search_rounded)))),
           const SizedBox(width: 9),
@@ -522,14 +524,22 @@ class _ProductsScreenState extends State<ProductsScreen> {
     ])),
       if (standalone && app.hasPermission('products.create'))
         Positioned(right: 18, bottom: 18,
-          child: FloatingActionButton.extended(
-            key: const ValueKey('catalog-add-product'),
-            backgroundColor: const Color(0xFF03AC57),
-            foregroundColor: Colors.white,
-            onPressed: () => openEditor(),
-            icon: const Icon(Icons.add_rounded),
-            label: const Text('Add Product'),
-          )),
+          child: SizedBox(width: 96, height: 96,
+            child: FloatingActionButton(
+              key: const ValueKey('catalog-add-product'),
+              backgroundColor: const Color(0xFF03AC57),
+              foregroundColor: Colors.white,
+              shape: const CircleBorder(
+                side: BorderSide(color: Colors.white, width: 2.5)),
+              onPressed: () => openEditor(),
+              child: const Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.add_rounded, size: 32),
+                  Text('Add Product', style: TextStyle(
+                    fontSize: 10, fontWeight: FontWeight.w800)),
+                ]),
+            ))),
     ]);
   }
 }
