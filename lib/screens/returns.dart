@@ -551,40 +551,96 @@ class _ReturnDocumentEditorState extends State<ReturnDocumentEditor> {
             ],
             const SizedBox(height: 12),
             Row(children: [
-              Expanded(child: SectionHeading('Return lines (${lines.length})')),
-              if (canEditNow) IconButton(
-                onPressed: () => editLine(),
-                icon: Icon(Icons.add_circle_outline, color: palette.primary),
-                tooltip: 'Add return line'),
+              Expanded(child: SectionHeading('Returned Items (${lines.length})')),
+              if (canEditNow)
+                OutlinedButton.icon(
+                  key: const ValueKey('return-add-item'),
+                  onPressed: () => editLine(),
+                  icon: const Icon(Icons.add_rounded, size: 17),
+                  label: const Text('Add Item',
+                    style: TextStyle(fontSize: 11))),
             ]),
             if (lines.isEmpty) const EmptyState(
               title: 'No return lines',
               subtitle: 'Choose a remaining line from the original document.')
-            else for (final line in lines) Padding(
-              padding: const EdgeInsets.only(bottom: 8),
-              child: Surface(padding: const EdgeInsets.all(12), child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start, children: [
-                Text(field(objectOf(line['product'])['name'], 'Product'),
-                  style: const TextStyle(fontWeight: FontWeight.w800)),
-                Text('Quantity: ${field(line['quantity'])}'),
-                if (widget.kind == ReturnDocumentKind.purchase &&
-                    line['unit_cost'] != null)
-                  Text('Rate: ${money(line['unit_cost'], widget.app.currency)}'),
-                Text('Line total: ${money(line['line_total'], widget.app.currency)}'),
-                if (canEditNow) Row(
-                  mainAxisAlignment: MainAxisAlignment.end, children: [
-                  IconButton(onPressed: () => editLine(line),
-                    icon: const Icon(Icons.edit_outlined)),
-                  IconButton(onPressed: () => deleteLine(line),
-                    icon: Icon(Icons.delete_outline, color: palette.error)),
-                ]),
-              ]))),
-            Surface(child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Text('Server total: ${money(document?['grand_total'], widget.app.currency)}',
-                style: const TextStyle(fontWeight: FontWeight.w900)),
-              Text('Status: ${field(document?['status'])}'),
-            ])),
+            else for (final line in lines)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 7),
+                child: Container(
+                  padding: const EdgeInsets.all(9),
+                  decoration: style.card(radius: 13),
+                  child: Column(children: [
+                    Row(children: [
+                      Container(
+                        width: 36, height: 36,
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFE3EAFF),
+                          borderRadius: BorderRadius.circular(9)),
+                        child: const Icon(Icons.inventory_2_rounded,
+                          color: Color(0xFF067DDF), size: 20)),
+                      const SizedBox(width: 9),
+                      Expanded(child: Text(
+                        field(objectOf(line['product'])['name'], 'Product'),
+                        maxLines: 2, overflow: TextOverflow.ellipsis,
+                        style: TextStyle(fontSize: 11.5,
+                          fontWeight: FontWeight.w900, color: style.ink))),
+                      if (canEditNow) ...[
+                        IconButton(
+                          visualDensity: VisualDensity.compact,
+                          constraints: const BoxConstraints(
+                            minWidth: 31, minHeight: 31),
+                          onPressed: () => editLine(line),
+                          icon: const Icon(Icons.edit_outlined, size: 18)),
+                        IconButton(
+                          visualDensity: VisualDensity.compact,
+                          constraints: const BoxConstraints(
+                            minWidth: 31, minHeight: 31),
+                          onPressed: () => deleteLine(line),
+                          icon: Icon(Icons.delete_outline, size: 18,
+                            color: palette.error)),
+                      ],
+                    ]),
+                    const SizedBox(height: 5),
+                    Row(children: [
+                      Expanded(child: Text('Qty: ${field(line['quantity'])}',
+                        style: TextStyle(fontSize: 10, color: style.muted))),
+                      if (line['unit_cost'] != null)
+                        Expanded(child: Text(
+                          'Rate: ${field(line['unit_cost'])}',
+                          style: TextStyle(fontSize: 10, color: style.muted))),
+                      Text(money(line['line_total'], widget.app.currency),
+                        style: TextStyle(fontSize: 11,
+                          fontWeight: FontWeight.w900, color: style.ink)),
+                    ]),
+                  ]),
+                )),
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: style.card(radius: 13),
+              child: Column(children: [
+                if (document?['subtotal'] != null)
+                  BpReferenceDetailLine(
+                    label: 'Subtotal',
+                    icon: Icons.calculate_outlined,
+                    value: money(document?['subtotal'], widget.app.currency)),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 9, vertical: 10),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFDFF6CF),
+                    borderRadius: BorderRadius.circular(10)),
+                  child: Row(children: [
+                    const Expanded(child: Text('Return Total',
+                      style: TextStyle(fontWeight: FontWeight.w900))),
+                    Text(money(document?['grand_total'],
+                      widget.app.currency),
+                      style: const TextStyle(fontWeight: FontWeight.w900)),
+                  ])),
+                Padding(
+                  padding: const EdgeInsets.only(top: 6),
+                  child: Text('Server status: ${field(document?['status'])}',
+                    style: TextStyle(color: style.muted, fontSize: 11))),
+              ])),
             if (widget.kind == ReturnDocumentKind.sale &&
                 field(document?['status']) == 'posted' &&
                 widget.app.hasPermission('payments.create'))
