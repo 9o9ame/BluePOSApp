@@ -515,12 +515,7 @@ class _PurchaseInvoiceEditorState extends State<PurchaseInvoiceEditor> {
                   },
                   icon: const Icon(Icons.payments_outlined),
                   label: const Text('Record Purchase Payment'))),
-            if (draft && canPost) Padding(
-              padding: const EdgeInsets.only(top: 13),
-              child: FilledButton.icon(
-                onPressed: saving || serverLines.isEmpty ? null : post,
-                icon: const Icon(Icons.verified_rounded),
-                label: const Text('Review & Post Purchase Invoice'))),
+
           ],
         ],
         if (uncertainCreate) const Padding(
