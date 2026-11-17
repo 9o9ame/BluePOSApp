@@ -27,7 +27,11 @@ class BlueposApi {
   final Map<String, String> _cookies = {};
   bool _csrfReady = false;
   final Map<String, Uint8List> _productImageCache = {};
-  bool get hasSavedSessionCookies => _cookies.isNotEmpty;
+  // A trusted-device cookie alone is not an authenticated user session.
+  bool get hasSavedSessionCookies => _cookies.keys.any((name) =>
+      name != 'bluepos_device' && name != 'XSRF-TOKEN');
+  bool get hasSavedDeviceCredential =>
+      _cookies['bluepos_device']?.isNotEmpty == true;
   // Cookies from the retired domain must not be sent to the new production host.
   static const _cookieKey = 'bluepos_pk_mobile_auth_cookies_v1';
 
