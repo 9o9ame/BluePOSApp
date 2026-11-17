@@ -43,6 +43,27 @@ Development routing: start task with Recommended mode/model/usage/reason. For UI
 - New focused test: `test/mobile_reference_26_30_test.dart` (not yet executed on Flutter SDK).
 - **Not every screen uses the shared component yet.** Don't broad-refactor frozen modules; migrate each next batch only when needed.
 
+## Web repository contract inspection and current mobile fixes (2026-11-17)
+
+Directly inspected `9o9ame/bluepos` branch `main` in:
+`PROJECT_UI_DESIGN_SYSTEM.md`, `backend/routes/api.php`,
+`backend/app/Http/Requests/Parties/StorePartyRequest.php`,
+`backend/app/Http/Requests/Parties/UpdatePartyRequest.php`,
+`backend/app/Http/Resources/PartyResource.php`,
+`backend/app/Http/Controllers/Api/PartyLedgerController.php`,
+`backend/app/Accounting/PartyLedgerBalanceSummary.php` and
+`backend/app/Accounting/AccountLedgerBuilder.php`.
+
+- Web repo **was not edited**. It confirms `code`, `name`, `account_type_ulid` required for party creation; email, credit_limit_amount (4 decimal places), and credit_limit_days supported. No customer-group/price-list API was found in the current routes.
+- `lib/screens/parties.dart`: now sends verified email, credit limit string, credit days integer; validates input; keeps required code and account type. List now uses **POST /api/parties/ledger-balances** in <=200-item batches, shows only returned posted balances, never mislabels a credit limit as financial balance; the UI remains usable if balance API errors.
+- `lib/screens/customer_detail.dart` and `lib/screens/supplier_detail.dart`: now pass authorized party ULIDs into shared real ledger view, show server credit policy and truncate long codes safely.
+- `lib/widgets/party_ledger_summary.dart`: new shared GET `/api/parties/{ulid}/ledger?type=customer|vendor` flow with posted-only closing balance, last-5 journal lines, retry and pageable View Ledger. Values are from backend response; no client-side derived accounting.
+- `lib/widgets/reference_surface.dart`: shared compact `BpReferenceStatusSelector` used by party form.
+- Opening balances use dedicated GET/POST + `post` endpoints: do NOT treat this as a regular property of party creation. Further accounting flow requires transactional security/posted immutability tests and approval. No sample balances/transactions should ever be displayed as real.
+- Price Lists API still absent in inspected `api.php`: Screens 22/23 remain previews. Sale Scheme CRUD exists, but form 25 preview cannot submit without correct server request model.
+- `PROJECT_UI_DESIGN_SYSTEM.md` exists in **web** repo, not mobile; apply design principles to Flutter shared widgets without copying React CSS.
+- After latest changes **Flutter tests and Android visual QA remain unexecuted**; compile errors/edge cases must be prioritized before more screens. Minimum checks: `flutter analyze` for affected files, `flutter test test/mobile_reference_26_30_test.dart`, Android manual data+ledger QA.
+
 ## What is still pending / honesty boundary
 
 - **Run on user's Windows Flutter installation**: analyze 3 affected Dart files and run focused tests. Our execution environment did not have Flutter/Dart binaries. Distinguish static source inspection from actual test execution.
@@ -69,7 +90,7 @@ git status --short
 git branch --show-current
 git pull --ff-only origin feature/daily-entries
 git log -1 --oneline
-flutter analyze lib/widgets/reference_surface.dart lib/screens/catalog_master.dart lib/screens/price_lists.dart lib/screens/sale_schemes.dart lib/screens/parties.dart lib/screens/customer_detail.dart lib/screens/supplier_detail.dart
+flutter analyze lib/widgets/reference_surface.dart lib/widgets/party_ledger_summary.dart lib/screens/parties.dart lib/screens/customer_detail.dart lib/screens/supplier_detail.dart
 flutter test test/reference_11_15_smoke_test.dart test/catalog_reference_16_20_test.dart test/mobile_reference_21_25_test.dart test/mobile_reference_26_30_test.dart
 flutter run
 ```
