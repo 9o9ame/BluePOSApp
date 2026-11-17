@@ -125,6 +125,13 @@ This was an **inspection only** of the web repository; it was not edited.
 - **Not claimed:** Full pixel-perfect parity, Flutter compile/analyzer passing, server posting integration tests or approved Android comparison. These still require focused on-device QA and backend tests on `bluepos_test`. Do **not** run posting tests on persistent development DB.
 - **No web backend/frontend changes, no database migrations, no Git branch switch**. All mobile commits are on `feature/daily-entries`.
 
+### Final narrow-layout refinement
+
+- **37 posted purchase details:** posted records now use an actual server-sourced Product/Qty/Rate/Amount table; draft line cards and edit controls remain draft-only. Shared `bpReferenceDecimalLabel` shortens decimal display text without modifying server amounts or write payloads.
+- **34 sales details:** uses the same shared decimal label utility. Real sale payments appear only when `SaleResource.payments` contains records.
+- **Shared UI:** `BpReferenceCompactField` drives dense invoice metadata; `BpReferenceWorkflowActions` now controls both Post (green) and authorized Ledger/Share (blue) without duplicating footer layouts.
+- Added test coverage for shared decimal label rendering. Flutter SDK still unavailable in this execution environment; no analyzer/test pass is asserted.
+
 ## Validation
 
 - Repository files edited on `feature/daily-entries`; no main merge.
