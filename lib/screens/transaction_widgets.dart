@@ -224,6 +224,7 @@ class _TransactionDirectoryState extends State<TransactionDirectory> {
   bool loading = true, moreLoading = false;
   String? error;
   int page = 1, total = 0, version = 0;
+  String statusFilter = 'all';
 
   @override
   void initState() { super.initState(); load(); }
@@ -274,6 +275,9 @@ class _TransactionDirectoryState extends State<TransactionDirectory> {
     final style = BpReferenceStyle.of(context);
     final isReturns = widget.endpoint == '/api/sales-returns' ||
       widget.endpoint == '/api/purchase-returns';
+    final visibleRows = rows.where((item) =>
+      statusFilter == 'all' ||
+      field(item['status']).toLowerCase() == statusFilter).toList();
     final allowCreate = widget.onCreate != null &&
       (widget.createPermission == null ||
         widget.app.hasPermission(widget.createPermission!));
@@ -300,7 +304,10 @@ class _TransactionDirectoryState extends State<TransactionDirectory> {
           padding: const EdgeInsets.fromLTRB(12, 11, 12, 100),
           children: [
           if (!widget.referenceStyle) SectionHeading(widget.title),
-          TextField(key: const ValueKey('transaction-search'), controller: search,
+          Row(children: [
+            Expanded(child: TextField(
+              key: const ValueKey('transaction-search'),
+              controller: search,
             onChanged: (_) {
               delay?.cancel();
               delay = Timer(const Duration(milliseconds: 300), load);
@@ -311,14 +318,36 @@ class _TransactionDirectoryState extends State<TransactionDirectory> {
                   .copyWith(isDense: true)
               : const InputDecoration(
                   prefixIcon: Icon(Icons.search_rounded),
-                  hintText: 'Search document number')),
+                  hintText: 'Search document number'))),
+            if (widget.referenceStyle) ...[
+              const SizedBox(width: 7),
+              Container(
+                decoration: style.card(radius: 12),
+                child: PopupMenuButton<String>(
+                  key: const ValueKey('transaction-status-filter'),
+                  tooltip: 'Filter loaded documents by status',
+                  icon: Icon(statusFilter == 'all'
+                    ? Icons.filter_alt_outlined : Icons.filter_alt,
+                    color: style.scheme.primary),
+                  onSelected: (value) =>
+                    setState(() => statusFilter = value),
+                  itemBuilder: (_) => const [
+                    PopupMenuItem(value: 'all', child: Text('All statuses')),
+                    PopupMenuItem(value: 'draft', child: Text('Draft')),
+                    PopupMenuItem(value: 'posted', child: Text('Posted')),
+                    PopupMenuItem(value: 'refunded', child: Text('Refunded')),
+                    PopupMenuItem(value: 'adjusted', child: Text('Adjusted')),
+                  ]),
+              ),
+            ],
+          ]),
           const SizedBox(height: 12),
           if (loading) pageLoading()
           else if (error != null) FailureState(message: error!, retry: load)
-          else if (rows.isEmpty) const EmptyState(
-            title: 'No documents found',
-            subtitle: 'Try another search.')
-          else ...rows.map((item) => Padding(
+          else if (visibleRows.isEmpty) const EmptyState(
+            title: 'No matching documents',
+            subtitle: 'Try another search or status filter.')
+          else ...visibleRows.map((item) => Padding(
             padding: const EdgeInsets.only(bottom: 9),
             child: InkWell(
               key: ValueKey('transaction-${field(item['ulid'])}'),
