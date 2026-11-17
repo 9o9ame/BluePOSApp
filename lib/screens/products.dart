@@ -63,7 +63,7 @@ class PosCatalogProductCard extends StatelessWidget {
       onTap: onTap,
       borderRadius: BorderRadius.circular(17),
       child: Container(
-        padding: const EdgeInsets.all(9),
+        padding: const EdgeInsets.all(8),
         decoration: BoxDecoration(
           gradient: const LinearGradient(colors: [
             Colors.white, Color(0xFFF6F8FF)]),
@@ -77,7 +77,7 @@ class PosCatalogProductCard extends StatelessWidget {
           children: [
             Container(
               width: double.infinity,
-              height: premium ? 114 : 86,
+              height: premium ? 91 : 86,
               alignment: Alignment.center,
               decoration: BoxDecoration(
                 gradient: const LinearGradient(colors: [
@@ -86,9 +86,9 @@ class PosCatalogProductCard extends StatelessWidget {
               child: ProductThumb(
                 api: api,
                 imageUrl: field(product['image_url']),
-                size: premium ? 96 : 67),
+                size: premium ? 79 : 67),
             ),
-            const SizedBox(height: 7),
+            const SizedBox(height: 4),
             Text(field(product['name'], 'Product'),
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
@@ -96,7 +96,7 @@ class PosCatalogProductCard extends StatelessWidget {
                 color: const Color(0xFF0A1B48),
                 fontSize: premium ? 13.2 : 12.8,
                 fontWeight: FontWeight.w800)),
-            const SizedBox(height: 5),
+            const SizedBox(height: 2),
             Text(retailPrice == null
                 ? 'Price unavailable'
                 : _displayPrice(retailPrice!),
@@ -327,7 +327,7 @@ class _ProductsScreenState extends State<ProductsScreen> {
       onTap: onTap,
       borderRadius: BorderRadius.circular(25),
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
         decoration: BoxDecoration(
           gradient: selected
             ? const LinearGradient(colors: [
@@ -362,7 +362,7 @@ class _ProductsScreenState extends State<ProductsScreen> {
       RefreshIndicator(onRefresh: load, child: ListView(
         padding: EdgeInsets.fromLTRB(
           widget.inlineCatalog == true ? 7 : 16,
-          10, widget.inlineCatalog == true ? 7 : 16, 16), children: [
+          5, widget.inlineCatalog == true ? 7 : 16, 16), children: [
       if (!(widget.inlineCatalog == true))
         SectionHeading(standalone ? 'Products' : 'Add a product',
           trailing: IconButton(
@@ -387,6 +387,8 @@ class _ProductsScreenState extends State<ProductsScreen> {
         TextField(controller: search, onChanged: queryChanged,
           decoration: InputDecoration(
             filled: true,
+            isDense: true,
+            contentPadding: const EdgeInsets.symmetric(vertical: 11, horizontal: 10),
             fillColor: const Color(0xFFFFFFFF),
             enabledBorder: OutlineInputBorder(
               borderSide: const BorderSide(color: Color(0xFFE6EBFA)),
@@ -406,8 +408,8 @@ class _ProductsScreenState extends State<ProductsScreen> {
                   icon: const Icon(Icons.close),
                   onPressed: () { search.clear(); load(); })))),
       if (categories.isNotEmpty && (!standalone || showCatalogFilters)) ...[
-        const SizedBox(height: 12),
-        SizedBox(height: 44, child: ListView(
+        const SizedBox(height: 7),
+        SizedBox(height: 36, child: ListView(
           scrollDirection: Axis.horizontal,
           children: [
             Padding(padding: const EdgeInsets.only(right: 7),
@@ -465,7 +467,7 @@ class _ProductsScreenState extends State<ProductsScreen> {
           itemCount: items.length,
           gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
             crossAxisCount: columns, crossAxisSpacing: 9, mainAxisSpacing: 9,
-            mainAxisExtent: (widget.inlineCatalog == true) ? 244 : 194),
+            mainAxisExtent: (widget.inlineCatalog == true) ? 207 : 194),
           itemBuilder: (context, index) {
             final p = items[index];
             return PosCatalogProductCard(
