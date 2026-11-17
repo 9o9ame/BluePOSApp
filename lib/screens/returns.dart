@@ -4,6 +4,8 @@ import '../core/api.dart';
 import '../core/sale_attempt.dart';
 import '../core/session.dart';
 import '../widgets/common.dart';
+import '../widgets/reference_surface.dart';
+import 'auth_reference_chrome.dart';
 import 'transaction_widgets.dart';
 import 'money_actions.dart';
 
@@ -461,57 +463,74 @@ class _ReturnDocumentEditorState extends State<ReturnDocumentEditor> {
     final lines = recordsOf(document?['lines']);
     final canEditNow = !saving && !createUncertain &&
       (!created || draft && editable);
+    final style = BpReferenceStyle.of(context);
+    final isSale = widget.kind == ReturnDocumentKind.sale;
+    final canCreate = widget.app.hasPermission(widget.kind.createPermission);
     return Scaffold(
-      appBar: AppBar(title: Text(created
-        ? widget.kind == ReturnDocumentKind.purchase
-          ? 'Purchase Return Detail'
-          : field(document?['document_number'], widget.kind.title)
-        : widget.kind == ReturnDocumentKind.sale
-          ? 'Create Sales Return' : 'Create Purchase Return'),
-        actions: [if (created) IconButton(onPressed: saving || loading
-          ? null : refresh, icon: const Icon(Icons.refresh_rounded))]),
-      body: ListView(padding: const EdgeInsets.all(16), children: [
-        SectionHeading(created
-          ? widget.kind == ReturnDocumentKind.purchase
-            ? 'Purchase Return Detail' : 'Sales Return Detail'
-          : widget.kind == ReturnDocumentKind.sale
-            ? 'Create Sales Return' : 'Create Purchase Return'),
-        const SizedBox(height: 5),
-        Text('Source-linked returns use server-authorized posted invoices.',
-          style: TextStyle(color: palette.onSurfaceVariant, fontSize: 12)),
-        const SizedBox(height: 12),
+      backgroundColor: style.page,
+      appBar: BpReferenceSubpageAppBar(title: created
+        ? isSale ? 'Sales Return Detail' : 'Purchase Return Detail'
+        : isSale ? 'Create Sales Return' : 'Create Purchase Return'),
+      bottomNavigationBar: !loading &&
+          ((!created && canCreate) ||
+           (created && draft && (editable || canPost)))
+        ? BpReferenceWorkflowActions(
+          leftKey: const ValueKey('return-save-draft'),
+          rightKey: const ValueKey('return-post'),
+          leftLabel: created ? 'Save Draft'
+            : createUncertain ? 'Retry Saved Draft' : 'Create Draft',
+          rightLabel: 'Post Return',
+          rightIcon: Icons.assignment_return_rounded,
+          onLeft: saving ||
+              (createUncertain && !isSale) ? null
+              : !created ? createDraft
+              : draft && editable ? saveHeader : null,
+          onRight: saving || !created || !draft ||
+              !canPost || lines.isEmpty ? null : post)
+        : null,
+      body: Stack(children: [
+        const Positioned(top: 0, right: 0,
+          child: BpReferenceTopAccent()),
+        ListView(
+          key: const ValueKey('reference-return-editor'),
+          padding: const EdgeInsets.fromLTRB(11, 10, 11, 40),
+          children: [
+        if (created) Text(
+          'Document: ${field(document?['document_number'])}',
+          style: TextStyle(color: style.muted, fontSize: 11)),
+        const SizedBox(height: 7),
         if (loading) pageLoading()
         else ...[
-          Surface(child: Column(children: [
-            ListTile(
-              contentPadding: EdgeInsets.zero,
+          BpReferenceFormField(
+            icon: Icons.receipt_long_outlined,
+            label: isSale ? 'Reference Invoice *' : 'Original Purchase Invoice *',
+            hint: '',
+            child: ListTile(
+              dense: true,
+              contentPadding: const EdgeInsets.symmetric(horizontal: 7),
               title: Text(field(source?['document_number'],
-                'Choose original posted invoice')),
-              subtitle: Text(field(source?['status'])),
-              trailing: const Icon(Icons.chevron_right_rounded),
-              onTap: !created && !createUncertain ? chooseSource : null),
-            OutlinedButton.icon(onPressed: canEditNow ? chooseDate : null,
-              icon: const Icon(Icons.calendar_month_outlined),
-              label: Text(isoLocalDate(date))),
-            const SizedBox(height: 8),
-            TextField(controller: reason,
-              maxLength: 255, readOnly: !canEditNow,
-              decoration: const InputDecoration(labelText: 'Reason')),
-            TextField(controller: notes,
-              maxLength: 5000, maxLines: 2, readOnly: !canEditNow,
-              decoration: const InputDecoration(labelText: 'Notes')),
-            if (!created && widget.app.hasPermission(widget.kind.createPermission))
-              FilledButton.icon(
-                onPressed: saving ||
-                  (createUncertain && widget.kind == ReturnDocumentKind.purchase)
-                    ? null : createDraft,
-                icon: const Icon(Icons.note_add_outlined),
-                label: Text(createUncertain ? 'Retry Saved Draft' : 'Create Draft')),
-            if (created && draft && editable)
-              OutlinedButton.icon(onPressed: saving ? null : saveHeader,
-                icon: const Icon(Icons.save_outlined),
-                label: const Text('Save Header')),
-          ])),
+                'Choose posted invoice'),
+                maxLines: 1, overflow: TextOverflow.ellipsis),
+              trailing: const Icon(Icons.chevron_right_rounded, size: 18),
+              onTap: !created && !createUncertain ? chooseSource : null)),
+          BpReferenceFormField(
+            icon: Icons.calendar_month_outlined,
+            label: 'Date *', hint: '',
+            child: InkWell(
+              onTap: canEditNow ? chooseDate : null,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 9),
+                child: Text(isoLocalDate(date),
+                  style: TextStyle(color: style.ink, fontSize: 12))))),
+          BpReferenceFormField(
+            icon: Icons.chat_bubble_outline_rounded,
+            label: 'Reason', hint: 'Return reason',
+            controller: reason, maxLength: 255, readOnly: !canEditNow),
+          BpReferenceFormField(
+            icon: Icons.notes_outlined,
+            label: 'Remarks', hint: 'Items returned by customer',
+            controller: notes, maxLength: 5000, maxLines: 2,
+            readOnly: !canEditNow),
           if (created) ...[
             if (widget.kind == ReturnDocumentKind.purchase) ...[
               Surface(child: Row(children: [
@@ -580,12 +599,7 @@ class _ReturnDocumentEditorState extends State<ReturnDocumentEditor> {
                   },
                   icon: const Icon(Icons.currency_exchange_outlined),
                   label: const Text('Record Customer Refund'))),
-            if (draft && canPost && lines.isNotEmpty)
-              Padding(padding: const EdgeInsets.only(top: 12),
-                child: FilledButton.icon(
-                  onPressed: saving ? null : post,
-                  icon: const Icon(Icons.verified_rounded),
-                  label: const Text('Review & Post Return'))),
+
           ],
         ],
         if (createUncertain) const Padding(
@@ -595,6 +609,8 @@ class _ReturnDocumentEditorState extends State<ReturnDocumentEditor> {
           padding: const EdgeInsets.only(top: 10),
           child: Text(error!, style: TextStyle(color: palette.error))),
         const SizedBox(height: 35),
+          ],
+        ),
       ]),
     );
   }
