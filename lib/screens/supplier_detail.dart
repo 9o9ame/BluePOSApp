@@ -48,6 +48,19 @@ class _SupplierDetailScreenState extends State<SupplierDetailScreen> {
   Widget build(BuildContext context) => Scaffold(
     backgroundColor: BpReferenceStyle.of(context).page,
     appBar: const BpReferenceSubpageAppBar(title: 'Supplier Detail'),
+    bottomNavigationBar: !busy && error == null
+      ? BpReferenceDetailActions(
+          editKey: const ValueKey('supplier-detail-edit'),
+          ledgerKey: const ValueKey('supplier-detail-view-ledger'),
+          onEdit: (widget.app.hasPermission('suppliers.edit') ||
+              widget.app.hasPermission('suppliers.manage'))
+              ? widget.onEdit : null,
+          onViewLedger: () => Navigator.of(context).push(
+            MaterialPageRoute(builder: (_) => BpPartyLedgerScreen(
+              app: widget.app, partyType: 'vendor',
+              partyUlid: widget.supplierUlid))),
+        )
+      : null,
     body: busy ? const Center(child: CircularProgressIndicator())
       : error != null ? FailureState(message: error!, retry: load)
       : RefreshIndicator(onRefresh: load,
@@ -138,14 +151,6 @@ class SupplierDetailView extends StatelessWidget {
             decoration: style.card(radius: 16),
             child: const Text('Ledger information is available after opening '
               'an authorized supplier record.')),
-        if (canEdit && onEdit != null) ...[
-          const SizedBox(height: 16),
-          FilledButton.icon(
-            key: const ValueKey('supplier-detail-edit'),
-            onPressed: onEdit,
-            icon: const Icon(Icons.edit_outlined),
-            label: const Text('Edit Supplier')),
-        ],
         const SizedBox(height: 20),
       ],
     );
