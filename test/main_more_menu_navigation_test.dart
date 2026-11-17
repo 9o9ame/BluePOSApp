@@ -18,17 +18,16 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('More'), findsOneWidget);
-    expect(find.byKey(const ValueKey('switch-to-main-menu')), findsOneWidget);
-    await tester.tap(find.byKey(const ValueKey('switch-to-main-menu')));
+    menuMode.value = true; // Hamburger opens reference 08.
     await tester.pumpAndSettle();
-
     expect(find.text('Main Menu'), findsOneWidget);
-    expect(find.byKey(const ValueKey('switch-to-more')), findsOneWidget);
-    await tester.tap(find.byKey(const ValueKey('switch-to-more')));
+    expect(find.byIcon(Icons.search_rounded), findsWidgets);
+
+    menuMode.value = false; // Bottom More opens reference 09.
     await tester.pumpAndSettle();
     expect(find.text('More'), findsOneWidget);
 
-    menuMode.value = true; // The shell's hamburger action.
+    menuMode.value = true;
     await tester.pumpAndSettle();
     expect(find.text('Main Menu'), findsOneWidget);
     await tester.pumpWidget(const SizedBox.shrink());
