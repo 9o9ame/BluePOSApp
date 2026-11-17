@@ -49,11 +49,23 @@ class BlueposApi {
     }
   }
 
-  Future<void> clear() async {
+  /// Signing out must invalidate the user session, not silently forget the
+  /// server-approved physical device. Device identity is not a login session:
+  /// the server still checks password, MFA trust expiry, network and revocation.
+  /// Explicit device removal can call clear(forgetDevice: true).
+  Future<void> clear({bool forgetDevice = false}) async {
+    final deviceCredential = forgetDevice ? null : _cookies['bluepos_device'];
     _cookies.clear();
+    if (deviceCredential != null && deviceCredential.isNotEmpty) {
+      _cookies['bluepos_device'] = deviceCredential;
+    }
     _csrfReady = false;
     _productImageCache.clear();
-    await _storage.delete(key: _cookieKey);
+    if (_cookies.isEmpty) {
+      await _storage.delete(key: _cookieKey);
+    } else {
+      await _storage.write(key: _cookieKey, value: jsonEncode(_cookies));
+    }
   }
 
   Future<void> close() async {
