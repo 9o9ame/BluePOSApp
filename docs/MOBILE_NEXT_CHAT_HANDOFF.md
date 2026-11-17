@@ -98,7 +98,7 @@ GitHub code changes on `feature/daily-entries`:
 
 - `lib/widgets/reference_surface.dart`: **`BpReferenceWorkflowActions`** shared compact, accessible two-action footer with dynamic labels, permissions/disabled callbacks supplied by each domain screen.
 - `lib/screens/purchase_invoices.dart`: 36/37 use compact shared field tiles, real supplier/date/warehouse selection, original server-backed draft/line/post operations, server amounts and reference item cards. Footer separates Create Draft/Save Header from Post Purchase and disables posting until an authorized draft has lines. Existing duplicate Post button removed. Posted purchase adds Print PDF from authorized response and **View Ledger** opening the supplier party ledger only with valid supplier ULID and supplier view/manage permission; NOT a purchase-specific ledger.
-- `lib/screens/transaction_widgets.dart`: generic reference directory reuses real endpoints, now renders return icon/source information, search and a **loaded-record** status filter, and green Add Return action for screens 38/40.
+- `lib/screens/transaction_widgets.dart`: generic reference directory reuses real endpoints, renders real party/source/amount/status cards, and uses a **server-applied** status filter with enum-backed options; fake Refunded/Adjusted statuses are removed. Green Add Return remains permission-gated.
 - `lib/screens/returns.dart`: 39 Create Sales Return and existing purchase return editor use real source selection, server returnable lines, compact form/item cards, and safe Save Draft/Post Return footer. Existing `SaleReturnAttemptStore` idempotency on uncertainty and server stock/accounting mutation remain untouched. Never invent client return/refund totals.
 - `test/mobile_reference_36_40_test.dart`: source ULID keys/endpoints and compact enabled/disabled action tests; **not run here**.
 - `docs/MOBILE_REFERENCE_PROGRESS.md`: screens 36–40 statuses recorded.
@@ -112,6 +112,43 @@ git pull --ff-only origin feature/daily-entries
 git log -1 --oneline
 flutter analyze lib/widgets/reference_surface.dart lib/screens/purchase_invoices.dart lib/screens/returns.dart lib/screens/transaction_widgets.dart
 flutter test test/mobile_reference_31_35_test.dart test/mobile_reference_36_40_test.dart
+flutter run
+```
+
+## Latest correction after user screenshot comparison (2026-11-17)
+
+**User explicitly rejected the old screen designs** and insists the `9o9ame/bluepos` web application determines real fields and behavior. Avoid adding screenshot-only fields/statuses or fake rows. All fixes below were written directly to mobile `feature/daily-entries`, not to web `main`.
+
+**Verified web sources:**
+`backend/routes/api.php`, `backend/app/Http/Controllers/Api/Purchases/{PurchaseInvoiceController,PurchaseReturnController}.php`,
+`backend/app/Http/Controllers/Api/Sales/{SaleController,SaleReturnController}.php`,
+`backend/app/Http/Resources/{Purchases,Sales}/*Resource.php`,
+`backend/app/Enums/{SaleStatus,SaleReturnStatus,PurchaseInvoiceStatus,PurchaseReturnStatus}.php`,
+and `frontend/src/pages/{PurchasesPage,SalesReturnsPage,PurchaseReturnsPage}.tsx`. Read actual API contract, not just example screenshots.
+
+**Changes written and committed:**
+
+- `lib/screens/modules.dart`: Sales Invoices now opens real `/api/sales` reference directory; tapping an invoice opens **full** `ReceiptScreen` (no generic bottom sheet). Existing separate Create Sales Invoice route still calls frozen authorized POS editor.
+- `lib/screens/transaction_widgets.dart`: dense reference cards use real status/party/source/date/server amounts. Search goes to actual backend, status filter is now **backend pagination**, not just first 25 records. Valid statuses: Sales posted/void; Purchase draft/posted/cancelled; both Return kinds draft/posted. No fictional refunded/adjusted status.
+- `lib/widgets/reference_surface.dart`: reusable `BpReferenceCompactField` for dense metadata pairs and shared `BpReferenceWorkflowActions.rightColor` allowing blue View Ledger/Share while Post stays green. Common action height remains 43.
+- `lib/screens/purchase_invoices.dart`: real web-verified Supplier ULID, session warehouse ULID, invoice_date, supplier_invoice_number, due_date, payment_terms, freight_amount, other_discount, notes in server payload. Generated `document_number` is read-only. Freight/discount strings validated non-negative 4 decimals; server recalculates totals. Posted detail header is read-only, with real `discount_amount` (not the nonexistent `total_discount_amount`), freight/other charges/tax/grand total; preview only when backend returns data. Existing draft/line edits/posting/uncertain-retry logic is unchanged. Posted Print PDF and authorized supplier-party View Ledger available. No fake purchase-only ledger.
+- `lib/screens/returns.dart`: return metadata uses read-only server document number and party from selected posted invoice. After selecting an invoice, show genuine `returnable-lines` preview with remaining quantities (no invented returnable rows). Existing idempotent Sales Return create, line save/post and Purchase Return real flow remain.
+- `lib/screens/receipt.dart`: server actual sale items, display-only compact decimal strings, highlighted server total and actual payment summary when available; pinned Print/Share now shares common footer geometry.
+- `test/mobile_reference_33_40_web_contract_test.dart`: added numeric 4dp/6dp, ULID boundary, 360px compact field and semantic footer widget checks; **not executed** in this environment.
+- `docs/MOBILE_REFERENCE_PROGRESS.md` updated to distinguish implementation vs Android review.
+
+**Key UX honesty:** Mockup 37 shows a POSTED invoice, but the user's screenshot contains a real DRAFT from the backend. Never paint it as posted or enable Print/Post without the existing server-authorized state. Mockup 40 shows fictional purchase returns, but a blank live API result must remain a genuine empty state, not example transactions.
+
+**Remaining:** Full Flutter compile/analyze/test, narrow device QA and live tenant/branch/warehouse/RBAC verification. Do not claim visual approval, posting success, or production readiness from a GitHub write. Backend posting/valuation tests belong on `bluepos_test` only.
+
+Focused commands:
+
+```powershell
+cd "C:\Projects\BluePOSApp"
+git status --short
+git pull --ff-only origin feature/daily-entries
+flutter analyze lib/screens/modules.dart lib/widgets/reference_surface.dart lib/screens/purchase_invoices.dart lib/screens/returns.dart lib/screens/transaction_widgets.dart lib/screens/receipt.dart
+flutter test test/mobile_reference_33_40_web_contract_test.dart test/mobile_reference_36_40_test.dart
 flutter run
 ```
 
