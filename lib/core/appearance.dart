@@ -55,7 +55,8 @@ class AppAppearance extends ChangeNotifier {
     final prefs = await SharedPreferences.getInstance();
     explicitThemeChoice = prefs.getBool('bp_explicit_theme_choice') ?? false;
     apply({
-      'theme': prefs.getString('bp_theme'),
+      'theme': !explicitThemeChoice && prefs.getString('bp_theme') == 'system'
+          ? 'light' : prefs.getString('bp_theme'),
       'skin': prefs.getString('bp_skin'),
       'font': prefs.getString('bp_font'),
       'primaryTheme': prefs.getString('bp_primary'),
