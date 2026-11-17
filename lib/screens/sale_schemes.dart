@@ -245,40 +245,12 @@ class _SchemePreviewField extends StatelessWidget {
   final bool dropdown;
 
   @override
-  Widget build(BuildContext context) {
-    final style = BpReferenceStyle.of(context);
-    return Container(
-      margin: const EdgeInsets.only(bottom: 5),
-      padding: const EdgeInsets.fromLTRB(8, 6, 8, 7),
-      decoration: style.card(radius: 13),
-      child: Row(children: [
-        Container(
-          width: 35, height: 39,
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(10),
-            color: style.scheme.primary.withValues(alpha: .12)),
-          child: Icon(icon, color: style.scheme.primary, size: 19)),
-        const SizedBox(width: 9),
-        Expanded(child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Text(label, style: TextStyle(fontSize: 11,
-              color: style.ink, fontWeight: FontWeight.w900)),
-            const SizedBox(height: 3),
-            TextField(
-              readOnly: true,
-              maxLines: twoLines ? 2 : 1,
-              decoration: style.search(hint).copyWith(
-                isDense: true,
-                suffixIcon: dropdown
-                  ? const Icon(Icons.keyboard_arrow_down_rounded) : null,
-                contentPadding: const EdgeInsets.symmetric(
-                  horizontal: 10, vertical: 7))),
-          ],
-        )),
-      ]),
-    );
-  }
+  Widget build(BuildContext context) => BpReferenceFormField(
+    label: label, hint: hint, icon: icon,
+    readOnly: true, maxLines: twoLines ? 2 : 1,
+    suffixIcon: dropdown
+      ? const Icon(Icons.keyboard_arrow_down_rounded) : null);
+
 }
 
 /// Screen 25 preview, not a writable sale scheme editor. Existing server
@@ -292,33 +264,10 @@ class AddSaleSchemeReferenceScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: style.page,
       appBar: const BpReferenceSubpageAppBar(title: 'Add Sale Scheme'),
-      bottomNavigationBar: Column(
-        mainAxisSize: MainAxisSize.min, children: [
-          const AuthReferenceWaves(height: 48),
-          SafeArea(top: false, child: Container(
-            padding: const EdgeInsets.fromLTRB(12, 9, 12, 12),
-            decoration: BoxDecoration(
-              color: style.surface,
-              borderRadius: const BorderRadius.vertical(
-                top: Radius.circular(22)),
-              border: Border.all(color: style.line)),
-            child: Row(children: [
-              Expanded(child: OutlinedButton(
-                onPressed: () => Navigator.of(context).pop(),
-                child: const Text('Cancel'))),
-              const SizedBox(width: 9),
-              Expanded(child: FilledButton.icon(
-                key: const ValueKey('sale-scheme-save-disabled'),
-                onPressed: null,
-                icon: const Icon(Icons.save_outlined),
-                label: const FittedBox(
-                  fit: BoxFit.scaleDown,
-                  child: Text('Save Scheme', maxLines: 1)),
-              )),
-            ]),
-          )),
-        ],
-      ),
+      bottomNavigationBar: BpReferenceFooter(
+        saveKey: const ValueKey('sale-scheme-save-disabled'),
+        saveLabel: 'Save Scheme',
+        onCancel: () => Navigator.of(context).pop()),
       body: Stack(children: [
         const Positioned(top: 0, right: 0,
           child: BpReferenceTopAccent()),
