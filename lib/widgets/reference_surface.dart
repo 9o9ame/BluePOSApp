@@ -44,3 +44,86 @@ class BpReferenceStyle {
         borderSide: BorderSide(color: scheme.primary, width: 1.4)),
     );
 }
+
+/// Two-tier header from the approved mobile reference. The secondary bar
+/// keeps the back action and title while the top brand remains consistent.
+class BpReferenceSubpageAppBar extends StatelessWidget
+    implements PreferredSizeWidget {
+  const BpReferenceSubpageAppBar({
+    super.key,
+    required this.title,
+    this.onBack,
+    this.onNotifications,
+    this.onSearch,
+  });
+
+  final String title;
+  final VoidCallback? onBack;
+  final VoidCallback? onNotifications;
+  final VoidCallback? onSearch;
+
+  @override
+  Size get preferredSize => const Size.fromHeight(112);
+
+  @override
+  Widget build(BuildContext context) {
+    final style = BpReferenceStyle.of(context);
+    return Material(
+      color: style.page,
+      child: SafeArea(bottom: false, child: Column(children: [
+        SizedBox(
+          height: 58,
+          child: Stack(alignment: Alignment.center, children: [
+            Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+              ClipRRect(
+                borderRadius: BorderRadius.circular(9),
+                child: Image.asset('assets/branding/bluepos_launcher.png',
+                  width: 39, height: 39)),
+              const SizedBox(width: 8),
+              Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text.rich(TextSpan(children: [
+                    TextSpan(text: 'Blue',
+                      style: TextStyle(color: style.ink)),
+                    TextSpan(text: 'POS',
+                      style: TextStyle(color: style.scheme.primary)),
+                  ]), style: const TextStyle(
+                    fontSize: 23, fontWeight: FontWeight.w900)),
+                  Text('P O S  &  E R P', style: TextStyle(
+                    fontSize: 8, color: style.muted,
+                    fontWeight: FontWeight.w800)),
+                ],
+              ),
+            ]),
+            if (onNotifications != null)
+              Positioned(right: 8,
+                child: IconButton(
+                  tooltip: 'Notifications',
+                  icon: Icon(Icons.notifications_none_rounded,
+                    color: style.ink),
+                  onPressed: onNotifications)),
+          ]),
+        ),
+        SizedBox(height: 54, child: Row(children: [
+          IconButton(
+            tooltip: 'Back',
+            icon: Icon(Icons.arrow_back_rounded, color: style.ink),
+            onPressed: onBack ?? () => Navigator.of(context).maybePop()),
+          Expanded(child: Text(title, textAlign: TextAlign.center,
+            maxLines: 1, overflow: TextOverflow.ellipsis,
+            style: TextStyle(color: style.ink, fontSize: 21,
+              fontWeight: FontWeight.w900))),
+          if (onSearch != null)
+            IconButton(
+              tooltip: 'Search',
+              icon: Icon(Icons.search_rounded, color: style.ink),
+              onPressed: onSearch)
+          else
+            const SizedBox(width: 48),
+        ])),
+      ])),
+    );
+  }
+}
