@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../core/api.dart';
 import '../core/session.dart';
 import '../widgets/common.dart';
+import 'auth_reference_chrome.dart';
 
 /// Master-data forms backed by the actual BluePOS Catalog FormRequests.
 /// No money, stock or accounting values are accepted from the device here.
@@ -428,6 +429,152 @@ class _CatalogMasterScreenState extends State<CatalogMasterScreen> {
     }
   }
 
+  // Screen 14 keeps the existing category API, RBAC and edit flow.
+  // Reference icons are decorative: no unsupported category icon data is sent.
+  Widget _categoryReferenceScreen(
+      BuildContext context, List<Map<String, dynamic>> filtered) {
+    const tones = <Color>[
+      Color(0xFF00BD66), Color(0xFF158EF7),
+      Color(0xFFFF9810), Color(0xFF8D4CF6),
+      Color(0xFF26A8F2), Color(0xFF00A77D),
+    ];
+    const icons = <IconData>[
+      Icons.shopping_cart_rounded, Icons.local_drink_rounded,
+      Icons.fastfood_rounded, Icons.cleaning_services_rounded,
+      Icons.ac_unit_rounded, Icons.category_rounded,
+    ];
+    return Scaffold(
+      backgroundColor: const Color(0xFFF7F9FF),
+      appBar: AppBar(
+        centerTitle: true,
+        title: const Text('Categories', style: TextStyle(
+          fontSize: 18, fontWeight: FontWeight.w900)),
+        actions: [
+          IconButton(onPressed: reload, tooltip: 'Refresh',
+            icon: const Icon(Icons.refresh_rounded)),
+        ],
+      ),
+      floatingActionButton: canCreate
+        ? FloatingActionButton.extended(
+            key: const ValueKey('catalog-add'),
+            backgroundColor: const Color(0xFF05AA54),
+            foregroundColor: Colors.white,
+            onPressed: () => openEditor(),
+            icon: const Icon(Icons.add_rounded),
+            label: const Text('Add Category'))
+        : null,
+      body: Stack(children: [
+        RefreshIndicator(
+          onRefresh: reload,
+          child: ListView(
+            key: const ValueKey('catalog-master-list'),
+            physics: const AlwaysScrollableScrollPhysics(),
+            padding: const EdgeInsets.fromLTRB(12, 14, 12, 105),
+            children: [
+              Row(children: [
+                Expanded(child: TextField(
+                  key: const ValueKey('catalog-search'),
+                  controller: search,
+                  onChanged: (_) => setState(() {}),
+                  decoration: InputDecoration(
+                    filled: true, fillColor: Colors.white,
+                    prefixIcon: const Icon(Icons.search_rounded),
+                    hintText: 'Search categories...',
+                    isDense: true,
+                    contentPadding: const EdgeInsets.symmetric(vertical: 13),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(14),
+                      borderSide: const BorderSide(color: Color(0xFFE2E9F8))),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(14),
+                      borderSide: const BorderSide(color: Color(0xFFE2E9F8))),
+                  ))),
+                const SizedBox(width: 8),
+                IconButton.filledTonal(
+                  key: const ValueKey('catalog-status-filter'),
+                  tooltip: 'Filter status',
+                  onPressed: () => setState(() => showFilters = !showFilters),
+                  icon: const Icon(Icons.filter_alt_outlined)),
+              ]),
+              if (showFilters) ...[
+                const SizedBox(height: 8),
+                Wrap(spacing: 8, children: [
+                  ChoiceChip(label: const Text('All'),
+                    selected: !activeOnly,
+                    onSelected: (_) => setState(() => activeOnly = false)),
+                  ChoiceChip(label: const Text('Active'),
+                    selected: activeOnly,
+                    onSelected: (_) => setState(() => activeOnly = true)),
+                ]),
+              ],
+              const SizedBox(height: 13),
+              if (loading) pageLoading()
+              else if (error != null) FailureState(message: error!, retry: reload)
+              else if (filtered.isEmpty)
+                EmptyState(
+                  title: rows.isEmpty ? 'No categories yet' : 'No matching categories',
+                  subtitle: 'Try a different search or status filter.')
+              else
+                for (var i = 0; i < filtered.length; i++)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 9),
+                    child: Material(
+                      color: Colors.transparent,
+                      child: InkWell(
+                        key: ValueKey('catalog-row-${field(filtered[i]['ulid'])}'),
+                        borderRadius: BorderRadius.circular(16),
+                        onTap: canEdit
+                          ? () => openEditor(item: filtered[i]) : null,
+                        child: Container(
+                          height: 67,
+                          padding: const EdgeInsets.symmetric(horizontal: 11),
+                          decoration: BoxDecoration(
+                            gradient: const LinearGradient(colors: [
+                              Colors.white, Color(0xFFF3F6FF)]),
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(
+                              color: Colors.white, width: 1.4),
+                            boxShadow: const [BoxShadow(
+                              color: Color(0x175476AC), blurRadius: 10,
+                              offset: Offset(0, 4))]),
+                          child: Row(children: [
+                            Container(
+                              width: 47, height: 47,
+                              decoration: BoxDecoration(
+                                color: tones[i % tones.length]
+                                  .withValues(alpha: .13),
+                                borderRadius: BorderRadius.circular(12)),
+                              child: Icon(icons[i % icons.length], size: 26,
+                                color: tones[i % tones.length])),
+                            const SizedBox(width: 12),
+                            Container(height: 37, width: 1,
+                              color: const Color(0xFFE1E8F6)),
+                            const SizedBox(width: 11),
+                            Expanded(child: Text(field(filtered[i]['name'], '—'),
+                              maxLines: 2, overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(color: Color(0xFF0E1F48),
+                                fontSize: 15, fontWeight: FontWeight.w900))),
+                            if (filtered[i]['is_active'] == false)
+                              const Padding(
+                                padding: EdgeInsets.only(right: 6),
+                                child: Icon(Icons.pause_circle_outline,
+                                  color: Color(0xFFE07065), size: 18)),
+                            if (canEdit) const Icon(Icons.chevron_right_rounded,
+                              color: Color(0xFF1A2C53)),
+                          ]),
+                        ),
+                      ),
+                    ),
+                  ),
+            ],
+          ),
+        ),
+        const Positioned(left: 0, right: 0, bottom: 0,
+          child: IgnorePointer(child: AuthReferenceWaves(height: 54))),
+      ]),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
@@ -446,6 +593,9 @@ class _CatalogMasterScreenState extends State<CatalogMasterScreen> {
     final singular = config.title == 'Categories' ? 'Category'
       : config.title == 'Subcategories' ? 'Subcategory'
       : config.title == 'Brands' ? 'Brand' : config.title;
+    if (config.apiPath == '/api/categories') {
+      return _categoryReferenceScreen(context, filtered);
+    }
     return Scaffold(
       appBar: AppBar(
         title: Text(config.title),
