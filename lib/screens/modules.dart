@@ -97,7 +97,7 @@ class _ModulesScreenState extends State<ModulesScreen> {
   void _syncMenuMode() {
     if (!mounted) return;
     setState(() {
-      showMainMenu = widget.menuMode.value;
+      showMainMenu = _menuMode.value;
       showDirectory = false;
       activeGroup = null;
     });
