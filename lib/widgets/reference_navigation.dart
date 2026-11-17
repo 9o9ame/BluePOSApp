@@ -17,6 +17,9 @@ class BlueposReferenceNav extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
+    final dark = Theme.of(context).brightness == Brightness.dark;
+    final ink = scheme.onSurface;
+    final selectedInk = dark ? const Color(0xFF4DE1A0) : const Color(0xFF008C54);
     Widget destination(int index, IconData icon, String label) {
       final selected = selectedIndex == index;
       return Expanded(child: InkWell(
@@ -30,26 +33,24 @@ class BlueposReferenceNav extends StatelessWidget {
             Container(
               height: 37, width: 54,
               decoration: BoxDecoration(
-                color: selected ? const Color(0xFFDDF8E8) : Colors.transparent,
+                color: selected
+                    ? (dark ? const Color(0xFF174B3A) : const Color(0xFFDDF8E8))
+                    : Colors.transparent,
                 borderRadius: BorderRadius.circular(15)),
               child: Icon(icon, size: 26,
-                color: selected
-                  ? const Color(0xFF00985F)
-                  : const Color(0xFF10234C))),
+                color: selected ? selectedInk : ink)),
             const SizedBox(height: 2),
             Text(label, style: TextStyle(
               fontSize: 11.5,
               fontWeight: selected ? FontWeight.w900 : FontWeight.w700,
-              color: selected
-                ? const Color(0xFF008C54)
-                : const Color(0xFF111E40))),
+              color: selected ? selectedInk : ink)),
           ]),
       ));
     }
     return SafeArea(top: false, child: Container(
       height: 77,
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: scheme.surface,
         borderRadius: const BorderRadius.vertical(top: Radius.circular(25)),
         boxShadow: [BoxShadow(
           color: scheme.shadow.withValues(alpha: .12),
@@ -72,7 +73,7 @@ class BlueposReferenceNav extends StatelessWidget {
                 width: 65, height: 65,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  border: Border.all(color: Colors.white, width: 3),
+                  border: Border.all(color: scheme.surface, width: 3),
                   gradient: const LinearGradient(
                     colors: [Color(0xFF11CF70), Color(0xFF009748)],
                     begin: Alignment.topLeft, end: Alignment.bottomRight)),
