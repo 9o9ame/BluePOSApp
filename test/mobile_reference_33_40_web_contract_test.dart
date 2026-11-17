@@ -58,6 +58,14 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
+  test('Display-only decimal labels do not recompute server amounts', () {
+    expect(bpReferenceDecimalLabel('1.000000'), '1');
+    expect(bpReferenceDecimalLabel('350.0000'), '350');
+    expect(bpReferenceDecimalLabel('12.3400'), '12.34');
+    expect(bpReferenceDecimalLabel('0.0000'), '0');
+    expect(bpReferenceDecimalLabel(null), '');
+  });
+
   test('Public API ULIDs reject internal database IDs', () {
     expect(validPublicUlid('123'), isFalse);
     expect(validPublicUlid('1'), isFalse);
