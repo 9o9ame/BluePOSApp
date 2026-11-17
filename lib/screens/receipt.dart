@@ -128,41 +128,17 @@ class _ReceiptScreenState extends State<ReceiptScreen> {
       backgroundColor: style.page,
       appBar: const BpReferenceSubpageAppBar(title: 'Sales Invoice Detail'),
       bottomNavigationBar: !busy && error == null
-        ? Column(mainAxisSize: MainAxisSize.min, children: [
-            const BpReferenceFooterWave(),
-            SafeArea(top: false, child: Container(
-              padding: const EdgeInsets.fromLTRB(10, 7, 10, 11),
-              decoration: BoxDecoration(
-                color: style.surface,
-                borderRadius: const BorderRadius.vertical(
-                  top: Radius.circular(20)),
-                border: Border.all(color: style.line)),
-              child: Row(children: [
-                Expanded(child: OutlinedButton.icon(
-                  key: const ValueKey('sale-detail-print'),
-                  style: OutlinedButton.styleFrom(
-                    minimumSize: const Size(0, BpReferenceMetrics.actionHeight),
-                    shape: RoundedRectangleBorder(borderRadius:
-                      BorderRadius.circular(BpReferenceMetrics.actionRadius))),
-                  onPressed: exporting ? null : () => export(false),
-                  icon: const Icon(Icons.print_outlined, size: 18),
-                  label: const Text('Print'))),
-                const SizedBox(width: 8),
-                Expanded(child: FilledButton.icon(
-                  key: const ValueKey('sale-detail-share'),
-                  style: FilledButton.styleFrom(
-                    backgroundColor: const Color(0xFF006DF6),
-                    minimumSize: const Size(0, BpReferenceMetrics.actionHeight),
-                    shape: RoundedRectangleBorder(borderRadius:
-                      BorderRadius.circular(BpReferenceMetrics.actionRadius))),
-                  onPressed: exporting ? null : () => export(true),
-                  icon: const Icon(Icons.share_outlined, size: 17),
-                  label: const FittedBox(fit: BoxFit.scaleDown,
-                    child: Text('Share Invoice', maxLines: 1)),
-                )),
-              ]),
-            )),
-          ])
+        ? BpReferenceWorkflowActions(
+            leftKey: const ValueKey('sale-detail-print'),
+            rightKey: const ValueKey('sale-detail-share'),
+            leftLabel: 'Print',
+            rightLabel: 'Share Invoice',
+            leftIcon: Icons.print_outlined,
+            rightIcon: Icons.share_outlined,
+            rightColor: const Color(0xFF006DF6),
+            onLeft: exporting ? null : () => export(false),
+            onRight: exporting ? null : () => export(true),
+          )
         : null,
       body: Stack(children: [
         const Positioned(top: 0, right: 0,
