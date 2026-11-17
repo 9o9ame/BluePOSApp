@@ -395,8 +395,14 @@ class _CatalogMasterScreenState extends State<CatalogMasterScreen> {
               onNotifications: () => Navigator.of(sheetContext).push(
                 MaterialPageRoute(builder: (_) =>
                   NotificationsScreen(app: widget.app)))),
-            bottomNavigationBar: SafeArea(top: false,
-              child: Container(
+            // Keep the decorative footer below the scrollable form,
+            // directly above the pinned actions. Never paint behind Status.
+            bottomNavigationBar: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const AuthReferenceWaves(height: 48),
+                SafeArea(top: false,
+                  child: Container(
                 padding: const EdgeInsets.fromLTRB(12, 9, 12, 12),
                 decoration: BoxDecoration(
                   color: BpReferenceStyle.of(sheetContext).surface,
@@ -438,11 +444,11 @@ class _CatalogMasterScreenState extends State<CatalogMasterScreen> {
                   )),
                 ]),
               )),
+              ],
+            ),
             body: Stack(children: [
               const Positioned(top: 0, right: 0,
                 child: BpReferenceTopAccent()),
-              const Positioned(left: 0, right: 0, bottom: 0,
-                child: AuthReferenceWaves(height: 76)),
               SafeArea(child: Padding(
               padding: EdgeInsets.fromLTRB(12, 10, 12,
                 MediaQuery.viewInsetsOf(sheetContext).bottom + 20),
