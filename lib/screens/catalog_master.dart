@@ -498,6 +498,7 @@ class _CatalogMasterScreenState extends State<CatalogMasterScreen> {
             ))),
           )),
         ]),
+        ),
       )));
       if (didSave == true && mounted) {
         await reload();
