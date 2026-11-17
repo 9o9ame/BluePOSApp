@@ -111,9 +111,28 @@ void main() {
     await tester.pumpWidget(const SizedBox.shrink());
   });
 
-  test('reference palette switches foreground and surfaces by brightness', () {
-    const lightInk = Color(0xFF0B1C44);
-    const darkInk = Color(0xFFF3F6FF);
+  testWidgets('reference palette uses actual inherited theme brightness',
+      (tester) async {
+    Color? lightInk;
+    Color? darkInk;
+    await tester.pumpWidget(MaterialApp(
+      theme: ThemeData.light(),
+      home: Builder(builder: (context) {
+        lightInk = BpReferenceStyle.of(context).ink;
+        return const SizedBox();
+      }),
+    ));
+    await tester.pump();
+    await tester.pumpWidget(MaterialApp(
+      theme: ThemeData.dark(),
+      home: Builder(builder: (context) {
+        darkInk = BpReferenceStyle.of(context).ink;
+        return const SizedBox();
+      }),
+    ));
+    await tester.pump();
+    expect(lightInk, isNotNull);
+    expect(darkInk, isNotNull);
     expect(lightInk, isNot(darkInk));
   });
 }
