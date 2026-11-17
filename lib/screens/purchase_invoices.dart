@@ -513,13 +513,68 @@ class _PurchaseInvoiceEditorState extends State<PurchaseInvoiceEditor> {
           key: const ValueKey('reference-purchase-editor'),
           padding: const EdgeInsets.fromLTRB(11, 10, 11, 46),
           children: [
-        if (hasDocument)
-          Text('Server status: ${field(document?['status'], 'Unknown')}',
-            style: TextStyle(fontSize: 12, color: style.muted)),
-        const SizedBox(height: 8),
+        if (hasDocument && !draft) ...[
+          Container(
+            padding: const EdgeInsets.all(11),
+            decoration: style.card(radius: 15),
+            child: Row(children: [
+              Container(width: 41, height: 41,
+                decoration: BoxDecoration(
+                  color: style.scheme.primary.withValues(alpha: .10),
+                  borderRadius: BorderRadius.circular(10)),
+                child: Icon(Icons.receipt_long_outlined,
+                  color: style.scheme.primary)),
+              const SizedBox(width: 9),
+              Expanded(child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(field(document?['document_number']),
+                    style: TextStyle(fontSize: 15,
+                      fontWeight: FontWeight.w900, color: style.ink)),
+                  Text(field(supplier?['name'], 'Supplier unavailable'),
+                    maxLines: 1, overflow: TextOverflow.ellipsis,
+                    style: TextStyle(fontSize: 11, color: style.muted)),
+                  Text(field(document?['invoice_date']),
+                    style: TextStyle(fontSize: 10, color: style.muted)),
+                ])),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
+                decoration: BoxDecoration(
+                  color: field(document?['status']) == 'posted'
+                    ? const Color(0xFFD7F8E2)
+                    : style.surfaceEnd,
+                  borderRadius: BorderRadius.circular(11)),
+                child: Text(field(document?['status'], 'Unknown'),
+                  style: TextStyle(fontSize: 10,
+                    color: const Color(0xFF087C45),
+                    fontWeight: FontWeight.w900))),
+            ]),
+          ),
+          const SizedBox(height: 7),
+          if (field(document?['status']) == 'posted')
+            Container(
+              padding: const EdgeInsets.symmetric(
+                horizontal: 9, vertical: 9),
+              decoration: style.card(radius: 13),
+              child: Row(children: [
+                Icon(Icons.inventory_2_outlined, color: style.green),
+                const SizedBox(width: 8),
+                Expanded(child: Text('Purchase posted — inventory was processed by BluePOS',
+                  style: TextStyle(color: style.green,
+                    fontWeight: FontWeight.w800, fontSize: 11))),
+                Icon(Icons.check_circle, color: style.green),
+              ]),
+            ),
+          const SizedBox(height: 8),
+        ] else if (hasDocument) ...[
+          Text('Draft — not posted', style: TextStyle(
+            color: style.muted, fontSize: 11)),
+          const SizedBox(height: 7),
+        ],
         if (loading) pageLoading()
         else ...[
 
+          if (!hasDocument || draft) ...[
                     Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
             Expanded(child: BpReferenceCompactField(label: 'Supplier *', icon: Icons.person_outline_rounded, hint: 'Choose supplier', value: field(supplier?['name']), onTap: hasDocument && (!draft || !canEdit) ? null : chooseSupplier)),
             const SizedBox(width: 7),
@@ -553,6 +608,7 @@ class _PurchaseInvoiceEditorState extends State<PurchaseInvoiceEditor> {
             label: 'Notes', hint: 'Enter remarks (optional)',
             controller: notes, maxLength: 5000, maxLines: 2,
             readOnly: hasDocument && (!draft || !canEdit)),
+          ],
           if (hasDocument) ...[
             const SizedBox(height: 13),
             Surface(child: Row(children: [
@@ -565,7 +621,7 @@ class _PurchaseInvoiceEditorState extends State<PurchaseInvoiceEditor> {
             ])),
             const SizedBox(height: 13),
             Row(children: [
-              Expanded(child: SectionHeading('Purchase lines (${serverLines.length})')),
+              Expanded(child: SectionHeading('Products (${serverLines.length})')),
               if (draft && canEdit && !saving)
                 OutlinedButton.icon(
                   key: const ValueKey('purchase-add-product'),
@@ -644,12 +700,30 @@ class _PurchaseInvoiceEditorState extends State<PurchaseInvoiceEditor> {
                       label: 'Subtotal',
                       value: money(document?['subtotal'], widget.app.currency),
                       icon: Icons.calculate_outlined),
-                  if (document?['total_discount_amount'] != null)
+                  if (document?['discount_amount'] != null)
                     BpReferenceDetailLine(
                       label: 'Discount',
-                      value: money(document?['total_discount_amount'],
+                      value: money(document?['discount_amount'],
                         widget.app.currency),
                       icon: Icons.discount_outlined),
+                  if (document?['loading_amount'] != null)
+                    BpReferenceDetailLine(
+                      label: 'Loading',
+                      value: money(document?['loading_amount'],
+                        widget.app.currency),
+                      icon: Icons.local_shipping_rounded),
+                  if (document?['other_charges'] != null)
+                    BpReferenceDetailLine(
+                      label: 'Other Charges',
+                      value: money(document?['other_charges'],
+                        widget.app.currency),
+                      icon: Icons.add_circle_outline),
+                  if (document?['other_discount'] != null)
+                    BpReferenceDetailLine(
+                      label: 'Other Discount',
+                      value: money(document?['other_discount'],
+                        widget.app.currency),
+                      icon: Icons.discount_rounded),
                   if (document?['freight_amount'] != null)
                     BpReferenceDetailLine(
                       label: 'Freight',
