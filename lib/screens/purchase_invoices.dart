@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:pdf/pdf.dart';
+import 'package:pdf/widgets.dart' as pw;
+import 'package:printing/printing.dart';
 
 import '../core/api.dart';
 import '../core/session.dart';
 import '../widgets/common.dart';
 import '../widgets/reference_surface.dart';
+import '../widgets/party_ledger_summary.dart';
 import 'auth_reference_chrome.dart';
 import 'transaction_widgets.dart';
 import 'money_actions.dart';
@@ -354,6 +358,64 @@ class _PurchaseInvoiceEditorState extends State<PurchaseInvoiceEditor> {
     }
   }
 
+  Future<void> printPurchase() async {
+    if (!hasDocument || field(document?['status']) != 'posted' ||
+        saving) return;
+    setState(() => saving = true);
+    try {
+      // Read-only document: all amounts, rates and quantities come from the
+      // authorized server purchase invoice, never mobile calculations.
+      final purchase = document!;
+      final rows = recordsOf(purchase['lines']);
+      final pdf = pw.Document(
+        title: 'BluePOS Purchase ${field(purchase['document_number'])}');
+      pdf.addPage(pw.MultiPage(
+        pageFormat: PdfPageFormat.a4,
+        margin: const pw.EdgeInsets.all(28),
+        build: (_) => [
+          pw.Header(level: 0, child: pw.Text('BLUEPOS — PURCHASE INVOICE',
+            style: pw.TextStyle(fontSize: 19,
+              fontWeight: pw.FontWeight.bold))),
+          pw.Text(widget.app.tenantName),
+          pw.Text('${widget.app.branchName} · ${widget.app.warehouseName}'),
+          pw.SizedBox(height: 10),
+          pw.Text('Invoice: ${field(purchase['document_number'])}'),
+          pw.Text('Date: ${field(purchase['invoice_date'])}'),
+          pw.Text('Status: ${field(purchase['status'])}'),
+          pw.Text('Supplier: ${field(supplier?['name'])}'),
+          pw.SizedBox(height: 12),
+          pw.Table.fromTextArray(
+            headers: ['Product', 'Qty', 'Rate', 'Line total'],
+            data: rows.map((line) => [
+              field(objectOf(line['product'])['name']),
+              field(line['quantity']),
+              field(line['unit_cost']),
+              field(line['line_total']),
+            ]).toList(),
+            headerStyle: pw.TextStyle(fontWeight: pw.FontWeight.bold),
+          ),
+          pw.SizedBox(height: 12),
+          if (purchase['subtotal'] != null)
+            pw.Text('Subtotal: ${field(purchase['subtotal'])}'),
+          if (purchase['tax_amount'] != null)
+            pw.Text('Tax: ${field(purchase['tax_amount'])}'),
+          pw.Text('Grand total: ${field(purchase['grand_total'])}',
+            style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
+          pw.SizedBox(height: 15),
+          pw.Text('Generated from authorized BluePOS server records.',
+            style: const pw.TextStyle(fontSize: 9)),
+        ],
+      ));
+      await Printing.layoutPdf(
+        onLayout: (_) async => pdf.save(),
+        name: 'BluePOS Purchase ${field(purchase['document_number'])}');
+    } catch (ex) {
+      if (mounted) await showApiError(context, ex);
+    } finally {
+      if (mounted) setState(() => saving = false);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
@@ -380,7 +442,27 @@ class _PurchaseInvoiceEditorState extends State<PurchaseInvoiceEditor> {
           onRight: saving || !hasDocument || !draft ||
               !canPost || serverLines.isEmpty ? null : post,
         )
-        : null,
+        : hasDocument && !draft && !loading
+          ? BpReferenceWorkflowActions(
+              leftKey: const ValueKey('purchase-detail-print'),
+              rightKey: const ValueKey('purchase-detail-ledger'),
+              leftLabel: 'Print',
+              rightLabel: 'View Ledger',
+              leftIcon: Icons.print_outlined,
+              rightIcon: Icons.layers_outlined,
+              onLeft: saving || field(document?['status']) != 'posted'
+                ? null : printPurchase,
+              onRight: saving ||
+                  !validPublicUlid(field(supplier?['ulid'])) ||
+                  !(widget.app.hasPermission('suppliers.view') ||
+                    widget.app.hasPermission('suppliers.manage'))
+                ? null
+                : () => Navigator.of(context).push(MaterialPageRoute(
+                    builder: (_) => BpPartyLedgerScreen(
+                      app: widget.app, partyType: 'vendor',
+                      partyUlid: field(supplier?['ulid'])))),
+            )
+          : null,
       body: Stack(children: [
         const Positioned(top: 0, right: 0,
           child: BpReferenceTopAccent()),
