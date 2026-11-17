@@ -4,6 +4,7 @@ import '../core/api.dart';
 import '../core/session.dart';
 import '../widgets/common.dart';
 import '../widgets/reference_surface.dart';
+import '../widgets/party_ledger_summary.dart';
 
 /// Newer design 30. Read-only vendor details; accounting summaries require
 /// separate authorized ledger queries, never illustrative mockup balances.
@@ -51,6 +52,7 @@ class _SupplierDetailScreenState extends State<SupplierDetailScreen> {
       : error != null ? FailureState(message: error!, retry: load)
       : RefreshIndicator(onRefresh: load,
         child: SupplierDetailView(supplier: supplier ?? const {},
+          app: widget.app, partyUlid: widget.supplierUlid,
           canEdit: widget.app.hasPermission('suppliers.edit') ||
             widget.app.hasPermission('suppliers.manage'),
           onEdit: widget.onEdit)),
@@ -60,10 +62,12 @@ class _SupplierDetailScreenState extends State<SupplierDetailScreen> {
 /// Widget can be tested with in-memory server shaped records.
 class SupplierDetailView extends StatelessWidget {
   const SupplierDetailView({super.key, required this.supplier,
-    this.canEdit = false, this.onEdit});
+    this.canEdit = false, this.onEdit, this.app, this.partyUlid});
   final Map<String, dynamic> supplier;
   final bool canEdit;
   final VoidCallback? onEdit;
+  final AppController? app;
+  final String? partyUlid;
 
   @override
   Widget build(BuildContext context) {
@@ -90,6 +94,7 @@ class SupplierDetailView extends StatelessWidget {
                 maxLines: 3, style: Theme.of(context).textTheme.titleLarge
                   ?.copyWith(fontWeight: FontWeight.w900)),
               Text(field(supplier['code'], 'Code not available'),
+                maxLines: 1, overflow: TextOverflow.ellipsis,
                 style: TextStyle(color: scheme.onSurfaceVariant)),
               Text(supplier['is_active'] == false ? 'Inactive' : 'Active',
                 style: TextStyle(color: supplier['is_active'] == false
@@ -112,17 +117,27 @@ class SupplierDetailView extends StatelessWidget {
           const Divider(height: 1),
           line('Account Type', objectOf(supplier['account_type'])['name'],
             Icons.account_balance_outlined),
+          if (supplier['credit_limit_amount'] != null) ...[
+            const Divider(height: 1),
+            line('Credit Limit', supplier['credit_limit_amount'],
+              Icons.credit_card_outlined),
+          ],
+          if (supplier['credit_limit_days'] != null) ...[
+            const Divider(height: 1),
+            line('Credit Days', supplier['credit_limit_days'],
+              Icons.calendar_today_outlined),
+          ],
         ])),
         const SizedBox(height: 13),
-        Container(padding: const EdgeInsets.all(12),
-          decoration: style.card(radius: 16), child: Column(crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Text('Recent Purchases', style: Theme.of(context)
-              .textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w900)),
-            const SizedBox(height: 9),
-            const Text('Purchase history and payable balance are not included '
-              'in this supplier details API response. No amounts are estimated.'),
-          ])),
+        if (app != null && partyUlid != null)
+          BpPartyLedgerSummary(
+            app: app!, partyType: 'vendor', partyUlid: partyUlid!)
+        else
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: style.card(radius: 16),
+            child: const Text('Ledger information is available after opening '
+              'an authorized supplier record.')),
         if (canEdit && onEdit != null) ...[
           const SizedBox(height: 16),
           FilledButton.icon(
