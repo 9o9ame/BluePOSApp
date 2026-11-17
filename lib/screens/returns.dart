@@ -495,40 +495,47 @@ class _ReturnDocumentEditorState extends State<ReturnDocumentEditor> {
           key: const ValueKey('reference-return-editor'),
           padding: const EdgeInsets.fromLTRB(11, 10, 11, 40),
           children: [
-        if (created) Text(
-          'Document: ${field(document?['document_number'])}',
-          style: TextStyle(color: style.muted, fontSize: 11)),
-        const SizedBox(height: 7),
         if (loading) pageLoading()
         else ...[
-          BpReferenceFormField(
-            icon: Icons.receipt_long_outlined,
-            label: isSale ? 'Reference Invoice *' : 'Original Purchase Invoice *',
-            hint: '',
-            child: ListTile(
-              dense: true,
-              contentPadding: const EdgeInsets.symmetric(horizontal: 7),
-              title: Text(field(source?['document_number'],
-                'Choose posted invoice'),
-                maxLines: 1, overflow: TextOverflow.ellipsis),
-              trailing: const Icon(Icons.chevron_right_rounded, size: 18),
+          Row(children: [
+            Expanded(child: BpReferenceCompactField(
+              label: 'Return No.', icon: Icons.description_outlined,
+              value: field(document?['document_number'], 'Assigned by server'))),
+            const SizedBox(width: 7),
+            Expanded(child: BpReferenceCompactField(
+              label: isSale ? 'Customer' : 'Supplier',
+              icon: Icons.person_rounded,
+              value: field(objectOf(isSale
+                    ? document?['customer'] : document?['supplier'])['name'],
+                field(objectOf(isSale
+                    ? source?['customer'] : source?['supplier'])['name'],
+                  field(isSale ? source?['customer_name']
+                    : source?['supplier_name'], 'From posted invoice'))))),
+          ]),
+          const SizedBox(height: 7),
+          Row(children: [
+            Expanded(child: BpReferenceCompactField(
+              label: 'Reference Invoice',
+              icon: Icons.receipt_long_outlined,
+              value: field(source?['document_number'],
+                field(objectOf(document?[widget.kind.sourceField])
+                  ['document_number'])),
+              hint: 'Choose posted invoice',
               onTap: !created && !createUncertain ? chooseSource : null)),
-          BpReferenceFormField(
-            icon: Icons.calendar_month_outlined,
-            label: 'Date *', hint: '',
-            child: InkWell(
-              onTap: canEditNow ? chooseDate : null,
-              child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 9),
-                child: Text(isoLocalDate(date),
-                  style: TextStyle(color: style.ink, fontSize: 12))))),
+            const SizedBox(width: 7),
+            Expanded(child: BpReferenceCompactField(
+              label: 'Return Date', icon: Icons.calendar_month_outlined,
+              value: isoLocalDate(date),
+              onTap: canEditNow ? chooseDate : null)),
+          ]),
+          const SizedBox(height: 7),
           BpReferenceFormField(
             icon: Icons.chat_bubble_outline_rounded,
-            label: 'Reason', hint: 'Return reason',
+            label: 'Reason (optional)', hint: 'Enter return reason',
             controller: reason, maxLength: 255, readOnly: !canEditNow),
           BpReferenceFormField(
             icon: Icons.notes_outlined,
-            label: 'Remarks', hint: 'Items returned by customer',
+            label: 'Notes (optional)', hint: 'Enter remarks',
             controller: notes, maxLength: 5000, maxLines: 2,
             readOnly: !canEditNow),
           if (created) ...[
