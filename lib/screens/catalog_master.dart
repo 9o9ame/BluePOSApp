@@ -830,7 +830,7 @@ class _CatalogMasterScreenState extends State<CatalogMasterScreen> {
                                     style: TextStyle(fontSize: 10,
                                       color: style.muted)),
                               ]),
-                            )),
+                            ),
                             if (config.isUnit &&
                                 field(filtered[i]['symbol']).isNotEmpty)
                               Container(
