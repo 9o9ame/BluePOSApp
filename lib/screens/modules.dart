@@ -687,22 +687,27 @@ class _ModulesScreenState extends State<ModulesScreen> {
   /// Approved image 32: ordered Daily Entries launcher. Every target comes
   /// from the existing RBAC/entitlement-gated action registry.
   Widget _dailyEntriesHome() {
-    final scheme = Theme.of(context).colorScheme;
-    final items = <({String title, String label, IconData icon})>[
+    final items = <({String title, String label, IconData icon, Color tone})>[
       (title: 'Sales Invoices', label: 'Sales Invoices',
-        icon: Icons.receipt_long_outlined),
+        icon: Icons.receipt_long_rounded, tone: const Color(0xFF13C75D)),
       (title: 'Purchases', label: 'Purchase Invoices',
-        icon: Icons.shopping_bag_outlined),
+        icon: Icons.receipt_long_outlined, tone: const Color(0xFF078DF3)),
       (title: 'Sales Returns', label: 'Sales Return',
-        icon: Icons.assignment_return_outlined),
+        icon: Icons.assignment_return_outlined, tone: const Color(0xFFFB9D14)),
       (title: 'Purchase Returns', label: 'Purchase Return',
-        icon: Icons.assignment_return_rounded),
-      (title: 'Vouchers', label: 'Receipts, Payments & Journal Vouchers',
-        icon: Icons.account_balance_wallet_outlined),
-      (title: 'Expenses', label: 'Expense Vouchers',
-        icon: Icons.payments_outlined),
+        icon: Icons.assignment_return_rounded, tone: const Color(0xFF914CF3)),
+      (title: 'Vouchers', label: 'Receipts / Payments / Journal Voucher',
+        icon: Icons.receipt_rounded, tone: const Color(0xFF0BB95C)),
+      (title: 'Expenses', label: 'Expense Voucher',
+        icon: Icons.wallet_rounded, tone: const Color(0xFFF34A7B)),
+      (title: 'Stock Adjustments', label: 'Stock Adjustment',
+        icon: Icons.inventory_2_rounded, tone: const Color(0xFFF5A318)),
+      (title: 'Opening Stock', label: 'Opening Stock',
+        icon: Icons.inventory_outlined, tone: const Color(0xFF0BBCE3)),
+      (title: 'Stock Taking', label: 'Stock Taking',
+        icon: Icons.fact_check_outlined, tone: const Color(0xFF9151EF)),
       (title: 'Create Sales Invoice', label: 'Create Sales Invoice',
-        icon: Icons.add_shopping_cart_rounded),
+        icon: Icons.add_shopping_cart_rounded, tone: const Color(0xFF08BA60)),
     ];
     final actions = groups['Daily Entries'] ?? const <ModuleAction>[];
     return ListView(
@@ -724,7 +729,7 @@ class _ModulesScreenState extends State<ModulesScreen> {
               _menuRow(
                 key: ValueKey('daily-entry-${item.title}'),
                 title: item.label, icon: item.icon,
-                tone: scheme.primary, onTap: action.open),
+                tone: item.tone, onTap: action.open),
         const SizedBox(height: 10),
         TextButton.icon(
           icon: const Icon(Icons.grid_view_outlined),
