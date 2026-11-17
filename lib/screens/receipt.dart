@@ -190,8 +190,7 @@ class _ReceiptScreenState extends State<ReceiptScreen> {
                         style: TextStyle(color: style.muted, fontSize: 11)),
                       Text(field(sale['sale_date']),
                         style: TextStyle(color: style.muted, fontSize: 10)),
-                    ]),
-                  )),
+                    ])),
                   Container(
                     padding: const EdgeInsets.symmetric(
                       horizontal: 9, vertical: 5),
