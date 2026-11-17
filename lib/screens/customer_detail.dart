@@ -49,6 +49,19 @@ class _CustomerDetailScreenState extends State<CustomerDetailScreen> {
   Widget build(BuildContext context) => Scaffold(
     backgroundColor: BpReferenceStyle.of(context).page,
     appBar: const BpReferenceSubpageAppBar(title: 'Customer Detail'),
+    bottomNavigationBar: !loading && error == null
+      ? BpReferenceDetailActions(
+          editKey: const ValueKey('customer-detail-edit'),
+          ledgerKey: const ValueKey('customer-detail-view-ledger'),
+          onEdit: (widget.app.hasPermission('customers.edit') ||
+              widget.app.hasPermission('customers.manage'))
+              ? widget.onEdit : null,
+          onViewLedger: () => Navigator.of(context).push(
+            MaterialPageRoute(builder: (_) => BpPartyLedgerScreen(
+              app: widget.app, partyType: 'customer',
+              partyUlid: widget.customerUlid))),
+        )
+      : null,
     body: loading ? const Center(child: CircularProgressIndicator())
       : error != null ? FailureState(message: error!, retry: load)
       : RefreshIndicator(onRefresh: load, child: CustomerDetailView(
@@ -136,14 +149,6 @@ class CustomerDetailView extends StatelessWidget {
             decoration: style.card(radius: 16),
             child: const Text('Ledger information is available after opening '
               'an authorized customer record.')),
-        if (canEdit && onEdit != null) ...[
-          const SizedBox(height: 12),
-          FilledButton.icon(
-            key: const ValueKey('customer-detail-edit'),
-            onPressed: onEdit,
-            icon: const Icon(Icons.edit_outlined),
-            label: const Text('Edit Customer')),
-        ],
         const SizedBox(height: 20),
       ],
     );
