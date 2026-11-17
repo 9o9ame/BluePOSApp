@@ -103,9 +103,6 @@ class _ModulesScreenState extends State<ModulesScreen> {
     });
   }
 
-  void _switchMenu(bool main) {
-    _menuMode.value = main;
-  }
   String? activeGroup;
 
   @override
