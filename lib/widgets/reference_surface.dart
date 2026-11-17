@@ -11,7 +11,7 @@ String bpReferenceDecimalLabel(dynamic raw) {
   while (decimals.endsWith('0')) {
     decimals = decimals.substring(0, decimals.length - 1);
   }
-  return decimals.isEmpty ? pieces.first : pieces.first + '.' + decimals;
+  return decimals.isEmpty ? pieces.first : '${pieces.first}.$decimals';
 }
 
 /// Theme-aware palette for mobile reference screens 11–15.
