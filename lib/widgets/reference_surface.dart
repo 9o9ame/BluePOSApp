@@ -123,8 +123,9 @@ class BpReferenceFormField extends StatelessWidget {
 class BpReferenceFooter extends StatelessWidget {
   const BpReferenceFooter({
     super.key, required this.saveLabel, required this.onCancel,
-    this.onSave, this.saving = false,
+    this.onSave, this.saving = false, this.saveKey,
   });
+  final Key? saveKey;
   final String saveLabel;
   final VoidCallback onCancel;
   final VoidCallback? onSave;
@@ -153,6 +154,7 @@ class BpReferenceFooter extends StatelessWidget {
             child: const Text('Cancel', maxLines: 1))),
           const SizedBox(width: 8),
           Expanded(child: FilledButton.icon(
+            key: saveKey,
             style: FilledButton.styleFrom(
               minimumSize: const Size(0, BpReferenceMetrics.actionHeight),
               padding: const EdgeInsets.symmetric(horizontal: 5),
