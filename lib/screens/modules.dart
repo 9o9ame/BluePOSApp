@@ -453,7 +453,7 @@ class _ModulesScreenState extends State<ModulesScreen> {
   }) {
     final scheme = Theme.of(context).colorScheme;
     return Padding(
-      padding: const EdgeInsets.only(bottom: compact ? 5 : 9),
+      padding: EdgeInsets.only(bottom: compact ? 5 : 9),
       child: Container(
         decoration: BoxDecoration(
           gradient: const LinearGradient(
@@ -468,7 +468,7 @@ class _ModulesScreenState extends State<ModulesScreen> {
             borderRadius: BorderRadius.circular(15),
             onTap: onTap,
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: compact ? 5 : 7),
+              padding: EdgeInsets.symmetric(horizontal: 10, vertical: compact ? 5 : 7),
               child: Row(children: [
                 Container(
                   height: compact ? 32 : 37, width: compact ? 32 : 37,
@@ -478,7 +478,7 @@ class _ModulesScreenState extends State<ModulesScreen> {
                   child: Icon(icon, color: tone, size: compact ? 20 : 21)),
                 const SizedBox(width: 12),
                 Expanded(child: Text(title,
-                  style: const TextStyle(fontSize: compact ? 13.4 : 14,
+                  style: TextStyle(fontSize: compact ? 13.4 : 14,
                     fontWeight: FontWeight.w800))),
                 Icon(Icons.chevron_right_rounded,
                   color: scheme.onSurfaceVariant),
