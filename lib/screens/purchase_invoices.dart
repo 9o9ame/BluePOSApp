@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import '../core/api.dart';
 import '../core/session.dart';
 import '../widgets/common.dart';
+import '../widgets/reference_surface.dart';
+import 'auth_reference_chrome.dart';
 import 'transaction_widgets.dart';
 import 'money_actions.dart';
 
@@ -357,55 +359,87 @@ class _PurchaseInvoiceEditorState extends State<PurchaseInvoiceEditor> {
     final colors = Theme.of(context).colorScheme;
     final serverLines = recordsOf(document?['lines']);
     final displayDate = isoLocalDate(date);
+    final style = BpReferenceStyle.of(context);
+    final mayCreate = widget.app.hasPermission('purchases.create');
     return Scaffold(
-      appBar: AppBar(title: Text(hasDocument
-        ? field(document?['document_number'], 'Purchase Invoice')
-        : 'New Purchase Invoice'),
-        actions: [if (hasDocument) IconButton(
-          onPressed: loading || saving ? null : refresh,
-          icon: const Icon(Icons.refresh_rounded),
-          tooltip: 'Reload server document')]),
-      body: ListView(padding: const EdgeInsets.all(16), children: [
-        SectionHeading(hasDocument ? 'Purchase Invoice Detail' : 'Create Purchase Invoice'),
-        Text('Current branch: ${widget.app.branchName} · '
-          'Warehouse: ${widget.app.warehouseName}',
-          style: TextStyle(fontSize: 12,
-            color: colors.onSurfaceVariant)),
-        const SizedBox(height: 11),
+      backgroundColor: style.page,
+      appBar: BpReferenceSubpageAppBar(
+        title: hasDocument ? 'Purchase Invoice Detail'
+          : 'Create Purchase Invoice'),
+      bottomNavigationBar: !loading &&
+          ((!hasDocument && mayCreate) ||
+           (hasDocument && draft && (canEdit || canPost)))
+        ? BpReferenceWorkflowActions(
+          leftKey: const ValueKey('purchase-save-draft'),
+          rightKey: const ValueKey('purchase-post'),
+          leftLabel: hasDocument ? 'Save Draft' : 'Create Draft',
+          rightLabel: 'Post Purchase',
+          onLeft: saving || uncertainCreate ? null
+            : !hasDocument ? createDraft
+            : draft && canEdit ? saveHeader : null,
+          onRight: saving || !hasDocument || !draft ||
+              !canPost || serverLines.isEmpty ? null : post,
+        )
+        : null,
+      body: Stack(children: [
+        const Positioned(top: 0, right: 0,
+          child: BpReferenceTopAccent()),
+        ListView(
+          key: const ValueKey('reference-purchase-editor'),
+          padding: const EdgeInsets.fromLTRB(11, 10, 11, 46),
+          children: [
+        if (hasDocument)
+          Text('Server status: ${field(document?['status'], 'Unknown')}',
+            style: TextStyle(fontSize: 12, color: style.muted)),
+        const SizedBox(height: 8),
         if (loading) pageLoading()
         else ...[
-          Surface(child: Column(children: [
-            ListTile(
-              contentPadding: EdgeInsets.zero,
-              leading: const Icon(Icons.local_shipping_outlined),
-              title: Text(field(supplier?['name'], 'Choose supplier')),
-              subtitle: Text(field(supplier?['code'])),
-              trailing: const Icon(Icons.chevron_right_rounded),
-              onTap: hasDocument && (!draft || !canEdit) ? null : chooseSupplier),
-            OutlinedButton.icon(
-              onPressed: !hasDocument || (draft && canEdit) ? chooseDate : null,
-              icon: const Icon(Icons.calendar_month_outlined),
-              label: Text('Invoice Date: $displayDate')),
-            TextField(controller: supplierInvoice,
-              maxLength: 100,
-              readOnly: hasDocument && (!draft || !canEdit),
-              decoration: const InputDecoration(
-                labelText: 'Supplier invoice number')),
-            TextField(controller: notes,
-              maxLength: 5000, maxLines: 2,
-              readOnly: hasDocument && (!draft || !canEdit),
-              decoration: const InputDecoration(labelText: 'Notes')),
-            const SizedBox(height: 8),
-            if (!hasDocument && widget.app.hasPermission('purchases.create'))
-              FilledButton.icon(onPressed: saving || uncertainCreate
-                ? null : createDraft,
-                icon: const Icon(Icons.note_add_outlined),
-                label: const Text('Create Draft')),
-            if (hasDocument && draft && canEdit)
-              OutlinedButton.icon(onPressed: saving ? null : saveHeader,
-                icon: const Icon(Icons.save_outlined),
-                label: const Text('Save Header')),
-          ])),
+          BpReferenceFormField(
+            icon: Icons.person_outline_rounded,
+            label: 'Supplier *',
+            hint: '',
+            child: ListTile(
+              dense: true,
+              contentPadding: const EdgeInsets.symmetric(horizontal: 7),
+              title: Text(field(supplier?['name'], 'Choose supplier'),
+                maxLines: 1, overflow: TextOverflow.ellipsis),
+              trailing: const Icon(Icons.chevron_right_rounded, size: 18),
+              onTap: hasDocument && (!draft || !canEdit)
+                ? null : chooseSupplier,
+            )),
+          BpReferenceFormField(
+            icon: Icons.calendar_today_outlined,
+            label: 'Invoice Date *',
+            hint: '',
+            child: InkWell(
+              onTap: !hasDocument || (draft && canEdit)
+                ? chooseDate : null,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 9),
+                child: Text(displayDate, style: TextStyle(
+                  fontSize: 12, color: style.ink))),
+            )),
+          BpReferenceFormField(
+            icon: Icons.receipt_long_outlined,
+            label: 'Supplier Invoice Number',
+            hint: 'Enter invoice number',
+            controller: supplierInvoice, maxLength: 100,
+            readOnly: hasDocument && (!draft || !canEdit)),
+          BpReferenceFormField(
+            icon: Icons.chat_bubble_outline_rounded,
+            label: 'Remarks',
+            hint: 'Enter remarks (optional)',
+            controller: notes, maxLength: 5000, maxLines: 2,
+            readOnly: hasDocument && (!draft || !canEdit)),
+          BpReferenceFormField(
+            icon: Icons.warehouse_outlined,
+            label: 'Warehouse',
+            hint: '',
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 9),
+              child: Text(widget.app.warehouseName,
+                style: TextStyle(fontSize: 12, color: style.ink))),
+          ),
           if (hasDocument) ...[
             const SizedBox(height: 13),
             Surface(child: Row(children: [
@@ -495,6 +529,8 @@ class _PurchaseInvoiceEditorState extends State<PurchaseInvoiceEditor> {
         if (error != null) Padding(padding: const EdgeInsets.only(top: 9),
           child: Text(error!, style: TextStyle(color: colors.error))),
         const SizedBox(height: 36),
+          ],
+        ),
       ]),
     );
   }
