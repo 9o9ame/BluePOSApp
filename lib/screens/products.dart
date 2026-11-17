@@ -41,7 +41,7 @@ class PosCatalogProductCard extends StatelessWidget {
     final value = field(raw);
     if (value.isEmpty) return 'Stock not shown';
     final compact = value.contains('.')
-      ? value.replaceFirst(RegExp(r'0+$'), '').replaceFirst(RegExp(r'\\.$'), '')
+      ? value.replaceFirst(RegExp(r'0+$'), '').replaceFirst(RegExp(r'[.]$'), '')
       : value;
     return 'In Stock: $compact';
   }
