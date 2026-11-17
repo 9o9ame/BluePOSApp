@@ -10,7 +10,6 @@ import 'modules.dart';
 import 'products.dart';
 import 'reports.dart';
 import 'sale.dart';
-import 'settings.dart';
 import 'notifications.dart';
 
 class AppShell extends StatefulWidget {
@@ -34,7 +33,6 @@ class _AppShellState extends State<AppShell> {
     ReportsScreen(app: widget.app),
     MoreScreen(app: widget.app, navigate: navigate, menuMode: menuMode),
   ];
-  static const titles = ['Home', 'POS Sale', 'Products', 'Reports', 'Modules'];
   void navigate(int i) => setState(() => selected = i);
 
   @override
@@ -77,7 +75,6 @@ class _AppShellState extends State<AppShell> {
     return Theme(
       data: reference ? refTheme : base,
       child: Builder(builder: (ctx) {
-        final scheme = Theme.of(ctx).colorScheme;
         return Scaffold(
           appBar: AppBar(
             backgroundColor: reference
