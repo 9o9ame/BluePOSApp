@@ -131,11 +131,8 @@ class PosCatalogProductCard extends StatelessWidget {
 /// horizontal image-first row. All visible values originate in the API response.
 class CatalogProductRow extends StatelessWidget {
   const CatalogProductRow({
-    super.key,
-    required this.product,
-    required this.api,
-    required this.currency,
-    required this.onTap,
+    super.key, required this.product, required this.api,
+    required this.currency, required this.onTap,
   });
 
   final Map<String, dynamic> product;
@@ -144,9 +141,9 @@ class CatalogProductRow extends StatelessWidget {
   final VoidCallback onTap;
 
   dynamic get retailPrice {
-    for (final p in recordsOf(product['prices'])) {
-      if (p['price_type'] == 'retail' && p['is_active'] != false) {
-        return p['amount'];
+    for (final price in recordsOf(product['prices'])) {
+      if (price['price_type'] == 'retail' && price['is_active'] != false) {
+        return price['amount'];
       }
     }
     return null;
@@ -154,52 +151,78 @@ class CatalogProductRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
     final stock = objectOf(product['sales_lookup'])['in_stock'];
-    final price = retailPrice;
-    return InkWell(
-      key: ValueKey('catalog-product-${field(product['ulid'])}'),
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(16),
-      child: Surface(
-        padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 12),
-        child: Row(children: [
-          ProductThumb(api: api, imageUrl: field(product['image_url']), size: 74),
-          const SizedBox(width: 11),
-          Expanded(child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(field(product['name'], 'Product'),
-                maxLines: 2, overflow: TextOverflow.ellipsis,
-                style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 14)),
-              const SizedBox(height: 5),
-              Text('SKU: ${field(product['sku'], '—')}',
-                maxLines: 1, overflow: TextOverflow.ellipsis,
-                style: TextStyle(fontSize: 11, color: scheme.onSurfaceVariant)),
-              const SizedBox(height: 7),
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 9),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          key: ValueKey('catalog-product-${field(product['ulid'])}'),
+          borderRadius: BorderRadius.circular(16),
+          onTap: onTap,
+          child: Container(
+            padding: const EdgeInsets.all(9),
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(colors: [
+                Colors.white, Color(0xFFF2F5FF)]),
+              border: Border.all(color: Colors.white, width: 1.5),
+              borderRadius: BorderRadius.circular(16),
+              boxShadow: const [BoxShadow(
+                color: Color(0x1D536FA7), blurRadius: 9,
+                offset: Offset(0, 4))]),
+            child: Row(children: [
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 4),
+                width: 70, height: 70,
+                alignment: Alignment.center,
                 decoration: BoxDecoration(
-                  color: scheme.tertiaryContainer,
-                  borderRadius: BorderRadius.circular(8)),
-                child: Text(stock == null ? 'Stock not shown'
-                    : 'Stock: ${field(stock)}',
-                  maxLines: 1, overflow: TextOverflow.ellipsis,
-                  style: TextStyle(fontSize: 10, fontWeight: FontWeight.w800,
-                    color: scheme.onTertiaryContainer)),
-              ),
-            ],
-          )),
-          const SizedBox(width: 8),
-          Container(width: 1, height: 63, color: scheme.outlineVariant),
-          const SizedBox(width: 8),
-          SizedBox(width: 90, child: Text(
-            price == null ? 'Price unavailable' : money(price, currency),
-            textAlign: TextAlign.end, maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-            style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w900),
-          )),
-        ]),
+                  color: const Color(0xFFF0F6FF),
+                  borderRadius: BorderRadius.circular(12)),
+                child: ProductThumb(api: api,
+                  imageUrl: field(product['image_url']), size: 66)),
+              const SizedBox(width: 10),
+              Expanded(child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(field(product['name'], 'Product'),
+                    maxLines: 2, overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(fontSize: 13.5,
+                      fontWeight: FontWeight.w900,
+                      color: Color(0xFF0B1B40))),
+                  const SizedBox(height: 4),
+                  Text('SKU: ${field(product['sku'], '—')}',
+                    maxLines: 1, overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(fontSize: 10.5,
+                      color: Color(0xFF687796))),
+                  const SizedBox(height: 5),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 7, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFD9FFE5),
+                      borderRadius: BorderRadius.circular(8)),
+                    child: Text(stock == null ? 'Stock not shown'
+                      : 'Stock: ${field(stock)}',
+                      maxLines: 1, overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(fontSize: 10.5,
+                        fontWeight: FontWeight.w800,
+                        color: Color(0xFF078F46)))),
+                ])),
+              const SizedBox(width: 8),
+              Container(width: 1, height: 48,
+                color: const Color(0xFFE0E6F5)),
+              const SizedBox(width: 8),
+              SizedBox(width: 82,
+                child: Text(retailPrice == null
+                  ? 'Price unavailable'
+                  : money(retailPrice, currency).replaceFirst('PKR ', 'Rs '),
+                  textAlign: TextAlign.end,
+                  maxLines: 2, overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(fontSize: 13.5,
+                    fontWeight: FontWeight.w900,
+                    color: Color(0xFF091A42)))),
+            ]),
+          ),
+        ),
       ),
     );
   }
@@ -365,10 +388,18 @@ class _ProductsScreenState extends State<ProductsScreen> {
           widget.inlineCatalog == true ? 7 : 16,
           5, widget.inlineCatalog == true ? 7 : 16, 16), children: [
       if (!(widget.inlineCatalog == true))
-        SectionHeading(standalone ? 'Products' : 'Add a product',
-          trailing: IconButton(
-            tooltip: 'Scan barcode', onPressed: scanBusy ? null : scan,
-            icon: Icon(Icons.qr_code_scanner_rounded, color: scheme.primary))),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(3, 6, 3, 10),
+          child: Row(children: [
+            Expanded(child: Text(standalone ? 'Products' : 'Add a product',
+              style: const TextStyle(color: Color(0xFF091B42),
+                fontSize: 21, fontWeight: FontWeight.w900))),
+            if (!standalone)
+              IconButton(tooltip: 'Scan barcode',
+                onPressed: scanBusy ? null : scan,
+                icon: Icon(Icons.qr_code_scanner_rounded,
+                  color: scheme.primary)),
+          ])),
       if (standalone)
         Row(children: [
           Expanded(child: TextField(
@@ -445,14 +476,11 @@ class _ProductsScreenState extends State<ProductsScreen> {
         )),
       ],
       if (widget.inlineCatalog != true) ...[
-        const SizedBox(height: 10),
-        Row(children: [Text('$total matching products',
-          style: TextStyle(fontSize: 12,
-            color: scheme.onSurfaceVariant)), const Spacer(),
-          if (busy || loadingMore) const SizedBox(
-            width: 16, height: 16,
-            child: CircularProgressIndicator(strokeWidth: 2)),
-        ]),
+        const SizedBox(height: 7),
+        if (busy || loadingMore) const Align(
+          alignment: Alignment.centerRight,
+          child: SizedBox(width: 16, height: 16,
+            child: CircularProgressIndicator(strokeWidth: 2))),
       ],
       const SizedBox(height: 11),
       if (error != null) FailureState(message: error!, retry: load)
@@ -477,12 +505,9 @@ class _ProductsScreenState extends State<ProductsScreen> {
               onTap: () => widget.onAdd!(p));
           });
       })
-      else ...items.map((p) => Padding(
-        padding: const EdgeInsets.only(bottom: 11),
-        child: CatalogProductRow(
-          product: p, api: app.api, currency: app.currency,
-          onTap: () => showDetails(p)),
-      )),
+      else ...items.map((p) => CatalogProductRow(
+        product: p, api: app.api, currency: app.currency,
+        onTap: () => showDetails(p))),
       if (items.length < total && !busy) Padding(padding: const EdgeInsets.all(12),
         child: OutlinedButton(onPressed: loadingMore ? null : () => load(more: true),
           child: Text(loadingMore ? 'Loading…' : 'Load more products'))),
@@ -492,6 +517,8 @@ class _ProductsScreenState extends State<ProductsScreen> {
         Positioned(right: 18, bottom: 18,
           child: FloatingActionButton.extended(
             key: const ValueKey('catalog-add-product'),
+            backgroundColor: const Color(0xFF03AC57),
+            foregroundColor: Colors.white,
             onPressed: () => openEditor(),
             icon: const Icon(Icons.add_rounded),
             label: const Text('Add Product'),
