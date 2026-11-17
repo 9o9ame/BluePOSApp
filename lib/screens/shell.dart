@@ -112,7 +112,11 @@ class _AppShellState extends State<AppShell> {
                 icon: const Icon(Icons.notifications_none_rounded),
                 onPressed: () => Navigator.of(ctx).push(
                   MaterialPageRoute(builder: (_) =>
-                    NotificationsScreen(app: app))),
+                    NotificationsScreen(app: app, onNavigate: (index) {
+                      Navigator.of(ctx).pop();
+                      if (index == 4) menuMode.value = false;
+                      navigate(index);
+                    }))),
               ),
               if (selected == 1)
                 IconButton(
