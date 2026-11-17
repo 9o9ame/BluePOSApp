@@ -886,3 +886,18 @@ User explicitly rejected small styling adjustments as insufficient and provided 
 - No server/database/migrations changes. Approved reference screenshot product photography, revenue/expense values, and invented alerts **cannot be fabricated** for a functional live app.
 
 **Verification:** GitHub readback of all changed Dart files, lexical delimiters balanced. During this QA one extra closure in the new shared nav was found and fixed before delivery. Flutter SDK and physical Android device not accessible from this environment, so widget tests, analyzer, build and visual screenshot fidelity are **PENDING**. Run `flutter test test/main_more_menu_navigation_test.dart test/device_cookie_persistence_test.dart`, `flutter analyze lib/widgets/reference_navigation.dart lib/screens/shell.dart lib/screens/dashboard.dart lib/screens/modules.dart lib/screens/notifications.dart lib/screens/sale.dart lib/screens/products.dart`, and re-run on attached Android. Do NOT mark exact PASS without user screenshot review.
+
+
+### 2026-11-17 — Marked-area fidelity review: wrong business metrics and card heights
+
+User clarified prior fixes focused incorrectly on global font scaling. **Required Screen 06 data model is Today's Sales (Rs gross posted sales) with vs-yesterday comparison, and 2×2 tiles Invoices, Items Sold, Collections, Expenses**, not Products / Today's Invoices / Recent. Exact reference numeric examples cannot be fabricated.
+
+Source verification: `backend/app/Http/Controllers/Api/Reports/DailyActivitySummaryReportController.php` (read-only) exposes permission-gated, branch+warehouse scoped, posted gross sale totals (`totals.sale`) and sale item quantities via `documents[].lines[].quantity`; `backend/app/Http/Controllers/Api/Sales/SaleController.php` exposes branch invoice total and date-filtered count. Daily report requires `reports.accounting`, `reports.inventory`, inventory entitlement and sales permission. Today's Sales and Items Sold now use real report data when authorized, with zero fallback only when date-scoped API invoice count is genuinely zero; otherwise show unavailable `—`. Yesterday comparison is calculated using Decimal from the two server-provided day totals, only if yesterday is nonzero. **Collections and Expenses show `—`**: existing paginated listing/cash balance APIs do not provide an equivalent authoritative, unrestricted day aggregate. Do not mislabel another metric or fabricate figures. No backend migrations or server code changes. Caveat: daily activity report includes historical stock movement assembly, so two date-scoped calls can be expensive and may need a purpose-built approved summary API in future.
+
+UI compact pass:
+- `lib/screens/products.dart` (07): search field dense height, category row 44→36, category interior vertical padding 8→5, product image height 114→91, card extent 244→207 and reduced gaps. Real catalog data retained.
+- `lib/screens/modules.dart` (08/09): row vertical padding 8→4 (main) / 5→3 (More), gap 9→6 / 5→4, icon plate 42→38 main / 36→34 More; avoid global font scaling.
+- `lib/screens/notifications.dart` (10): filter row 51→43, cards vertical padding 13→9, thumbnail 49→43, tighter internal spacing and rows; real device notifications untouched.
+- `lib/screens/dashboard.dart` (06): restored complete source after a temporary malformed update was detected in readback before delivery. Added correct metric labels and optional authorized report data.
+
+Validation: GitHub source readback: all four edited Dart files start with imports and lexical delimiters balance. Flutter analyzer/tests/real-device rendering are not available from assistant environment. Pending local focused test and analyzer. Not approved as exact visual PASS until on-device comparison.
