@@ -168,6 +168,58 @@ class _CatalogReferenceStatus extends StatelessWidget {
   }
 }
 
+// Icons and tints represent actual returned names, not invented catalog rows.
+Color _catalogRowTone(String name, int index) {
+  final n = name.trim().toLowerCase();
+  if (['piece', 'chips', "lay's"].contains(n)) {
+    return const Color(0xFFFFA313);
+  }
+  if (['carton', 'milk', 'pepsi'].contains(n)) {
+    return const Color(0xFF078DF4);
+  }
+  if (['box', 'soft drinks', 'lu'].contains(n)) {
+    return const Color(0xFF9344EC);
+  }
+  if (['bottle', 'frozen foods'].contains(n)) {
+    return const Color(0xFF0FBCE3);
+  }
+  if (['kilogram', 'cleaning products', 'national'].contains(n)) {
+    return const Color(0xFF0ABB60);
+  }
+  if (['liter', 'biscuits', 'coca cola'].contains(n)) {
+    return const Color(0xFFF34A7F);
+  }
+  const fallback = <Color>[
+    Color(0xFF078DF4), Color(0xFFFFA313),
+    Color(0xFF9344EC), Color(0xFF0ABB60),
+    Color(0xFFF34A7F), Color(0xFF0FBCE3),
+  ];
+  return fallback[index % fallback.length];
+}
+
+IconData _catalogRowIcon(String name, {
+  required bool isSub,
+  required bool isBrand,
+}) {
+  switch (name.trim().toLowerCase()) {
+    case 'piece': return Icons.inventory_2_rounded;
+    case 'carton': return Icons.all_inbox_rounded;
+    case 'box': return Icons.inbox_rounded;
+    case 'bottle': return Icons.water_drop_rounded;
+    case 'kilogram': return Icons.scale_rounded;
+    case 'liter': return Icons.local_drink_rounded;
+    case 'soft drinks': return Icons.local_drink_rounded;
+    case 'chips': return Icons.fastfood_rounded;
+    case 'biscuits': return Icons.cookie_rounded;
+    case 'milk': return Icons.local_drink_rounded;
+    case 'frozen foods': return Icons.ac_unit_rounded;
+    case 'cleaning products': return Icons.cleaning_services_rounded;
+  }
+  if (isSub) return Icons.layers_rounded;
+  if (isBrand) return Icons.sell_rounded;
+  return Icons.inventory_2_rounded;
+}
+
 class CatalogMasterScreen extends StatefulWidget {
   const CatalogMasterScreen({
     super.key, required this.app, required this.config,
@@ -850,24 +902,6 @@ class _CatalogMasterScreenState extends State<CatalogMasterScreen> {
     }
     // Reference screens 16, 18 and 20 reuse real authorized catalog data.
     final style = BpReferenceStyle.of(context);
-    const tones = <Color>[
-      Color(0xFF078FF5), Color(0xFFFF990A), Color(0xFF8B42F5),
-      Color(0xFF00BA75), Color(0xFFEE4A83), Color(0xFF21B9D8),
-    ];
-    final referenceIcons = isSub
-      ? <IconData>[
-          Icons.local_drink_rounded, Icons.fastfood_rounded,
-          Icons.cookie_rounded, Icons.shopping_basket_rounded,
-          Icons.ac_unit_rounded, Icons.cleaning_services_rounded]
-      : isBrand
-        ? <IconData>[
-            Icons.local_drink_rounded, Icons.inventory_2_rounded,
-            Icons.shopping_bag_rounded, Icons.sell_rounded,
-            Icons.grid_on_rounded, Icons.storefront_rounded]
-        : <IconData>[
-            Icons.inventory_2_rounded, Icons.all_inbox_rounded,
-            Icons.inbox_rounded, Icons.water_drop_rounded,
-            Icons.scale_rounded, Icons.local_drink_rounded];
     return Scaffold(
       backgroundColor: style.page,
       appBar: BpReferenceSubpageAppBar(
@@ -916,11 +950,22 @@ class _CatalogMasterScreenState extends State<CatalogMasterScreen> {
                       contentPadding: const EdgeInsets.symmetric(
                         horizontal: 10, vertical: 9)))),
                 const SizedBox(width: 7),
-                IconButton.filledTonal(
-                  key: const ValueKey('catalog-status-filter'),
-                  tooltip: 'Filter status',
-                  onPressed: () => setState(() => showFilters = !showFilters),
-                  icon: const Icon(Icons.filter_alt_outlined)),
+                Container(
+                  width: 47, height: 46,
+                  decoration: BoxDecoration(
+                    color: style.input,
+                    borderRadius: BorderRadius.circular(13),
+                    border: Border.all(color: style.line),
+                    boxShadow: [BoxShadow(color: style.shadow,
+                      blurRadius: 7, offset: const Offset(0, 3))]),
+                  child: IconButton(
+                    key: const ValueKey('catalog-status-filter'),
+                    tooltip: 'Filter status',
+                    onPressed: () => setState(
+                      () => showFilters = !showFilters),
+                    icon: const Icon(Icons.filter_alt_outlined,
+                      color: Color(0xFF0757D9)))),
+
               ]),
               if (showFilters) ...[
                 const SizedBox(height: 7),
@@ -954,18 +999,25 @@ class _CatalogMasterScreenState extends State<CatalogMasterScreen> {
                         onTap: canEdit
                           ? () => openEditor(item: filtered[i]) : null,
                         child: Container(
-                          height: isBrand ? 70 : 64,
+                          height: isBrand ? 74 : 69,
                           padding: const EdgeInsets.symmetric(horizontal: 10),
                           decoration: style.card(radius: 15),
                           child: Row(children: [
                             Container(
                               width: 46, height: 46,
                               decoration: BoxDecoration(
-                                color: tones[i % tones.length]
+                                color: _catalogRowTone(
+                                  field(filtered[i]['name']), i)
                                   .withValues(alpha: .13),
                                 borderRadius: BorderRadius.circular(12)),
-                              child: Icon(referenceIcons[i % referenceIcons.length],
-                                size: 25, color: tones[i % tones.length])),
+                              child: Icon(_catalogRowIcon(
+                                field(filtered[i]['name']),
+                                isSub: isSub, isBrand: isBrand),
+                                size: 26,
+                                color: _catalogRowTone(
+                                  field(filtered[i]['name']), i))),
+                            const SizedBox(width: 9),
+                            Container(width: 1, height: 38, color: style.line),
                             const SizedBox(width: 10),
                             Expanded(child: Column(
                               mainAxisAlignment: MainAxisAlignment.center,
@@ -998,10 +1050,11 @@ class _CatalogMasterScreenState extends State<CatalogMasterScreen> {
                                 padding: const EdgeInsets.symmetric(
                                   horizontal: 12, vertical: 6),
                                 decoration: BoxDecoration(
-                                  color: tones[i % tones.length]
+                                  color: _catalogRowTone(
+                                    field(filtered[i]['name']), i)
                                     .withValues(alpha: .12),
                                   borderRadius: BorderRadius.circular(18)),
-                                child: Text(field(filtered[i]['symbol']),
+                                child: Text(field(filtered[i]['symbol']).toUpperCase(),
                                   style: TextStyle(fontSize: 11,
                                     color: style.ink,
                                     fontWeight: FontWeight.w900))),
