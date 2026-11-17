@@ -336,7 +336,7 @@ class BpReferenceWorkflowActions extends StatelessWidget {
     this.onLeft, this.onRight,
     this.leftIcon = Icons.save_outlined,
     this.rightIcon = Icons.verified_outlined,
-    this.leftKey, this.rightKey,
+    this.leftKey, this.rightKey, this.rightColor,
   });
   final String leftLabel;
   final String rightLabel;
@@ -346,6 +346,7 @@ class BpReferenceWorkflowActions extends StatelessWidget {
   final VoidCallback? onRight;
   final Key? leftKey;
   final Key? rightKey;
+  final Color? rightColor;
 
   @override
   Widget build(BuildContext context) {
@@ -374,7 +375,7 @@ class BpReferenceWorkflowActions extends StatelessWidget {
           Expanded(child: FilledButton.icon(
             key: rightKey,
             style: FilledButton.styleFrom(
-              backgroundColor: const Color(0xFF05B74D),
+              backgroundColor: rightColor ?? const Color(0xFF05B74D),
               foregroundColor: Colors.white,
               minimumSize: const Size(0, BpReferenceMetrics.actionHeight),
               padding: const EdgeInsets.symmetric(horizontal: 4),
