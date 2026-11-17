@@ -223,7 +223,11 @@ class _CatalogMasterScreenState extends State<CatalogMasterScreen> {
               : AppBar(centerTitle: true,
                   title: Text(formTitle, style: const TextStyle(
                     fontSize: 18, fontWeight: FontWeight.w900))),
-            body: SafeArea(child: Padding(
+            body: Stack(children: [
+              if (widget.config.apiPath == '/api/categories')
+                const Positioned(left: 0, right: 0, bottom: 0,
+                  child: AuthReferenceWaves(height: 76)),
+              SafeArea(child: Padding(
               padding: EdgeInsets.fromLTRB(12, 10, 12,
                 MediaQuery.viewInsetsOf(sheetContext).bottom + 20),
               child: SingleChildScrollView(child: Container(
@@ -493,7 +497,7 @@ class _CatalogMasterScreenState extends State<CatalogMasterScreen> {
               ],
             ))),
           )),
-        ),
+        ]),
       )));
       if (didSave == true && mounted) {
         await reload();
