@@ -8,7 +8,6 @@ import '../core/api.dart';
 import '../core/session.dart';
 import '../widgets/common.dart';
 import '../widgets/reference_surface.dart';
-import 'auth_reference_chrome.dart';
 
 /// Generates invoices exclusively from server-confirmed, tenant-scoped sale details.
 /// The OS print/share sheet is used; no unapproved thermal-printer integration.
@@ -65,7 +64,7 @@ class _ReceiptScreenState extends State<ReceiptScreen> {
         if (field(sale['customer_name']).isNotEmpty)
           text('Customer', sale['customer_name']),
         pw.SizedBox(height: 15),
-        pw.Table.fromTextArray(
+        pw.TableHelper.fromTextArray(
           headers: ['Item', 'Qty', 'Unit price', 'Net'],
           data: items.map((row) => [
             field(objectOf(row['product'])['name'], field(row['line_kind'], 'Item')),
