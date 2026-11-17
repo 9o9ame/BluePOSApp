@@ -1,148 +1,216 @@
 import 'package:flutter/material.dart';
 
 import '../widgets/common.dart';
+import '../widgets/reference_surface.dart';
+import 'auth_reference_chrome.dart';
 
-/// Newer design reference 22. The inspected BluePOS API has no price-list
-/// resource/route. Keep the approved navigation visible without inventing
-/// price-list records, permissions, amounts or writable endpoints.
+/// Screens 22–23: layout is reference-faithful but the backend does not expose
+/// a verified Price Lists resource. Never display fictional prices or submit.
 class PriceListsScreen extends StatelessWidget {
   const PriceListsScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
+    final style = BpReferenceStyle.of(context);
     return Scaffold(
-      appBar: AppBar(title: const Text('Price Lists')),
-      body: ListView(
-        key: const ValueKey('price-lists-reference'),
-        padding: const EdgeInsets.all(16),
-        children: [
-          Text('Price Lists', style: Theme.of(context).textTheme.headlineSmall
-            ?.copyWith(fontWeight: FontWeight.w900)),
-          const SizedBox(height: 14),
-          Row(children: [
-            const Expanded(child: TextField(
-              readOnly: true,
-              decoration: InputDecoration(
-                prefixIcon: Icon(Icons.search_rounded),
-                hintText: 'Search price lists...',
-                helperText: 'Search available after API integration'))),
-            const SizedBox(width: 8),
-            IconButton.filledTonal(
-              tooltip: 'Filters not yet available',
-              onPressed: null,
-              icon: const Icon(Icons.filter_alt_outlined)),
-          ]),
-          const SizedBox(height: 24),
-          Surface(child: Column(children: [
-            Icon(Icons.sell_outlined, size: 52, color: scheme.primary),
-            const SizedBox(height: 12),
-            Text('Price Lists integration pending',
-              style: Theme.of(context).textTheme.titleMedium
-                ?.copyWith(fontWeight: FontWeight.w800)),
-            const SizedBox(height: 9),
-            const Text(
-              'The current BluePOS API does not expose a Price Lists '
-              'endpoint. No lists or default prices are shown until '
-              'the backend contract and permissions are verified.',
-              textAlign: TextAlign.center),
-            const SizedBox(height: 14),
-            OutlinedButton.icon(
-              key: const ValueKey('price-lists-preview-form'),
-              onPressed: () => Navigator.of(context).push(
-                MaterialPageRoute(builder: (_) =>
-                  const AddPriceListReferenceScreen())),
-              icon: const Icon(Icons.add_rounded),
-              label: const Text('View Add Price List design')),
-          ])),
-        ],
-      ),
+      backgroundColor: style.page,
+      appBar: const BpReferenceSubpageAppBar(title: 'Price Lists'),
+      floatingActionButton: FloatingActionButton.extended(
+        key: const ValueKey('price-lists-preview-form'),
+        backgroundColor: const Color(0xFF07AD56),
+        foregroundColor: Colors.white,
+        onPressed: () => Navigator.of(context).push(MaterialPageRoute(
+          builder: (_) => const AddPriceListReferenceScreen())),
+        icon: const Icon(Icons.add_rounded),
+        label: const Text('Add Price List Preview')),
+      body: Stack(children: [
+        const Positioned(top: 0, right: 0,
+          child: BpReferenceTopAccent()),
+        ListView(
+          key: const ValueKey('price-lists-reference'),
+          padding: const EdgeInsets.fromLTRB(12, 12, 12, 125),
+          children: [
+            Row(children: [
+              Expanded(child: TextField(
+                readOnly: true,
+                decoration: style.search('Search price lists...',
+                  prefixIcon: const Icon(Icons.search_rounded))
+                  .copyWith(isDense: true))),
+              const SizedBox(width: 8),
+              Container(
+                decoration: style.card(radius: 13),
+                child: IconButton(
+                  tooltip: 'Filters unavailable until API integration',
+                  onPressed: null,
+                  icon: const Icon(Icons.filter_alt_outlined))),
+            ]),
+            const SizedBox(height: 15),
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: style.card(),
+              child: Column(children: [
+                Icon(Icons.sell_outlined, size: 45,
+                  color: style.scheme.primary),
+                const SizedBox(height: 8),
+                Text('Price Lists API not available',
+                  style: TextStyle(fontSize: 15,
+                    fontWeight: FontWeight.w900, color: style.ink)),
+                const SizedBox(height: 7),
+                Text('The reference design is available, but no price '
+                  'list records or save endpoint have been verified. '
+                  'No sample entries are shown as real data.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(fontSize: 12, color: style.muted)),
+                const SizedBox(height: 12),
+                OutlinedButton.icon(
+                  onPressed: () => Navigator.of(context).push(
+                    MaterialPageRoute(builder: (_) =>
+                      const AddPriceListReferenceScreen())),
+                  icon: const Icon(Icons.visibility_outlined),
+                  label: const Text('View Add Price List Design')),
+              ]),
+            ),
+          ],
+        ),
+        const Positioned(left: 0, right: 0, bottom: 0,
+          child: IgnorePointer(
+            child: AuthReferenceWaves(height: 62))),
+      ]),
     );
   }
 }
 
-/// Newer design reference 23. This is a non-submittable reference layout,
-/// NOT a connected Add Price List form.
+class _PriceReferenceRow extends StatelessWidget {
+  const _PriceReferenceRow({
+    required this.icon,
+    required this.label,
+    required this.hint,
+    this.multiline = false,
+    this.dropdown = false,
+  });
+  final IconData icon;
+  final String label;
+  final String hint;
+  final bool multiline;
+  final bool dropdown;
+
+  @override
+  Widget build(BuildContext context) {
+    final style = BpReferenceStyle.of(context);
+    return Container(
+      margin: const EdgeInsets.only(bottom: 6),
+      padding: const EdgeInsets.fromLTRB(9, 7, 9, 8),
+      decoration: style.card(radius: 14),
+      child: Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
+        Container(
+          width: 35, height: 40,
+          decoration: BoxDecoration(
+            color: style.scheme.primary.withValues(alpha: .11),
+            borderRadius: BorderRadius.circular(10)),
+          child: Icon(icon, color: style.scheme.primary, size: 20)),
+        const SizedBox(width: 9),
+        Expanded(child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+            Text(label, style: TextStyle(
+              fontSize: 11.5, fontWeight: FontWeight.w900,
+              color: style.ink)),
+            const SizedBox(height: 4),
+            TextField(
+              readOnly: true,
+              maxLines: multiline ? 2 : 1,
+              decoration: style.search(hint).copyWith(
+                isDense: true,
+                suffixIcon: dropdown
+                    ? const Icon(Icons.keyboard_arrow_down_rounded)
+                    : null,
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 10, vertical: 8))),
+          ],
+        )),
+      ]),
+    );
+  }
+}
+
+/// Screen 23: visible but non-submittable until a real API & RBAC contract
+/// is available. Preview controls must not pretend to save pricing data.
 class AddPriceListReferenceScreen extends StatelessWidget {
   const AddPriceListReferenceScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
+    final style = BpReferenceStyle.of(context);
     return Scaffold(
-      appBar: AppBar(title: const Text('Add Price List')),
-      body: ListView(
-        key: const ValueKey('add-price-list-reference'),
-        padding: const EdgeInsets.all(16),
-        children: [
-          Surface(child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Center(child: Icon(Icons.sell_outlined,
-                size: 52, color: scheme.primary)),
-              const SizedBox(height: 17),
-              const Text('Price List Name *',
-                style: TextStyle(fontWeight: FontWeight.w800)),
-              const SizedBox(height: 6),
-              const TextField(
-                readOnly: true, decoration: InputDecoration(
-                  hintText: 'Enter price list name')),
-              const SizedBox(height: 12),
-              const Text('Price List Code *',
-                style: TextStyle(fontWeight: FontWeight.w800)),
-              const SizedBox(height: 6),
-              const TextField(
-                readOnly: true, decoration: InputDecoration(
-                  hintText: 'Backend contract pending')),
-              const SizedBox(height: 12),
-              const Text('Description',
-                style: TextStyle(fontWeight: FontWeight.w800)),
-              const SizedBox(height: 6),
-              const TextField(
-                readOnly: true, maxLines: 2,
-                decoration: InputDecoration(
-                  hintText: 'Enter description')),
-              const SizedBox(height: 12),
-              const Text('Type',
-                style: TextStyle(fontWeight: FontWeight.w800)),
-              const InputDecorator(
-                decoration: InputDecoration(
-                  hintText: 'Select type',
-                  suffixIcon: Icon(Icons.arrow_drop_down)),
-                child: Text('Not available')),
-              const SizedBox(height: 12),
-              const Text('Applies To',
-                style: TextStyle(fontWeight: FontWeight.w800)),
-              const InputDecorator(
-                decoration: InputDecoration(
-                  suffixIcon: Icon(Icons.arrow_drop_down)),
-                child: Text('Not available')),
-              const SizedBox(height: 12),
-              const Text('Effective From / To',
-                style: TextStyle(fontWeight: FontWeight.w800)),
-              const TextField(
-                readOnly: true, decoration: InputDecoration(
-                  hintText: 'Date range unavailable',
-                  suffixIcon: Icon(Icons.calendar_today_outlined))),
-              const SizedBox(height: 15),
-              Text('This screen is a design reference only. Saving is disabled '
-                'until BluePOS exposes a validated, authorized Price Lists API.',
-                style: TextStyle(color: scheme.onSurfaceVariant)),
-            ],
-          )),
-          const SizedBox(height: 16),
-          Row(children: [
+      backgroundColor: style.page,
+      appBar: const BpReferenceSubpageAppBar(title: 'Add Price List'),
+      bottomNavigationBar: Column(mainAxisSize: MainAxisSize.min, children: [
+        const AuthReferenceWaves(height: 48),
+        SafeArea(top: false, child: Container(
+          padding: const EdgeInsets.fromLTRB(12, 9, 12, 12),
+          decoration: BoxDecoration(
+            color: style.surface,
+            borderRadius: const BorderRadius.vertical(
+              top: Radius.circular(22)),
+            border: Border.all(color: style.line)),
+          child: Row(children: [
             Expanded(child: OutlinedButton(
               onPressed: () => Navigator.of(context).pop(),
               child: const Text('Cancel'))),
-            const SizedBox(width: 10),
-            const Expanded(child: FilledButton(
-              key: ValueKey('price-list-save-disabled'),
+            const SizedBox(width: 9),
+            Expanded(child: FilledButton.icon(
+              key: const ValueKey('price-list-save-disabled'),
               onPressed: null,
-              child: Text('Save Price List'))),
+              icon: const Icon(Icons.save_outlined),
+              label: const FittedBox(fit: BoxFit.scaleDown,
+                child: Text('Save Price List', maxLines: 1)),
+            )),
           ]),
-        ],
-      ),
+        )),
+      ]),
+      body: Stack(children: [
+        const Positioned(top: 0, right: 0,
+          child: BpReferenceTopAccent()),
+        ListView(
+          key: const ValueKey('add-price-list-reference'),
+          padding: const EdgeInsets.fromLTRB(12, 10, 12, 25),
+          children: [
+            const _PriceReferenceRow(
+              icon: Icons.sell_rounded,
+              label: 'Price List Name *', hint: 'Enter price list name'),
+            const _PriceReferenceRow(
+              icon: Icons.qr_code_rounded,
+              label: 'Price List Code *', hint: 'Enter price list code'),
+            const _PriceReferenceRow(
+              icon: Icons.description_outlined,
+              label: 'Description', hint: 'Enter description',
+              multiline: true),
+            const _PriceReferenceRow(
+              icon: Icons.layers_outlined,
+              label: 'Type', hint: 'Select type', dropdown: true),
+            const _PriceReferenceRow(
+              icon: Icons.people_alt_outlined,
+              label: 'Applies To', hint: 'Select applies to',
+              dropdown: true),
+            const _PriceReferenceRow(
+              icon: Icons.calendar_today_outlined,
+              label: 'Effective From', hint: 'Select effective from date'),
+            const _PriceReferenceRow(
+              icon: Icons.calendar_month_outlined,
+              label: 'Effective To', hint: 'Select effective to date'),
+            const _PriceReferenceRow(
+              icon: Icons.verified_user_outlined,
+              label: 'Status', hint: 'Active / Inactive'),
+            Padding(
+              padding: const EdgeInsets.all(9),
+              child: Text(
+                'Reference preview only. Saving is disabled until a '
+                'validated Price Lists API and permissions are available.',
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 11, color: style.muted)),
+            ),
+          ],
+        ),
+      ]),
     );
   }
 }
