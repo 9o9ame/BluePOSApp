@@ -361,12 +361,14 @@ class SaleScreenState extends State<SaleScreen> {
           FilledButton(onPressed: () => Navigator.of(ctx).pop(), child: const Text('New sale')),
         ],
       ));
-      if (mounted) setState(() {
-        lines.clear(); payment.clear(); selectedCustomer = null;
-        selectedBankAccount = null; paymentMethod = 'cash';
-        paymentDue = false; attempted = false; attemptKey = null;
-        attemptPayload = null; error = null;
-      });
+      if (mounted) {
+        setState(() {
+          lines.clear(); payment.clear(); selectedCustomer = null;
+          selectedBankAccount = null; paymentMethod = 'cash';
+          paymentDue = false; attempted = false; attemptKey = null;
+          attemptPayload = null; error = null;
+        });
+      }
     } on ApiFailure catch (e) {
       if (!mounted) return;
       // A definitive authorization/validation rejection did not create the invoice.
