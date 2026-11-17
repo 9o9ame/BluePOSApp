@@ -269,6 +269,79 @@ class _TransactionDirectoryState extends State<TransactionDirectory> {
     }
   }
 
+  Widget referenceDocumentCard(Map<String, dynamic> item,
+      {required bool isReturn}) {
+    final style = BpReferenceStyle.of(context);
+    final status = field(item['status'], 'Unknown').toLowerCase();
+    final statusColor = switch (status) {
+      'posted' || 'paid' => const Color(0xFF0A9D50),
+      'draft' => const Color(0xFFEE861E),
+      'refunded' => const Color(0xFF087AE8),
+      'adjusted' => const Color(0xFF8C51D7),
+      _ => style.scheme.primary,
+    };
+    final party = field(objectOf(item['supplier'])['name'],
+      field(objectOf(item['customer'])['name'],
+        field(item['supplier_name'],
+          field(item['customer_name'], 'Walk-in / Not assigned'))));
+    final source = field(
+      objectOf(item['original_sale'])['document_number'],
+      field(objectOf(item['original_purchase'])['document_number']));
+    final amount = item[widget.amountKey];
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 8),
+      decoration: style.card(radius: 15),
+      child: Row(children: [
+        Container(
+          width: 42, height: 44,
+          decoration: BoxDecoration(
+            color: statusColor.withValues(alpha: .12),
+            borderRadius: BorderRadius.circular(11)),
+          child: Icon(isReturn ? Icons.assignment_return_rounded
+            : Icons.receipt_long_rounded, size: 23, color: statusColor)),
+        const SizedBox(width: 9),
+        Expanded(child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(field(item[widget.numberKey], 'Document'),
+              maxLines: 1, overflow: TextOverflow.ellipsis,
+              style: TextStyle(color: style.ink, fontSize: 12,
+                fontWeight: FontWeight.w900)),
+            Text(party, maxLines: 1, overflow: TextOverflow.ellipsis,
+              style: TextStyle(color: style.muted, fontSize: 10)),
+            if (isReturn && source.isNotEmpty)
+              Text('Inv: $source', maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(color: style.muted, fontSize: 9.5)),
+          ],
+        )),
+        const SizedBox(width: 5),
+        Container(width: 1, height: 47, color: style.line),
+        const SizedBox(width: 6),
+        Column(crossAxisAlignment: CrossAxisAlignment.end,
+          mainAxisAlignment: MainAxisAlignment.center, children: [
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 4),
+              decoration: BoxDecoration(
+                color: statusColor.withValues(alpha: .12),
+                borderRadius: BorderRadius.circular(11)),
+              child: Text(field(item['status'], 'Unknown'),
+                style: TextStyle(fontSize: 9.5,
+                  color: statusColor, fontWeight: FontWeight.w800))),
+            const SizedBox(height: 3),
+            Text(field(item[widget.dateKey]),
+              style: TextStyle(fontSize: 9.5, color: style.muted)),
+            if (amount != null)
+              Text(money(amount, widget.app.currency),
+                style: TextStyle(color: style.ink, fontSize: 10.5,
+                  fontWeight: FontWeight.w900)),
+          ]),
+        const SizedBox(width: 3),
+        Icon(Icons.chevron_right_rounded, size: 18, color: style.muted),
+      ]),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
@@ -296,8 +369,9 @@ class _TransactionDirectoryState extends State<TransactionDirectory> {
         onPressed: () async {
           if (await widget.onCreate!(context) && mounted) await load();
         }, icon: const Icon(Icons.add_rounded),
-        label: Text(isReturns ? 'Add Return' :
-          widget.referenceStyle ? 'Add Purchase' : 'New'))
+        label: Text(isReturns ? 'Add Return'
+          : widget.endpoint == '/api/sales' ? 'New Invoice'
+          : widget.referenceStyle ? 'Add Purchase' : 'New'))
         : null,
       body: RefreshIndicator(onRefresh: load,
         child: ListView(
@@ -346,7 +420,7 @@ class _TransactionDirectoryState extends State<TransactionDirectory> {
           else if (error != null) FailureState(message: error!, retry: load)
           else if (visibleRows.isEmpty) const EmptyState(
             title: 'No matching documents',
-            subtitle: 'Try another search or status filter.')
+            subtitle: 'No records were returned for this search or status.')
           else ...visibleRows.map((item) => Padding(
             padding: const EdgeInsets.only(bottom: 9),
             child: InkWell(
@@ -356,69 +430,28 @@ class _TransactionDirectoryState extends State<TransactionDirectory> {
                   await load();
                 }
               },
-              child: Container(
-                padding: const EdgeInsets.all(11),
-                decoration: widget.referenceStyle
-                  ? style.card(radius: 15)
-                  : style.card(radius: 12),
-                child: Row(children: [
-                  if (widget.referenceStyle)
-                    Container(width: 46, height: 46,
-                      decoration: BoxDecoration(
-                        color: isReturns ? const Color(0xFFFFE8F1)
-                          : colors.primaryContainer,
-                        borderRadius: BorderRadius.circular(12)),
-                      child: Icon(isReturns ? Icons.assignment_return_rounded
-                        : Icons.receipt_long_outlined,
-                        color: isReturns ? const Color(0xFFF04878)
-                          : colors.primary))
-                  else
-                    Icon(Icons.description_outlined, color: colors.primary),
-                  const SizedBox(width: 11),
-                  Expanded(child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start, children: [
-                    Text(field(item[widget.numberKey], 'Document'),
-                      maxLines: 1, overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(fontWeight: FontWeight.w800)),
-                    if (widget.referenceStyle)
-                      Text(field(objectOf(item['supplier'])['name'],
-                        field(objectOf(item['customer'])['name'],
-                        field(item['supplier_name'],
-                        field(item['customer_name'])))),
-                        maxLines: 1, overflow: TextOverflow.ellipsis,
-                        style: TextStyle(fontSize: 11,
-                          color: colors.onSurfaceVariant)),
-                    if (isReturns)
-                      Text('Invoice: ${field(
-                        objectOf(item['original_sale'])['document_number'],
-                        field(objectOf(item['original_purchase'])['document_number'],
-                          'Not available'))}',
-                        maxLines: 1, overflow: TextOverflow.ellipsis,
-                        style: TextStyle(fontSize: 10,
-                          color: colors.onSurfaceVariant)),
-                    Text(field(item[widget.dateKey]),
-                      style: TextStyle(fontSize: 11,
-                        color: colors.onSurfaceVariant)),
-                  ])),
-                  const SizedBox(width: 8),
-                  Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 7, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: colors.primary.withValues(alpha: .11),
-                        borderRadius: BorderRadius.circular(11)),
-                      child: Text(field(item['status'], 'Unknown'),
-                        style: TextStyle(fontSize: 10.5,
-                          color: colors.primary,
-                          fontWeight: FontWeight.w800))),
-                    if (item[widget.amountKey] != null)
-                      Text(money(item[widget.amountKey], widget.app.currency),
-                        style: const TextStyle(fontSize: 12,
-                          fontWeight: FontWeight.w800)),
-                    const Icon(Icons.chevron_right_rounded, size: 19),
-                  ]),
-                ])),
+              child: widget.referenceStyle
+                ? referenceDocumentCard(item, isReturn: isReturns)
+                : Container(
+                    padding: const EdgeInsets.all(11),
+                    decoration: style.card(radius: 12),
+                    child: Row(children: [
+                      Icon(Icons.description_outlined, color: colors.primary),
+                      const SizedBox(width: 11),
+                      Expanded(child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(field(item[widget.numberKey], 'Document'),
+                            maxLines: 1, overflow: TextOverflow.ellipsis),
+                          Text(field(item[widget.dateKey]),
+                            style: TextStyle(fontSize: 11,
+                              color: colors.onSurfaceVariant)),
+                        ])),
+                      if (item[widget.amountKey] != null)
+                        Text(money(item[widget.amountKey],
+                            widget.app.currency)),
+                      const Icon(Icons.chevron_right_rounded),
+                    ])),
             ),
           )),
           if (!loading && rows.length < total)
