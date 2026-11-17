@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../core/api.dart';
 import '../core/session.dart';
 import '../widgets/common.dart';
+import '../widgets/reference_surface.dart';
 
 /// Newer design 30. Read-only vendor details; accounting summaries require
 /// separate authorized ledger queries, never illustrative mockup balances.
@@ -44,9 +45,8 @@ class _SupplierDetailScreenState extends State<SupplierDetailScreen> {
 
   @override
   Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(title: const Text('Supplier Detail'),
-      actions: [IconButton(icon: const Icon(Icons.refresh_rounded),
-        tooltip: 'Refresh', onPressed: load)]),
+    backgroundColor: BpReferenceStyle.of(context).page,
+    appBar: const BpReferenceSubpageAppBar(title: 'Supplier Detail'),
     body: busy ? const Center(child: CircularProgressIndicator())
       : error != null ? FailureState(message: error!, retry: load)
       : RefreshIndicator(onRefresh: load,
@@ -68,24 +68,16 @@ class SupplierDetailView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
-    Widget line(String label, dynamic value, IconData icon) {
-      final txt = field(value);
-      return Padding(padding: const EdgeInsets.symmetric(vertical: 9),
-        child: Row(children: [
-          Icon(icon, color: scheme.primary, size: 21),
-          const SizedBox(width: 11),
-          Expanded(child: Text(label,
-            style: const TextStyle(fontWeight: FontWeight.w700))),
-          Flexible(child: Text(txt.isEmpty ? 'Not available' : txt,
-            maxLines: 3, textAlign: TextAlign.end,
-            overflow: TextOverflow.ellipsis)),
-        ]));
-    }
+    final style = BpReferenceStyle.of(context);
+    Widget line(String label, dynamic value, IconData icon) =>
+      BpReferenceDetailLine(
+        label: label, value: field(value), icon: icon);
 
     return ListView(key: const ValueKey('supplier-detail-view'),
       physics: const AlwaysScrollableScrollPhysics(),
-      padding: const EdgeInsets.all(16), children: [
-        Surface(child: Row(children: [
+      padding: const EdgeInsets.fromLTRB(12, 10, 12, 85), children: [
+        Container(padding: const EdgeInsets.all(11),
+          decoration: style.card(radius: 16), child: Row(children: [
           Container(width: 64, height: 64,
             decoration: BoxDecoration(color: scheme.primaryContainer,
               borderRadius: BorderRadius.circular(16)),
@@ -106,7 +98,7 @@ class SupplierDetailView extends StatelessWidget {
             ])),
         ])),
         const SizedBox(height: 12),
-        Surface(child: Column(children: [
+        Container(decoration: style.card(radius: 16), child: Column(children: [
           line('Mobile Number', supplier['mobile'], Icons.phone_outlined),
           const Divider(height: 1),
           line('City / Area', supplier['area'], Icons.place_outlined),
@@ -122,7 +114,8 @@ class SupplierDetailView extends StatelessWidget {
             Icons.account_balance_outlined),
         ])),
         const SizedBox(height: 13),
-        Surface(child: Column(crossAxisAlignment: CrossAxisAlignment.stretch,
+        Container(padding: const EdgeInsets.all(12),
+          decoration: style.card(radius: 16), child: Column(crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Text('Recent Purchases', style: Theme.of(context)
               .textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w900)),
