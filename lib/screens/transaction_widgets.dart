@@ -6,6 +6,8 @@ import 'package:flutter/material.dart';
 import '../core/api.dart';
 import '../core/session.dart';
 import '../widgets/common.dart';
+import '../widgets/reference_surface.dart';
+import 'auth_reference_chrome.dart';
 
 /// Strict ULID boundaries for API identifiers. BIGINT database keys are never
 /// transported from, or chosen by, a mobile form.
@@ -269,29 +271,44 @@ class _TransactionDirectoryState extends State<TransactionDirectory> {
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
+    final style = BpReferenceStyle.of(context);
     final allowCreate = widget.onCreate != null &&
       (widget.createPermission == null ||
         widget.app.hasPermission(widget.createPermission!));
     return Scaffold(
-      appBar: AppBar(title: Text(widget.title),
-        actions: [IconButton(onPressed: loading ? null : load,
-          icon: const Icon(Icons.refresh_rounded), tooltip: 'Refresh')]),
+      backgroundColor: widget.referenceStyle ? style.page : null,
+      appBar: widget.referenceStyle
+        ? BpReferenceSubpageAppBar(title: widget.title)
+        : AppBar(title: Text(widget.title),
+            actions: [IconButton(onPressed: loading ? null : load,
+              icon: const Icon(Icons.refresh_rounded),
+              tooltip: 'Refresh')]),
       floatingActionButton: allowCreate ? FloatingActionButton.extended(
+        backgroundColor: widget.referenceStyle
+          ? const Color(0xFF0BB85C) : null,
+        foregroundColor: widget.referenceStyle ? Colors.white : null,
         onPressed: () async {
           if (await widget.onCreate!(context) && mounted) await load();
-        }, icon: const Icon(Icons.add_rounded), label: const Text('New'))
+        }, icon: const Icon(Icons.add_rounded),
+        label: Text(widget.referenceStyle ? 'Add Purchase' : 'New'))
         : null,
       body: RefreshIndicator(onRefresh: load,
-        child: ListView(padding: const EdgeInsets.all(16), children: [
-          SectionHeading(widget.title),
+        child: ListView(
+          padding: const EdgeInsets.fromLTRB(12, 11, 12, 100),
+          children: [
+          if (!widget.referenceStyle) SectionHeading(widget.title),
           TextField(key: const ValueKey('transaction-search'), controller: search,
             onChanged: (_) {
               delay?.cancel();
               delay = Timer(const Duration(milliseconds: 300), load);
             },
-            decoration: const InputDecoration(
-              prefixIcon: Icon(Icons.search_rounded),
-              hintText: 'Search document number')),
+            decoration: widget.referenceStyle
+              ? style.search('Search invoice number, supplier...',
+                  prefixIcon: const Icon(Icons.search_rounded))
+                  .copyWith(isDense: true)
+              : const InputDecoration(
+                  prefixIcon: Icon(Icons.search_rounded),
+                  hintText: 'Search document number')),
           const SizedBox(height: 12),
           if (loading) pageLoading()
           else if (error != null) FailureState(message: error!, retry: load)
@@ -307,7 +324,11 @@ class _TransactionDirectoryState extends State<TransactionDirectory> {
                   await load();
                 }
               },
-              child: Surface(padding: const EdgeInsets.all(13),
+              child: Container(
+                padding: const EdgeInsets.all(11),
+                decoration: widget.referenceStyle
+                  ? style.card(radius: 15)
+                  : style.card(radius: 12),
                 child: Row(children: [
                   if (widget.referenceStyle)
                     Container(width: 46, height: 46,
@@ -338,9 +359,16 @@ class _TransactionDirectoryState extends State<TransactionDirectory> {
                   ])),
                   const SizedBox(width: 8),
                   Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
-                    Text(field(item['status'], 'Unknown'),
-                      style: TextStyle(fontSize: 11,
-                        color: colors.primary, fontWeight: FontWeight.w700)),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 7, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: colors.primary.withValues(alpha: .11),
+                        borderRadius: BorderRadius.circular(11)),
+                      child: Text(field(item['status'], 'Unknown'),
+                        style: TextStyle(fontSize: 10.5,
+                          color: colors.primary,
+                          fontWeight: FontWeight.w800))),
                     if (item[widget.amountKey] != null)
                       Text(money(item[widget.amountKey], widget.app.currency),
                         style: const TextStyle(fontSize: 12,
