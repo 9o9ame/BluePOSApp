@@ -63,12 +63,14 @@ class BpReferenceFormField extends StatelessWidget {
     super.key, required this.label, required this.hint, required this.icon,
     this.controller, this.readOnly = false, this.maxLines = 1,
     this.maxLength, this.keyboardType, this.suffixIcon, this.child,
+    this.fieldKey,
   });
 
   final String label;
   final String hint;
   final IconData icon;
   final TextEditingController? controller;
+  final Key? fieldKey;
   final bool readOnly;
   final int maxLines;
   final int? maxLength;
@@ -101,6 +103,7 @@ class BpReferenceFormField extends StatelessWidget {
               color: style.ink)),
             const SizedBox(height: 2),
             child ?? TextField(
+              key: fieldKey,
               controller: controller,
               readOnly: readOnly,
               maxLength: maxLength,
