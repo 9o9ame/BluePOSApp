@@ -44,7 +44,7 @@ class BlueposReferenceNav extends StatelessWidget {
                 ? const Color(0xFF008C54)
                 : const Color(0xFF111E40))),
           ]),
-      )));
+      ));
     }
     return SafeArea(top: false, child: Container(
       height: 77,
