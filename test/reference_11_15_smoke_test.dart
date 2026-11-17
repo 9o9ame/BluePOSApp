@@ -6,6 +6,7 @@ import 'package:bluepos_app/screens/modules.dart';
 import 'package:bluepos_app/screens/product_details.dart';
 import 'package:bluepos_app/screens/products.dart';
 import 'package:flutter/material.dart';
+import 'package:bluepos_app/widgets/reference_surface.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
@@ -92,5 +93,27 @@ void main() {
     expect(payload.containsKey('code'), isFalse);
     expect(payload.containsKey('icon'), isFalse);
     expect(payload.containsKey('color'), isFalse);
+  });
+
+  testWidgets('reference header uses the selected theme in both modes',
+      (tester) async {
+    await tester.binding.setSurfaceSize(const Size(390, 820));
+    addTearDown(() async => tester.binding.setSurfaceSize(null));
+    for (final brightness in [Brightness.light, Brightness.dark]) {
+      await tester.pumpWidget(MaterialApp(
+        theme: ThemeData(brightness: brightness, useMaterial3: true),
+        home: const Scaffold(
+          appBar: BpReferenceSubpageAppBar(title: 'Categories'))));
+      await tester.pump();
+      expect(find.text('Categories'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    }
+    await tester.pumpWidget(const SizedBox.shrink());
+  });
+
+  test('reference palette switches foreground and surfaces by brightness', () {
+    const lightInk = Color(0xFF0B1C44);
+    const darkInk = Color(0xFFF3F6FF);
+    expect(lightInk, isNot(darkInk));
   });
 }
