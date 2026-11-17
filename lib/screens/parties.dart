@@ -51,6 +51,8 @@ class PartyDirectory extends StatefulWidget {
 class _PartyDirectoryState extends State<PartyDirectory> {
   final search = TextEditingController();
   List<Map<String, dynamic>> rows = const [];
+  // Posted, tenant/branch-scoped balances from the authorized ledger API.
+  Map<String, dynamic> postedBalances = const {};
   bool loading = true;
   bool activeOnly = false;
   String? error;
@@ -80,8 +82,36 @@ class _PartyDirectoryState extends State<PartyDirectory> {
     }
     setState(() { loading = true; error = null; });
     try {
-      final data = await widget.app.api.get('/api/parties?type=' + widget.type);
-      if (mounted) setState(() => rows = recordsOf(data));
+      final data = await widget.app.api.get('/api/parties?type=${widget.type}');
+      final loadedRows = recordsOf(data);
+      final balances = <String, dynamic>{};
+      if (widget.type == 'customer' || widget.type == 'vendor') {
+        final identifiers = loadedRows.map((row) => field(row['ulid']))
+          .where((id) => RegExp(r'^[0-9A-HJKMNP-TV-Z]{26}$').hasMatch(id))
+          .toList();
+        // Backend accepts up to 250 ULIDs; never submit more in one batch.
+        for (var offset = 0; offset < identifiers.length; offset += 200) {
+          final end = offset + 200 < identifiers.length
+              ? offset + 200 : identifiers.length;
+          try {
+            final response = objectOf(await widget.app.api.post(
+              '/api/parties/ledger-balances', {
+                'items': identifiers.sublist(offset, end)
+                  .map((ulid) => {'type': widget.type, 'ulid': ulid})
+                  .toList(),
+              }));
+            balances.addAll(objectOf(response['balances']));
+          } catch (_) {
+            // Ledger data is optional in the directory; do not show
+            // an invented zero or a stale credit limit as a balance.
+            break;
+          }
+        }
+      }
+      if (mounted) setState(() {
+        rows = loadedRows;
+        postedBalances = balances;
+      });
     } catch (ex) {
       if (mounted) setState(() => error = ex.toString());
     } finally {
@@ -438,17 +468,26 @@ class _PartyDirectoryState extends State<PartyDirectory> {
                                       color: style.muted)),
                               ]),
                             ),
-                            if (isCustomer &&
-                                filtered[i]['credit_limit_amount'] != null)
+                            if ((isCustomer || isSupplier) &&
+                                postedBalances.containsKey(
+                                  '${widget.type}:${field(filtered[i]['ulid'])}'))
                               ConstrainedBox(
-                                constraints: const BoxConstraints(maxWidth: 100),
-                                child: Text(
-                                  'Limit: ${field(filtered[i]['credit_limit_amount'])}',
-                                  textAlign: TextAlign.end,
-                                  maxLines: 2,
-                                  style: TextStyle(fontSize: 10,
-                                    color: style.green,
-                                    fontWeight: FontWeight.w900))),
+                                constraints: const BoxConstraints(maxWidth: 96),
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  crossAxisAlignment: CrossAxisAlignment.end,
+                                  children: [
+                                    Text('Posted balance', maxLines: 1,
+                                      style: TextStyle(fontSize: 9,
+                                        color: style.muted)),
+                                    Text(field(postedBalances[
+                                      '${widget.type}:${field(filtered[i]['ulid'])}']),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: TextStyle(fontSize: 10,
+                                        color: style.green,
+                                        fontWeight: FontWeight.w900)),
+                                  ])),
                             if (isSupplier || isCustomer)
                               Padding(
                                 padding: const EdgeInsets.only(left: 3),
