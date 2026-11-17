@@ -261,7 +261,6 @@ class _PartyDirectoryState extends State<PartyDirectory> {
 
   @override
   Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
     final isCustomer = widget.type == 'customer';
     final isSupplier = widget.type == 'vendor';
     final query = search.text.trim().toLowerCase();
@@ -270,91 +269,156 @@ class _PartyDirectoryState extends State<PartyDirectory> {
       (query.isEmpty ||
         ('${field(row['name'])} ${field(row['code'])} ${field(row['mobile'])}')
           .toLowerCase().contains(query))).toList();
+    final style = BpReferenceStyle.of(context);
     return Scaffold(
-      appBar: AppBar(title: Text(title),
-        actions: [IconButton(onPressed: refresh, tooltip: 'Refresh',
-          icon: const Icon(Icons.refresh))]),
-      floatingActionButton: can('create') ? FloatingActionButton.extended(
-        key: const ValueKey('party-add'),
-        onPressed: () => edit(),
-        icon: const Icon(Icons.person_add_alt_1_rounded),
-        label: Text(isCustomer ? 'Add Customer' : isSupplier ? 'Add Supplier' : 'Add $title')) : null,
-      body: RefreshIndicator(onRefresh: refresh, child: ListView(
-        key: const ValueKey('party-directory-list'),
-        physics: const AlwaysScrollableScrollPhysics(),
-        padding: const EdgeInsets.all(16), children: [
-          Text(title, style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-            fontWeight: FontWeight.w900)),
-          const SizedBox(height: 14),
-          Row(children: [
-            Expanded(child: TextField(
-              key: const ValueKey('party-search'),
-              controller: search, onChanged: (_) => setState(() {}),
-              decoration: InputDecoration(
-                prefixIcon: const Icon(Icons.search),
-                hintText: 'Search ${title.toLowerCase()}...'))),
-            if (isCustomer || isSupplier) ...[
-              const SizedBox(width: 8),
-              IconButton.filledTonal(
-                tooltip: 'Active records filter',
-                key: const ValueKey('party-filter'),
-                onPressed: () => setState(() => activeOnly = !activeOnly),
-                icon: Icon(activeOnly ? Icons.filter_alt
-                  : Icons.filter_alt_outlined)),
+      backgroundColor: style.page,
+      appBar: BpReferenceSubpageAppBar(title: title),
+      floatingActionButton: can('create')
+        ? SizedBox(width: 80, height: 80,
+          child: FloatingActionButton(
+            key: const ValueKey('party-add'),
+            onPressed: () => edit(),
+            foregroundColor: Colors.white,
+            backgroundColor: const Color(0xFF0DBA61),
+            shape: const CircleBorder(side: BorderSide(
+              color: Colors.white, width: 2.5)),
+            child: Column(mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(Icons.add_rounded, size: 27),
+                Text(isCustomer ? 'Add Customer'
+                  : isSupplier ? 'Add Supplier' : 'Add Account',
+                  style: const TextStyle(
+                    fontSize: 9, fontWeight: FontWeight.w900)),
+              ]),
+          ))
+        : null,
+      body: Stack(children: [
+        const Positioned(top: 0, right: 0,
+          child: BpReferenceTopAccent()),
+        RefreshIndicator(onRefresh: refresh,
+          child: ListView(
+            key: const ValueKey('party-directory-list'),
+            physics: const AlwaysScrollableScrollPhysics(),
+            padding: const EdgeInsets.fromLTRB(12, 10, 12, 105),
+            children: [
+              Row(children: [
+                Expanded(child: TextField(
+                  key: const ValueKey('party-search'),
+                  controller: search,
+                  onChanged: (_) => setState(() {}),
+                  decoration: style.search(
+                    'Search ${title.toLowerCase()}...',
+                    prefixIcon: const Icon(Icons.search_rounded))
+                    .copyWith(isDense: true,
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 10, vertical: 8)))),
+                if (isCustomer || isSupplier) ...[
+                  const SizedBox(width: 8),
+                  Container(
+                    decoration: style.card(radius: 12),
+                    child: IconButton(
+                      tooltip: 'Active records filter',
+                      key: const ValueKey('party-filter'),
+                      onPressed: () =>
+                        setState(() => activeOnly = !activeOnly),
+                      icon: Icon(activeOnly ? Icons.filter_alt
+                        : Icons.filter_alt_outlined,
+                        color: style.scheme.primary))),
+                ],
+              ]),
+              const SizedBox(height: 12),
+              if (loading) pageLoading()
+              else if (error != null)
+                FailureState(message: error!, retry: refresh)
+              else if (filtered.isEmpty)
+                EmptyState(title: rows.isEmpty
+                  ? 'No ${title.toLowerCase()} yet'
+                  : 'No matching ${title.toLowerCase()}')
+              else
+                for (var i = 0; i < filtered.length; i++)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 8),
+                    child: Material(
+                      color: Colors.transparent,
+                      child: InkWell(
+                        key: ValueKey('party-row-${field(filtered[i]['ulid'])}'),
+                        borderRadius: BorderRadius.circular(14),
+                        onTap: isCustomer
+                          ? () => openCustomerDetails(filtered[i])
+                          : isSupplier
+                            ? () => openSupplierDetails(filtered[i])
+                            : can('edit') ? () => edit(record: filtered[i]) : null,
+                        child: Container(
+                          height: 73,
+                          padding: const EdgeInsets.symmetric(horizontal: 9),
+                          decoration: style.card(radius: 14),
+                          child: Row(children: [
+                            Container(
+                              width: 46, height: 46,
+                              decoration: BoxDecoration(
+                                color: const Color(0xFF168EF7)
+                                  .withValues(alpha: .14),
+                                borderRadius: BorderRadius.circular(12)),
+                              child: Icon(isSupplier
+                                ? Icons.local_shipping_rounded
+                                : Icons.storefront_rounded,
+                                color: const Color(0xFF168EF7),
+                                size: 25)),
+                            const SizedBox(width: 9),
+                            Expanded(child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(field(filtered[i]['name'], 'Unnamed'),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: TextStyle(fontSize: 13,
+                                    fontWeight: FontWeight.w900,
+                                    color: style.ink)),
+                                Text(field(filtered[i]['code']),
+                                  maxLines: 1,
+                                  style: TextStyle(fontSize: 10,
+                                    color: style.muted)),
+                                if (field(filtered[i]['area']).isNotEmpty)
+                                  Text(field(filtered[i]['area']),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: TextStyle(fontSize: 10,
+                                      color: style.muted))
+                                else if (field(filtered[i]['mobile']).isNotEmpty)
+                                  Text(field(filtered[i]['mobile']),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: TextStyle(fontSize: 10,
+                                      color: style.muted)),
+                              ]),
+                            )),
+                            if (isCustomer &&
+                                filtered[i]['credit_limit_amount'] != null)
+                              ConstrainedBox(
+                                constraints: const BoxConstraints(maxWidth: 100),
+                                child: Text(
+                                  'Limit: ${field(filtered[i]['credit_limit_amount'])}',
+                                  textAlign: TextAlign.end,
+                                  maxLines: 2,
+                                  style: TextStyle(fontSize: 10,
+                                    color: style.green,
+                                    fontWeight: FontWeight.w900))),
+                            if (isSupplier || isCustomer)
+                              Padding(
+                                padding: const EdgeInsets.only(left: 3),
+                                child: Icon(Icons.chevron_right_rounded,
+                                  size: 18, color: style.muted)),
+                          ]),
+                        ),
+                      ),
+                    ),
+                  ),
             ],
-          ]),
-          const SizedBox(height: 12),
-          if (loading) pageLoading()
-          else if (error != null) FailureState(message: error!, retry: refresh)
-          else if (filtered.isEmpty)
-            const EmptyState(title: 'No matching records')
-          else ...filtered.map((row) => Padding(
-            padding: const EdgeInsets.only(bottom: 9),
-            child: Surface(padding: EdgeInsets.zero,
-              child: InkWell(
-                key: ValueKey('party-row-${field(row['ulid'])}'),
-                onTap: isCustomer ? () => openCustomerDetails(row)
-                  : isSupplier ? () => openSupplierDetails(row)
-                  : can('edit') ? () => edit(record: row) : null,
-                child: Padding(padding: const EdgeInsets.all(12),
-                  child: Row(children: [
-                    Container(height: 49, width: 49,
-                      decoration: BoxDecoration(
-                        color: scheme.primaryContainer,
-                        borderRadius: BorderRadius.circular(12)),
-                      child: Icon(Icons.storefront_outlined,
-                        color: scheme.primary)),
-                    const SizedBox(width: 12),
-                    Expanded(child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start, children: [
-                        Text(field(row['name'], 'Unnamed'),
-                          maxLines: 2, overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(fontWeight: FontWeight.w900)),
-                        Text(field(row['code']), style: TextStyle(
-                          fontSize: 11, color: scheme.onSurfaceVariant)),
-                        if ((isCustomer || isSupplier) && field(row['area']).isNotEmpty)
-                          Text(field(row['area']), maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: TextStyle(color: scheme.onSurfaceVariant,
-                              fontSize: 11)),
-                        if ((isCustomer || isSupplier) && field(row['mobile']).isNotEmpty)
-                          Text(field(row['mobile']), maxLines: 1,
-                            style: TextStyle(color: scheme.onSurfaceVariant,
-                              fontSize: 11)),
-                      ])),
-                    if (isCustomer && row['credit_limit_amount'] != null)
-                      Text('Limit: ${field(row['credit_limit_amount'])}',
-                        style: TextStyle(fontSize: 11,
-                          color: scheme.primary, fontWeight: FontWeight.w800)),
-                    const SizedBox(width: 6),
-                    const Icon(Icons.chevron_right_rounded),
-                  ]),
-                ),
-              )),
           )),
-          const SizedBox(height: 100),
-        ]),
-      ),
+        const Positioned(left: 0, right: 0, bottom: 0,
+          child: IgnorePointer(child: AuthReferenceWaves(height: 52))),
+      ]),
     );
   }
 }
