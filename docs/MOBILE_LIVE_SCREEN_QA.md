@@ -843,3 +843,30 @@ User supplied five side-by-side screenshots (actual Redmi Note 10 scrcpy vs orig
 
 **Validation:** Fetched readback of all five changed Dart files from GitHub; lexical delimiter balancing PASS. Actual Flutter analyzer, widget tests and Android render after this pass NOT RUN in assistant environment (no local Flutter); user needs `git pull --ff-only origin feature/daily-entries` in original `C:\Projects\BluePOSApp`, then capital `R` in existing Android Flutter terminal, check compiler output. scrcpy stays open. No database modifications, no backend changes, no checkout test transactions.
 **Visual parity remains PENDING, not exact PASS:** 06 mockup revenue/collections/expenses versus real invoice/product counts; 07 product photography requires real API photos; 08/09 central reference Scanner navigation differs from existing real Products route; 10 mockup multi-type feed absent in backend. Fixes are code changes, not claims of 1:1 screenshot equality.
+
+
+### 2026-11-17 — Screens 06–10 side-by-side second QA and registered-device OTP fix
+
+**Inputs:** User's five new physical Redmi Note 10 / scrcpy side-by-side screenshots versus approved references 06 Dashboard, 07 POS, 08 Main Menu, 09 More Menu, 10 Notifications. User reported that Screen 08 became inaccessible and that registered devices repeatedly received MFA OTP. These reports were treated as regressions and fixed directly on existing mobile branch `feature/daily-entries`.
+
+**Implemented files:**
+- `lib/screens/modules.dart`: restore explicit Main Menu / More selector, compact rows, keep searchable permission-gated module directory and actual device/security/settings/logout. Menu mode can be controlled from shell via `ValueNotifier<bool>` with proper listener cleanup; optional param retains existing widget callers.
+- `lib/screens/shell.dart`: hamburger opens Screen 08 Main Menu; bottom More opens Screen 09 More Menu. Notification Screen 10 bottom nav returns to actual shell tabs; MoreScreen constructor remains backward compatible.
+- `lib/screens/dashboard.dart`: reference-shaped 3 Quick Action grid and bottom aqua/mint waves. Removes redundant extra Reports shortcut and hides empty Recent invoices section; retains server-authorized live KPI counts and existing invoices access.
+- `lib/screens/sale.dart`: smaller reference-aligned POS heading and spacing, no finance/posting changes.
+- `lib/screens/products.dart`: styled real category chips, compact catalog layout; no fake product photos, product stock or prices.
+- `lib/screens/notifications.dart`: readable real device-alert titles, active filter popup, rows with unread dot and mark-read action, persistent bottom nav while in notification view. Other mockup notification categories unavailable in live API, not fabricated.
+- `lib/core/api.dart`: found concrete client regression: `clear()` used by both logout and password sign-in erased server-approved `bluepos_device` cookie with session. It now clears auth/session/XSRF cookies but retains only `bluepos_device` securely, with explicit `forgetDevice:true` for deliberate removal. `hasSavedSessionCookies` now excludes device and XSRF-only cookies so biometrics cannot treat device identity as a user session.
+- `test/device_cookie_persistence_test.dart`: test ensures approved device survives logout/relaunch but authenticated session does not, and explicit forget removes all credentials.
+- `test/main_more_menu_navigation_test.dart`: widget regression test for explicit Screen 08/09 switch and shell notifier event.
+- This QA document.
+
+**Backend inspection (read-only `9o9ame/bluepos` main):** `backend/app/Actions/Auth/LoginUserAction.php` uses issued `bluepos_device` cookie to locate approved device; `backend/app/Security/DeviceCredentialService.php` verifies hashed credential. `backend/app/Http/Controllers/Api/AuthController.php` MFA verification trusts an owner device for 30 days and pins a network fingerprint. `backend/app/Security/DeviceNetworkTrust.php` requires owner reverification if trusted IP changes. This server-side network security requirement remains unchanged. Device credential retention fixes unnecessary *new device* treatment when signing out of the same phone, but IP changes, trust expiry, invalidated credentials, security policy and explicit device revocation may still legitimately require OTP. No backend changes or DB migrations.
+
+**Validation:** Read back edited files from GitHub; structural delimiter balancing PASS. Spotted and fixed two nullability/declaration issues on readback (nullable menuMode listener, missing Notifications onNavigate field). Cannot run Flutter analyzer/tests or Android on assistant runtime; MUST run focused local tests and new build before approving visual parity. No financial transactions executed. Approved references are visual targets, not real API data: 06 revenue/collections/expenses; 07 merchandise images; 10 sample alerts are *not* copied into live app.
+
+**Focused local validation (no DB):**
+`flutter test test/device_cookie_persistence_test.dart test/main_more_menu_navigation_test.dart`
+`flutter analyze lib/core/api.dart lib/screens/dashboard.dart lib/screens/products.dart lib/screens/sale.dart lib/screens/modules.dart lib/screens/shell.dart lib/screens/notifications.dart`
+`flutter run -d <actual-adb-device-serial>` (scrcpy separate).
+Then compare screens 06–10 and test owner trusted-device same-network login following logout; never paste OTP or cookies. Report compiler/test failures and screenshots; do not mark screens PASS until explicitly approved.
