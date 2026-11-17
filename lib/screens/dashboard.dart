@@ -93,15 +93,19 @@ class _DashboardScreenState extends State<DashboardScreen> {
       if (!mounted) return;
       setState(() {
         recent = salesEnabled ? recordsOf(result[0]) : const [];
-        todaySalesGross = gross?.isNotEmpty == true ? gross : null;
-        yesterdaySalesGross = priorGross?.isNotEmpty == true ? priorGross : null;
-        itemsSold = soldQuantity;
         branchInvoices = salesEnabled ? int.tryParse(field(
           objectOf(objectOf(result[0])['meta'])['total'])) : null;
         productsCount = productsEnabled ? int.tryParse(field(
           objectOf(objectOf(result[1])['meta'])['total'])) : null;
         todayInvoices = salesEnabled ? int.tryParse(field(
           objectOf(objectOf(result[2])['meta'])['total'])) : null;
+        // No invoices on the requested date proves zero sale invoices;
+        // otherwise never infer money or quantities from paginated listings.
+        todaySalesGross = gross?.isNotEmpty == true
+          ? gross : (todayInvoices == 0 ? '0.0000' : null);
+        yesterdaySalesGross = priorGross?.isNotEmpty == true
+          ? priorGross : null;
+        itemsSold = soldQuantity ?? (todayInvoices == 0 ? '0' : null);
       });
     } catch (ex) {
       if (mounted) setState(() => error = ex.toString());
