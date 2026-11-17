@@ -225,6 +225,9 @@ class _CatalogMasterScreenState extends State<CatalogMasterScreen> {
                     fontSize: 18, fontWeight: FontWeight.w900))),
             body: Stack(children: [
               if (widget.config.apiPath == '/api/categories')
+                const Positioned(top: 0, right: 0,
+                  child: BpReferenceTopAccent()),
+              if (widget.config.apiPath == '/api/categories')
                 const Positioned(left: 0, right: 0, bottom: 0,
                   child: AuthReferenceWaves(height: 76)),
               SafeArea(child: Padding(
