@@ -19,8 +19,14 @@ class AppShell extends StatefulWidget {
   State<AppShell> createState() => _AppShellState();
 }
 
-class _AppShellState extends State<AppShell> {
+class _AppShellState extends State<AppShell>
+    with SingleTickerProviderStateMixin {
   int selected = 0;
+  bool drawerOpen = false;
+  late final AnimationController drawerMotion = AnimationController(
+    vsync: this, duration: const Duration(milliseconds: 420));
+  late final Animation<double> drawerCurve = CurvedAnimation(
+    parent: drawerMotion, curve: Curves.easeInOutCubic);
   final menuMode = ValueNotifier<bool>(false);
   final saleKey = GlobalKey<SaleScreenState>();
   late final List<Widget> pages = [
@@ -33,10 +39,31 @@ class _AppShellState extends State<AppShell> {
     ReportsScreen(app: widget.app),
     MoreScreen(app: widget.app, navigate: navigate, menuMode: menuMode),
   ];
-  void navigate(int i) => setState(() => selected = i);
+  void navigate(int i) {
+    if (drawerOpen) _setDrawer(false);
+    if (i == selected) return;
+    setState(() => selected = i);
+  }
+
+  void _setDrawer(bool open) {
+    if (drawerOpen == open) return;
+    setState(() => drawerOpen = open);
+    if (widget.app.appearance.animations) {
+      if (open) {
+        drawerMotion.forward();
+      } else {
+        drawerMotion.reverse();
+      }
+    } else {
+      drawerMotion.value = open ? 1 : 0;
+    }
+  }
+
+  void _toggleDrawer() => _setDrawer(!drawerOpen);
 
   @override
   void dispose() {
+    drawerMotion.dispose();
     menuMode.dispose();
     super.dispose();
   }
@@ -48,10 +75,7 @@ class _AppShellState extends State<AppShell> {
     });
   }
 
-  void openMainMenu() {
-    menuMode.value = true;
-    navigate(4);
-  }
+  void openMainMenu() => _toggleDrawer();
 
   @override
   Widget build(BuildContext context) {
@@ -72,7 +96,12 @@ class _AppShellState extends State<AppShell> {
         foregroundColor: Color(0xFF081943),
         elevation: 0),
     );
-    return Theme(
+    return PopScope(
+      canPop: !drawerOpen,
+      onPopInvokedWithResult: (didPop, result) {
+        if (!didPop && drawerOpen) _setDrawer(false);
+      },
+      child: Theme(
       data: reference ? refTheme : base,
       child: Builder(builder: (ctx) {
         return Scaffold(
@@ -80,15 +109,18 @@ class _AppShellState extends State<AppShell> {
             backgroundColor: reference
               ? const Color(0xFFF7F8FF) : null,
             leadingWidth: 47,
-            leading: selected == 1
-              ? IconButton(
-                  tooltip: 'Back to Home',
-                  icon: const Icon(Icons.arrow_back_rounded),
-                  onPressed: () => navigate(0))
-              : IconButton(
-                  tooltip: 'Open Main Menu',
-                  icon: const Icon(Icons.menu_rounded),
-                  onPressed: openMainMenu),
+            leading: IconButton(
+              key: const ValueKey('main-menu-toggle'),
+              tooltip: drawerOpen ? 'Close Main Menu' : 'Open Main Menu',
+              onPressed: _toggleDrawer,
+              icon: RotationTransition(
+                turns: Tween<double>(begin: 0, end: 13 / 12)
+                    .animate(drawerCurve),
+                child: AnimatedIcon(
+                  icon: AnimatedIcons.menu_close,
+                  progress: drawerMotion,
+                  size: 26)),
+            ),
             centerTitle: true,
             titleSpacing: 0,
             title: Row(mainAxisSize: MainAxisSize.min, children: [
@@ -134,15 +166,69 @@ class _AppShellState extends State<AppShell> {
               const SizedBox(width: 3),
             ],
           ),
-          body: LayoutBuilder(builder: (context, bounds) => SizedBox(
-            width: bounds.maxWidth,
-            height: bounds.maxHeight,
-            child: IndexedStack(
+          body: LayoutBuilder(builder: (context, bounds) {
+            final width = (bounds.maxWidth * .83).clamp(250.0, 380.0);
+            final content = IndexedStack(
               sizing: StackFit.expand,
               index: selected,
               children: pages,
-            ),
-          )),
+            );
+            return Stack(children: [
+              Positioned.fill(child: widget.app.appearance.animations
+                ? TweenAnimationBuilder<double>(
+                    key: ValueKey('screen-transition-$selected'),
+                    tween: Tween(begin: 0, end: 1),
+                    duration: const Duration(milliseconds: 250),
+                    curve: Curves.easeOutCubic,
+                    builder: (context, progress, child) => Opacity(
+                      opacity: .87 + progress * .13,
+                      child: Transform.translate(
+                        offset: Offset(0, 8 * (1 - progress)),
+                        child: child)),
+                    child: content)
+                : content),
+              AnimatedBuilder(
+                animation: drawerMotion,
+                builder: (context, _) {
+                  if (drawerMotion.value == 0 && !drawerOpen) {
+                    return const SizedBox.shrink();
+                  }
+                  return Stack(children: [
+                    Positioned.fill(child: GestureDetector(
+                      key: const ValueKey('drawer-scrim'),
+                      behavior: HitTestBehavior.opaque,
+                      onTap: () => _setDrawer(false),
+                      child: ColoredBox(
+                        color: const Color(0xFF0D1E3E).withValues(
+                          alpha: .36 * drawerMotion.value)))),
+                    Positioned(
+                      top: 0, bottom: 0,
+                      left: -width + width * drawerMotion.value,
+                      width: width,
+                      child: ClipRRect(
+                        borderRadius: const BorderRadius.horizontal(
+                          right: Radius.circular(23)),
+                        child: DecoratedBox(
+                          decoration: const BoxDecoration(
+                            boxShadow: [BoxShadow(
+                              blurRadius: 20, color: Color(0x33081938))]),
+                          child: Theme(
+                            data: refTheme,
+                            child: ModulesScreen(
+                              key: const ValueKey('floating-main-menu'),
+                              app: app,
+                              navigate: navigate,
+                              drawerMode: true,
+                              onDrawerAction: () => _setDrawer(false)),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ]);
+                },
+              ),
+            ]);
+          }),
           bottomNavigationBar: BlueposReferenceNav(
             selectedIndex: selected,
             onSelect: (index) {
@@ -153,7 +239,7 @@ class _AppShellState extends State<AppShell> {
           ),
         );
       }),
-    );
+    ));
   }
 }
 
