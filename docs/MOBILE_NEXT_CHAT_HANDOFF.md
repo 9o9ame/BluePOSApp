@@ -34,6 +34,15 @@ Development routing: start task with Recommended mode/model/usage/reason. For UI
 4. Next five screenshots are **21 Add Unit, 22 Price Lists, 23 Add Price List, 24 Sale Schemes, 25 Add Sale Scheme**; UI pass committed. Actual Android visual QA is still needed.
 5. User wants persistent progress and next-chat handoff; keep these docs updated after each batch.
 
+## Latest pass: shared sizing and screens 26–30
+
+- `lib/widgets/reference_surface.dart` now owns `BpReferenceMetrics` (field padding/spacing and 43px action height), `BpReferenceFormField`, `BpReferenceFooter`, and `BpReferenceDetailLine`.
+- 23 Add Price List and 25 Add Sale Scheme were migrated to shared compact fields/buttons. Both remain preview-only, disabled Save.
+- `lib/screens/parties.dart` now uses shared form fields/footer for 27 Add Customer and reference-style real directory cards for 26 Customers / 29 Suppliers. Existing `partyPayload`, RBAC, ULIDs, and server account-type selection retained. Mobile/screens 26–30 should not display illustrative numbers as live.
+- `lib/screens/customer_detail.dart` and `lib/screens/supplier_detail.dart` now use reference header, cards and shared compact detail rows for 28 Customer Details and 30 Supplier Details. They still intentionally do not invent receivable/payable amounts or transaction history.
+- New focused test: `test/mobile_reference_26_30_test.dart` (not yet executed on Flutter SDK).
+- **Not every screen uses the shared component yet.** Don't broad-refactor frozen modules; migrate each next batch only when needed.
+
 ## What is still pending / honesty boundary
 
 - **Run on user's Windows Flutter installation**: analyze 3 affected Dart files and run focused tests. Our execution environment did not have Flutter/Dart binaries. Distinguish static source inspection from actual test execution.
@@ -49,7 +58,7 @@ Development routing: start task with Recommended mode/model/usage/reason. For UI
 
 1. Run latest focused Flutter checks and fix any analyzer/runtime errors. Re-read latest repo file before editing: other commits might land.
 2. Obtain screenshot comparison for 15–25, resolve only remaining visual mismatch without changing real data.
-3. Move to reference images **26 Customers, 27 Add Customer, 28 Customer Details, 29 Suppliers, 30 Supplier Details**, inspect existing screens/APIs/permission checks and implement in small safe commits.
+3. Next batch is references **31–35**. Inspect existing screens, API contracts, frozen design requirements and permissions before editing.
 4. After each batch update both `docs/MOBILE_REFERENCE_PROGRESS.md` and this handoff, report exact commit SHA, tests, pending items.
 
 ## Pull / verify commands
@@ -60,8 +69,8 @@ git status --short
 git branch --show-current
 git pull --ff-only origin feature/daily-entries
 git log -1 --oneline
-flutter analyze lib/screens/catalog_master.dart lib/screens/price_lists.dart lib/screens/sale_schemes.dart
-flutter test test/reference_11_15_smoke_test.dart test/catalog_reference_16_20_test.dart test/mobile_reference_21_25_test.dart
+flutter analyze lib/widgets/reference_surface.dart lib/screens/catalog_master.dart lib/screens/price_lists.dart lib/screens/sale_schemes.dart lib/screens/parties.dart lib/screens/customer_detail.dart lib/screens/supplier_detail.dart
+flutter test test/reference_11_15_smoke_test.dart test/catalog_reference_16_20_test.dart test/mobile_reference_21_25_test.dart test/mobile_reference_26_30_test.dart
 flutter run
 ```
 
