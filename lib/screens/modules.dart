@@ -465,18 +465,19 @@ class _ModulesScreenState extends State<ModulesScreen> {
             borderRadius: BorderRadius.circular(15),
             onTap: onTap,
             child: Padding(
-              padding: EdgeInsets.symmetric(horizontal: 10, vertical: compact ? 5 : 7),
+              padding: EdgeInsets.symmetric(horizontal: 11, vertical: compact ? 5 : 8),
               child: Row(children: [
                 Container(
-                  height: compact ? 32 : 37, width: compact ? 32 : 37,
+                  height: compact ? 36 : 42, width: compact ? 36 : 42,
                   decoration: BoxDecoration(
                     color: tone.withValues(alpha: .13),
                     borderRadius: BorderRadius.circular(10)),
-                  child: Icon(icon, color: tone, size: compact ? 20 : 21)),
+                  child: Icon(icon, color: tone, size: compact ? 22 : 25)),
                 const SizedBox(width: 12),
                 Expanded(child: Text(title,
-                  style: TextStyle(fontSize: compact ? 13.4 : 14,
-                    fontWeight: FontWeight.w800))),
+                  style: TextStyle(fontSize: compact ? 14.5 : 16,
+                    color: const Color(0xFF091C46),
+                    fontWeight: FontWeight.w900))),
                 Icon(Icons.chevron_right_rounded,
                   color: scheme.onSurfaceVariant),
               ]),
@@ -580,13 +581,13 @@ class _ModulesScreenState extends State<ModulesScreen> {
           if (groups['Daily Entries']!.any((action) =>
               action.title == 'Purchases' && action.visible(app)))
             _menuRow(title: 'Purchases', icon: Icons.shopping_bag_rounded,
-              tone: scheme.tertiary, onTap: () =>
+              tone: const Color(0xFFF49B00), onTap: () =>
                 groups['Daily Entries']!.firstWhere((a) =>
                   a.title == 'Purchases').open(), compact: false),
           if (groups['Daily Entries']!.any((action) =>
               action.title == 'New Sale' && action.visible(app)))
             _menuRow(title: 'Sales', icon: Icons.shopping_cart_rounded,
-              tone: scheme.tertiary, onTap: () => widget.navigate(1), compact: false),
+              tone: const Color(0xFF08C665), onTap: () => widget.navigate(1), compact: false),
         ] else ...[
           const SizedBox(height: 2),
           Divider(color: scheme.outlineVariant),
