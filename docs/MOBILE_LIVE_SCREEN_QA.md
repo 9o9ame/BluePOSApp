@@ -901,3 +901,18 @@ UI compact pass:
 - `lib/screens/dashboard.dart` (06): restored complete source after a temporary malformed update was detected in readback before delivery. Added correct metric labels and optional authorized report data.
 
 Validation: GitHub source readback: all four edited Dart files start with imports and lexical delimiters balance. Flutter analyzer/tests/real-device rendering are not available from assistant environment. Pending local focused test and analyzer. Not approved as exact visual PASS until on-device comparison.
+
+
+### 2026-11-17 — Screen 07 product-card overflow and new floating Main Menu
+
+User reported exact Flutter visual error `BOTTOM OVERFLOWED BY 1.2 PIXELS` on 07 POS product cards, requested an animated rotating hamburger-to-X (>360°) that opens an 83%-width floating sidebar above the existing page, expands permission-gated module groups inline to submenus, closes upon destination selection, and leaves bottom More as its own full screen. Requested tasteful screen and page transitions.
+
+**Files changed on mobile `feature/daily-entries`:**
+- `lib/screens/products.dart`: 07 POS product card image is now `Expanded` rather than a fixed-height image plus `Spacer`. Fixed info and stock row get reserved space; grid extent increased only 207→214 px to avoid RenderFlex overflow while retaining compact product tiles. API products/prices/stock unchanged.
+- `lib/screens/modules.dart`: existing `ModuleAction` registry reused for a new `drawerMode`; 5 permission-gated expandable module groups (Definition, Daily Entries, Reports, Tools, Administration) show only authorized subactions. Search filters authorized items. `AnimatedSize`, `AnimatedRotation` and muted surfaces keep user context. Choosing a subaction closes overlay and invokes its existing route or shell tab. Existing More (09) remains full screen with its original controls; `_open` gains 290 ms fade/slide route transition, obeying appearance.animations.
+- `lib/screens/shell.dart`: hamburger on shell, including POS, uses `AnimatedIcon.menu_close` and a 13/12-turn (390°) rotation. 83%-width floating sidebar animates from left above current content with dimmable tap-to-close scrim. Bottom More opens More full screen (not drawer). Android back dismisses drawer using `PopScope`. Shell tabs animate subtly using a separately retained `pageMotion` controller around stable `IndexedStack` children; POS cart/widget state remains mounted, unlike switcher alternatives. Appearance Animations Off disables transitions.
+- `test/floating_main_menu_test.dart`: widget coverage for permitted Daily Entries/New Sale expansion, close callback and navigation, plus hidden action when unauthorized.
+- `test/pos_product_card_overflow_test.dart`: 214px product card with 2-line name, stock and real pricing format renders without Flutter overflow.
+- This QA note.
+
+**Status:** GitHub readback and lexical delimiter balance PASS for 3 Dart files + 2 tests. **Flutter analyzer, widget tests, on-device animated behavior and screenshot QA NOT RUN here.** Focused validation: `flutter test test/pos_product_card_overflow_test.dart test/floating_main_menu_test.dart test/main_more_menu_navigation_test.dart`; `flutter analyze lib/screens/products.dart lib/screens/modules.dart lib/screens/shell.dart`. After green tests, reload mobile with hot restart `R`; check POS product-card overflow gone, hamburger→X and drawer width, group nested actions (Sales Invoice/Returns only when permission allows), backdrop dismiss, Android back, More tab independent, and POS cart retained across tabs. No backend/schema/financial posting changes.
