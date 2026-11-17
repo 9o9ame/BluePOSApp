@@ -90,6 +90,31 @@ flutter test test/mobile_reference_26_30_test.dart test/mobile_reference_31_35_t
 flutter run
 ```
 
+## Latest reference batch 36–40 (2026-11-17)
+
+**Requested screenshots:** 36 Create Purchase Invoice; 37 Purchase Invoice Detail; 38 Sales Returns; 39 Create Sales Return; 40 Purchase Returns. The 92-PNG ZIP contains these under `BATCH_04_31-40/`.
+
+GitHub code changes on `feature/daily-entries`:
+
+- `lib/widgets/reference_surface.dart`: **`BpReferenceWorkflowActions`** shared compact, accessible two-action footer with dynamic labels, permissions/disabled callbacks supplied by each domain screen.
+- `lib/screens/purchase_invoices.dart`: 36/37 use compact shared field tiles, real supplier/date/warehouse selection, original server-backed draft/line/post operations, server amounts and reference item cards. Footer separates Create Draft/Save Header from Post Purchase and disables posting until an authorized draft has lines. Existing duplicate Post button removed. Posted purchase adds Print PDF from authorized response and **View Ledger** opening the supplier party ledger only with valid supplier ULID and supplier view/manage permission; NOT a purchase-specific ledger.
+- `lib/screens/transaction_widgets.dart`: generic reference directory reuses real endpoints, now renders return icon/source information, search and a **loaded-record** status filter, and green Add Return action for screens 38/40.
+- `lib/screens/returns.dart`: 39 Create Sales Return and existing purchase return editor use real source selection, server returnable lines, compact form/item cards, and safe Save Draft/Post Return footer. Existing `SaleReturnAttemptStore` idempotency on uncertainty and server stock/accounting mutation remain untouched. Never invent client return/refund totals.
+- `test/mobile_reference_36_40_test.dart`: source ULID keys/endpoints and compact enabled/disabled action tests; **not run here**.
+- `docs/MOBILE_REFERENCE_PROGRESS.md`: screens 36–40 statuses recorded.
+
+**Important limitations / next actions:** Run Flutter analyzer and focused tests; compare new Android screenshots to approved reference. Verify API authorization and posted purchase print/ledger behaviors on real accounts. No Flutter/Dart SDK in assistant container, so runtime status remains unknown. Check branch `git status` before pull; no force/reset. Next reference batch is **41–45**, not begun. Frozen Sales Invoice creation remains unchanged.
+
+```powershell
+cd "C:\Projects\BluePOSApp"
+git status --short
+git pull --ff-only origin feature/daily-entries
+git log -1 --oneline
+flutter analyze lib/widgets/reference_surface.dart lib/screens/purchase_invoices.dart lib/screens/returns.dart lib/screens/transaction_widgets.dart
+flutter test test/mobile_reference_31_35_test.dart test/mobile_reference_36_40_test.dart
+flutter run
+```
+
 ## What is still pending / honesty boundary
 
 - **Run on user's Windows Flutter installation**: analyze 3 affected Dart files and run focused tests. Our execution environment did not have Flutter/Dart binaries. Distinguish static source inspection from actual test execution.
@@ -105,7 +130,7 @@ flutter run
 
 1. Run latest focused Flutter checks and fix any analyzer/runtime errors. Re-read latest repo file before editing: other commits might land.
 2. Obtain screenshot comparison for 15–25, resolve only remaining visual mismatch without changing real data.
-3. Next batch is references **36–40**. Inspect existing screens, API contracts, frozen design requirements and permissions before editing.
+3. Next batch is references **41–45**. Inspect existing screens, API contracts, frozen design requirements and permissions before editing.
 4. After each batch update both `docs/MOBILE_REFERENCE_PROGRESS.md` and this handoff, report exact commit SHA, tests, pending items.
 
 ## Pull / verify commands
