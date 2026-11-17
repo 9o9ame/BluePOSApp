@@ -229,8 +229,8 @@ class NotificationsView extends StatelessWidget {
         const SizedBox(height: 6),
         Container(
           key: const ValueKey('notification-filters'),
-          height: 51,
-          padding: const EdgeInsets.all(4),
+          height: 43,
+          padding: const EdgeInsets.all(3),
           decoration: BoxDecoration(
             color: const Color(0xFFFFFFFF),
             borderRadius: BorderRadius.circular(27),
@@ -285,7 +285,7 @@ class NotificationsView extends StatelessWidget {
             ],
           ]),
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: 9),
         if (busy)
           const Padding(padding: EdgeInsets.all(28),
             child: Center(child: CircularProgressIndicator()))
@@ -307,9 +307,9 @@ class NotificationsView extends StatelessWidget {
               : 'Authorized device access alerts will appear here.'),
         for (final notice in visible)
           Padding(
-            padding: const EdgeInsets.only(bottom: 10),
+            padding: const EdgeInsets.only(bottom: 6),
             child: Container(
-              padding: const EdgeInsets.all(13),
+              padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 9),
               decoration: BoxDecoration(
                 gradient: const LinearGradient(colors: [
                   Colors.white, Color(0xFFF3F6FF)]),
@@ -320,27 +320,27 @@ class NotificationsView extends StatelessWidget {
               child: Row(crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Container(
-                    width: 49, height: 49,
+                    width: 43, height: 43,
                     decoration: BoxDecoration(
                       color: const Color(0xFFDCEEFF),
                       borderRadius: BorderRadius.circular(14)),
                     child: const Icon(Icons.devices_rounded,
                       color: Color(0xFF087DF1))),
-                  const SizedBox(width: 12),
+                  const SizedBox(width: 9),
                   Expanded(child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(_noticeTitle(notice),
                         maxLines: 2, overflow: TextOverflow.ellipsis,
                         style: const TextStyle(
-                          fontWeight: FontWeight.w900, fontSize: 14)),
-                      const SizedBox(height: 4),
+                          fontWeight: FontWeight.w800, fontSize: 13.5)),
+                      const SizedBox(height: 2),
                       Text(
                         field(notice['device_name'], 'Device') +
                           ' · ' + field(notice['username'], 'Team member'),
                         maxLines: 3, overflow: TextOverflow.ellipsis,
                         style: TextStyle(color: scheme.onSurfaceVariant)),
-                      const SizedBox(height: 7),
+                      const SizedBox(height: 4),
                       Text(field(notice['created_at'], ''),
                         style: TextStyle(color: scheme.onSurfaceVariant,
                           fontSize: 11)),
