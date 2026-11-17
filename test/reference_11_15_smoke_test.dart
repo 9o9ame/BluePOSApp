@@ -130,7 +130,8 @@ void main() {
         return const SizedBox();
       }),
     ));
-    await tester.pump();
+    // MaterialApp animates ThemeData changes; settle before checking dark ink.
+    await tester.pumpAndSettle();
     expect(lightInk, isNotNull);
     expect(darkInk, isNotNull);
     expect(lightInk, isNot(darkInk));
