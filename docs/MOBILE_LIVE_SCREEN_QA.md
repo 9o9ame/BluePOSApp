@@ -870,3 +870,19 @@ User supplied five side-by-side screenshots (actual Redmi Note 10 scrcpy vs orig
 `flutter analyze lib/core/api.dart lib/screens/dashboard.dart lib/screens/products.dart lib/screens/sale.dart lib/screens/modules.dart lib/screens/shell.dart lib/screens/notifications.dart`
 `flutter run -d <actual-adb-device-serial>` (scrcpy separate).
 Then compare screens 06–10 and test owner trusted-device same-network login following logout; never paste OTP or cookies. Report compiler/test failures and screenshots; do not mark screens PASS until explicitly approved.
+
+
+### 2026-11-17 — Full layout revision after third side-by-side 06–10 QA
+
+User explicitly rejected small styling adjustments as insufficient and provided new mobile/reference screenshots. Implemented a larger, connected visual geometry pass on existing `feature/daily-entries`:
+
+- **Shared navigation** new `lib/widgets/reference_navigation.dart`: white rounded navigation bar with large raised green central actual barcode scanner, and Home / POS / Reports / More destinations. Products still accessible from Home and menu or POS filter, **not impersonated as scanner**. Shell callbacks target existing `SaleScreenState.scan()`; scanner still checks backend lookup and permissions, not fake camera action.
+- `lib/screens/shell.dart`: reuse reference nav, connect scanner and actual selected tabs; notification callback returns to same shell.
+- **06 Dashboard** `lib/screens/dashboard.dart`: replace 2-card stat row + heading with reference-proportioned 2×2 white/pastel KPI grid. Data is from current API: all invoices, products, today's invoices, and **Recent (max 5)** count (only loaded records). Explicit labels prevent misrepresenting fake reference sales/expenses/collections. Three short action cards and existing green hero/waves remain.
+- **07 POS Sales** `lib/screens/sale.dart`: remove oversized tinted header block; increase real two-column catalog view height to fill more of screen above compact bottom cart/payment footer. Existing payment flow, Decimal money estimates, retry/idempotency unchanged.
+- **08 Main Menu / 09 More** `lib/screens/modules.dart`: remove extra toggle icon in title row (hamburger opens Main 08, bottom More opens More 09); Main uses reference-height rows, More compact enough to show Help/Logout; remove clipped Browse modules CTA while preserving searchable directory via Screen 08 search icon. Lower decorative waves do not consume taps.
+- **10 Notifications** `lib/screens/notifications.dart`: add original brand header row, a separate back/title/filter row, real device notifications beneath, same shared bottom navigation and waves. No fabricated alerts.
+- `test/main_more_menu_navigation_test.dart`: updates regression to match actual hamburger/More notifier navigation without deleted header toggles.
+- No server/database/migrations changes. Approved reference screenshot product photography, revenue/expense values, and invented alerts **cannot be fabricated** for a functional live app.
+
+**Verification:** GitHub readback of all changed Dart files, lexical delimiters balanced. During this QA one extra closure in the new shared nav was found and fixed before delivery. Flutter SDK and physical Android device not accessible from this environment, so widget tests, analyzer, build and visual screenshot fidelity are **PENDING**. Run `flutter test test/main_more_menu_navigation_test.dart test/device_cookie_persistence_test.dart`, `flutter analyze lib/widgets/reference_navigation.dart lib/screens/shell.dart lib/screens/dashboard.dart lib/screens/modules.dart lib/screens/notifications.dart lib/screens/sale.dart lib/screens/products.dart`, and re-run on attached Android. Do NOT mark exact PASS without user screenshot review.
