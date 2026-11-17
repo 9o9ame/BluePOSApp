@@ -388,15 +388,10 @@ class SaleScreenState extends State<SaleScreen> {
     final app = widget.app;
     return Column(children: [
       Expanded(child: ListView(
-        padding: EdgeInsets.all(app.appearance.spacing),
+        padding: const EdgeInsets.fromLTRB(10, 9, 10, 20),
         children: [
-      Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-        decoration: BoxDecoration(
-          gradient: const LinearGradient(colors: [
-            Color(0xFFE6FFF1), Color(0xFFF2F5FF)]),
-          border: Border.all(color: Colors.white, width: 1.5),
-          borderRadius: BorderRadius.circular(16)),
+      Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 6),
         child: Row(children: [
           Container(width: 40, height: 40,
             decoration: BoxDecoration(
@@ -420,7 +415,7 @@ class SaleScreenState extends State<SaleScreen> {
             color: scheme.primary),
         ]),
       ),
-      const SizedBox(height: 13),
+      const SizedBox(height: 8),
       if (!attempted) ...[
         // Screen 07 reference: search, category chips and two-column cards
         // belong on the main POS page, not only a second picker screen.
