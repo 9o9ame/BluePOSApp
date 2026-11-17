@@ -669,6 +669,76 @@ class _PurchaseInvoiceEditorState extends State<PurchaseInvoiceEditor> {
             if (serverLines.isEmpty) const EmptyState(
               title: 'No draft lines',
               subtitle: 'Add products before posting.')
+            else if (!draft)
+              Container(
+                padding: const EdgeInsets.all(9),
+                decoration: style.card(radius: 13),
+                child: Column(children: [
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 5, vertical: 9),
+                    decoration: BoxDecoration(
+                      color: style.surfaceEnd,
+                      borderRadius: BorderRadius.circular(8)),
+                    child: Row(children: [
+                      Expanded(flex: 5, child: Text('Product',
+                        style: TextStyle(color: style.ink,
+                          fontSize: 10, fontWeight: FontWeight.w900))),
+                      Expanded(flex: 2, child: Text('Qty',
+                        textAlign: TextAlign.end,
+                        style: TextStyle(color: style.ink,
+                          fontSize: 10, fontWeight: FontWeight.w900))),
+                      Expanded(flex: 2, child: Text('Rate',
+                        textAlign: TextAlign.end,
+                        style: TextStyle(color: style.ink,
+                          fontSize: 10, fontWeight: FontWeight.w900))),
+                      Expanded(flex: 3, child: Text('Amount',
+                        textAlign: TextAlign.end,
+                        style: TextStyle(color: style.ink,
+                          fontSize: 10, fontWeight: FontWeight.w900))),
+                    ]),
+                  ),
+                  const SizedBox(height: 4),
+                  for (final line in serverLines) ...[
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 6),
+                      child: Row(children: [
+                        Expanded(flex: 5, child: Row(children: [
+                          Container(width: 27, height: 28,
+                            decoration: BoxDecoration(
+                              color: style.scheme.primary.withValues(
+                                alpha: .12),
+                              borderRadius: BorderRadius.circular(7)),
+                            child: Icon(Icons.inventory_2_outlined,
+                              size: 16, color: style.scheme.primary)),
+                          const SizedBox(width: 5),
+                          Expanded(child: Text(
+                            field(objectOf(line['product'])['name'],
+                              'Product'),
+                            maxLines: 2, overflow: TextOverflow.ellipsis,
+                            style: TextStyle(fontSize: 10,
+                              color: style.ink,
+                              fontWeight: FontWeight.w800))),
+                        ])),
+                        Expanded(flex: 2, child: Text(
+                          bpReferenceDecimalLabel(line['quantity']),
+                          maxLines: 1, textAlign: TextAlign.end,
+                          style: TextStyle(color: style.ink, fontSize: 10))),
+                        Expanded(flex: 2, child: Text(
+                          bpReferenceDecimalLabel(line['unit_cost']),
+                          maxLines: 1, textAlign: TextAlign.end,
+                          style: TextStyle(color: style.ink, fontSize: 10))),
+                        Expanded(flex: 3, child: Text(
+                          bpReferenceDecimalLabel(line['line_total']),
+                          maxLines: 1, textAlign: TextAlign.end,
+                          style: TextStyle(color: style.ink,
+                            fontWeight: FontWeight.w900, fontSize: 10))),
+                      ]),
+                    ),
+                    const Divider(height: 1),
+                  ],
+                ]),
+              )
             else for (final line in serverLines)
               Padding(padding: const EdgeInsets.only(bottom: 7),
                 child: Container(
