@@ -1,11 +1,20 @@
 import 'package:flutter/material.dart';
 
-/// Display-only decimal string shortening; never use for server payloads,
-/// calculations, stock movements or accounting.
+/// Display-only decimal formatting for reference tables; never used
+/// for financial payloads, valuations, totals or posting.
 String bpReferenceDecimalLabel(dynamic raw) {
   if (raw == null) return '';
   final value = raw.toString();
-  if (!RegExp(r'^-?\\d+(?:\\.\\d+)?
+  final pieces = value.split('.');
+  if (pieces.length != 2 || pieces.last.isEmpty) return value;
+  var decimals = pieces.last;
+  while (decimals.endsWith('0')) {
+    decimals = decimals.substring(0, decimals.length - 1);
+  }
+  return decimals.isEmpty ? pieces.first : pieces.first + '.' + decimals;
+}
+
+/// Theme-aware palette for mobile reference screens 11–15.
 /// The user's Settings > Theme selection remains the source of truth.
 class BpReferenceStyle {
   BpReferenceStyle.of(BuildContext context)
