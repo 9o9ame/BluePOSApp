@@ -5,6 +5,7 @@ import '../core/session.dart';
 import '../widgets/common.dart';
 import '../widgets/reference_surface.dart';
 import 'auth_reference_chrome.dart';
+import 'notifications.dart';
 
 /// Master-data forms backed by the actual BluePOS Catalog FormRequests.
 /// No money, stock or accounting values are accepted from the device here.
@@ -76,6 +77,7 @@ class CatalogMasterScreen extends StatefulWidget {
 
 class _CatalogMasterScreenState extends State<CatalogMasterScreen> {
   final search = TextEditingController();
+  final searchFocus = FocusNode();
   bool loading = true;
   bool showFilters = false;
   bool activeOnly = false;
@@ -99,6 +101,7 @@ class _CatalogMasterScreenState extends State<CatalogMasterScreen> {
   @override
   void dispose() {
     search.dispose();
+    searchFocus.dispose();
     super.dispose();
   }
 
@@ -453,14 +456,12 @@ class _CatalogMasterScreenState extends State<CatalogMasterScreen> {
     ];
     return Scaffold(
       backgroundColor: style.page,
-      appBar: AppBar(
-        centerTitle: true,
-        title: Text('Categories', style: TextStyle(
-          color: style.ink, fontSize: 18, fontWeight: FontWeight.w900)),
-        actions: [
-          IconButton(onPressed: reload, tooltip: 'Refresh',
-            icon: const Icon(Icons.refresh_rounded)),
-        ],
+      appBar: BpReferenceSubpageAppBar(
+        title: 'Categories',
+        onSearch: () => searchFocus.requestFocus(),
+        onNotifications: () => Navigator.of(context).push(
+          MaterialPageRoute(builder: (_) =>
+            NotificationsScreen(app: widget.app))),
       ),
       floatingActionButton: canCreate
         ? SizedBox(width: 94, height: 94,
@@ -492,6 +493,7 @@ class _CatalogMasterScreenState extends State<CatalogMasterScreen> {
                 Expanded(child: TextField(
                   key: const ValueKey('catalog-search'),
                   controller: search,
+                  focusNode: searchFocus,
                   onChanged: (_) => setState(() {}),
                   decoration: style.search('Search categories...',
                     prefixIcon: const Icon(Icons.search_rounded)))),
