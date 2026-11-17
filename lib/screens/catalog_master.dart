@@ -695,22 +695,31 @@ class _CatalogMasterScreenState extends State<CatalogMasterScreen> {
                               horizontal: 11, vertical: 9)))),
                 ],
                 if (widget.config.isUnit) ...[
-                  const SizedBox(height: 8),
-                  TextField(
-                    key: const ValueKey('catalog-editor-unit-symbol'),
-                    controller: symbol, maxLength: 16,
-                    decoration: const InputDecoration(
-                      labelText: 'Unit Code / Short Name *')),
-                  const SizedBox(height: 6),
-                  Text('A base conversion factor is not supported by the current Units API.',
-                    style: TextStyle(fontSize: 11, color:
-                      Theme.of(sheetContext).colorScheme.onSurfaceVariant)),
-                  SwitchListTile.adaptive(
-                    contentPadding: EdgeInsets.zero,
-                    title: const Text('Allow decimal quantities'),
-                    value: allowsDecimal,
-                    onChanged: saving ? null :
-                      (value) => updateSheet(() => allowsDecimal = value)),
+                  _CatalogReferenceFieldTile(
+                    icon: Icons.sell_outlined,
+                    tint: const Color(0xFFEA4B73),
+                    label: 'Unit Code / Short Name *',
+                    child: TextField(
+                      key: const ValueKey('catalog-editor-unit-symbol'),
+                      controller: symbol, maxLength: 16,
+                      textInputAction: TextInputAction.done,
+                      decoration: BpReferenceStyle.of(sheetContext).search(
+                        'Enter unit code (e.g., PCS)').copyWith(
+                          isDense: true,
+                          counterText: '',
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 11, vertical: 8)))),
+                  _CatalogReferenceFieldTile(
+                    icon: Icons.info_outline_rounded,
+                    tint: const Color(0xFF168EF1),
+                    label: 'Unit Options',
+                    child: SwitchListTile.adaptive(
+                      dense: true, contentPadding: EdgeInsets.zero,
+                      title: const Text('Allow decimal quantities'),
+                      subtitle: const Text('Conversion factors are managed by the server.'),
+                      value: allowsDecimal,
+                      onChanged: saving ? null :
+                        (value) => updateSheet(() => allowsDecimal = value))),
                 ],
                 const SizedBox(height: 8),
                 if (widget.config.apiPath == '/api/categories') ...[
