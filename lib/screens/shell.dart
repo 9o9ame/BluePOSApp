@@ -199,10 +199,10 @@ void openSales(BuildContext context, AppController app) => Navigator.of(context)
 
 class MoreScreen extends StatelessWidget {
   const MoreScreen({super.key, required this.app, required this.navigate,
-    required this.menuMode});
+    this.menuMode});
   final AppController app;
   final ValueChanged<int> navigate;
-  final ValueNotifier<bool> menuMode;
+  final ValueNotifier<bool>? menuMode;
 
   @override
   Widget build(BuildContext context) =>
