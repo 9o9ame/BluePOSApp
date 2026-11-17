@@ -138,7 +138,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     if (today == null || yesterday == null || yesterday == Decimal.zero) {
       return '—';
     }
-    final percent = ((today - yesterday) / yesterday * Decimal.fromInt(100))
+    final percent = (((today - yesterday) * Decimal.fromInt(100)) / yesterday)
         .toDecimal(scaleOnInfinitePrecision: 2);
     final sign = percent >= Decimal.zero ? '+' : '';
     return '$sign${percent.toStringAsFixed(1)}%';
