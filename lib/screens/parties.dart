@@ -392,7 +392,7 @@ class _PartyDirectoryState extends State<PartyDirectory> {
                                     style: TextStyle(fontSize: 10,
                                       color: style.muted)),
                               ]),
-                            )),
+                            ),
                             if (isCustomer &&
                                 filtered[i]['credit_limit_amount'] != null)
                               ConstrainedBox(
