@@ -239,7 +239,7 @@ class _TransactionDirectoryState extends State<TransactionDirectory> {
     if (more && (loading || moreLoading || rows.length >= total)) return;
     final request = more ? version : ++version;
     setState(() {
-      if (more) moreLoading = true;
+      if (more) { moreLoading = true; }
       else { loading = true; error = null; }
     });
     try {
@@ -263,9 +263,9 @@ class _TransactionDirectoryState extends State<TransactionDirectory> {
     } catch (ex) {
       if (mounted && request == version) setState(() => error = ex.toString());
     } finally {
-      if (mounted && request == version) setState(() {
-        loading = false; moreLoading = false;
-      });
+      if (mounted && request == version) {
+        setState(() { loading = false; moreLoading = false; });
+      }
     }
   }
 
