@@ -95,34 +95,80 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
       appBar: AppBar(
         backgroundColor: const Color(0xFFF7F8FF),
         foregroundColor: const Color(0xFF081943),
-        title: const Text('Notifications',
-          style: TextStyle(fontSize: 20,
-            color: Color(0xFF081943), fontWeight: FontWeight.w900)),
-        actions: [
-          PopupMenuButton<int>(
-            key: const ValueKey('notification-filter-menu'),
-            tooltip: 'Filter notifications',
-            icon: const Icon(Icons.filter_alt_outlined),
-            onSelected: (value) => setState(() => tab = value),
-            itemBuilder: (context) => const [
-              PopupMenuItem(value: 0, child: Text('All notifications')),
-              PopupMenuItem(value: 1, child: Text('Alerts')),
-              PopupMenuItem(value: 2, child: Text('Activity')),
+        centerTitle: true,
+        leading: IconButton(
+          tooltip: 'Back to More',
+          icon: const Icon(Icons.menu_rounded),
+          onPressed: () {
+            if (widget.onNavigate != null) {
+              widget.onNavigate!(4);
+            } else {
+              Navigator.of(context).maybePop();
+            }
+          }),
+        title: Row(mainAxisSize: MainAxisSize.min, children: [
+          const BlueposBrandMark(size: 37),
+          const SizedBox(width: 8),
+          Column(crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text.rich(TextSpan(children: [
+                TextSpan(text: 'Blue',
+                  style: TextStyle(color: Color(0xFF081943))),
+                TextSpan(text: 'POS',
+                  style: TextStyle(color: Color(0xFF058DF5))),
+              ]), style: TextStyle(
+                fontSize: 19, fontWeight: FontWeight.w900)),
+              const Text('P O S  &  E R P',
+                style: TextStyle(fontSize: 7,
+                  color: Color(0xFF081943),
+                  fontWeight: FontWeight.w700)),
             ]),
+        ]),
+        actions: [
+          const Icon(Icons.notifications_none_rounded,
+            color: Color(0xFF081943)),
+          const SizedBox(width: 17),
         ],
       ),
-      body: Stack(children: [
-        const Positioned(left: 0, right: 0, bottom: 0,
-          child: AuthReferenceWaves(height: 65)),
-        RefreshIndicator(
-          onRefresh: reload,
-          child: NotificationsView(
-            notices: notices, unread: unread, busy: busy, error: error,
-            selectedTab: tab,
-            onTabChanged: (value) => setState(() => tab = value),
-            onRead: markRead,
-          ),
+      body: Column(children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(14, 8, 14, 7),
+          child: Row(children: [
+            IconButton(
+              tooltip: 'Back',
+              icon: const Icon(Icons.arrow_back_rounded,
+                color: Color(0xFF081943)),
+              onPressed: () => Navigator.of(context).maybePop()),
+            const SizedBox(width: 4),
+            const Expanded(child: Text('Notifications',
+              style: TextStyle(color: Color(0xFF081943),
+                fontSize: 22, fontWeight: FontWeight.w900))),
+            PopupMenuButton<int>(
+              key: const ValueKey('notification-filter-menu'),
+              tooltip: 'Filter notifications',
+              icon: const Icon(Icons.filter_alt_outlined,
+                color: Color(0xFF081943)),
+              onSelected: (value) => setState(() => tab = value),
+              itemBuilder: (context) => const [
+                PopupMenuItem(value: 0, child: Text('All notifications')),
+                PopupMenuItem(value: 1, child: Text('Alerts')),
+                PopupMenuItem(value: 2, child: Text('Activity')),
+              ]),
+          ]),
         ),
+        Expanded(child: Stack(children: [
+          const Positioned(left: 0, right: 0, bottom: 0,
+            child: AuthReferenceWaves(height: 65)),
+          RefreshIndicator(
+            onRefresh: reload,
+            child: NotificationsView(
+              notices: notices, unread: unread, busy: busy, error: error,
+              selectedTab: tab,
+              onTabChanged: (value) => setState(() => tab = value),
+              onRead: markRead,
+            ),
+          ),
+        ])),
       ]),
       bottomNavigationBar: widget.onNavigate == null
         ? null
