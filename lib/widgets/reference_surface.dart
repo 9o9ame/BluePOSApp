@@ -248,6 +248,66 @@ class BpReferenceStatusSelector extends StatelessWidget {
   }
 }
 
+/// Shared bottom detail actions for customers and suppliers.
+/// These are navigation actions only: no client-authoritative ledger mutation.
+class BpReferenceDetailActions extends StatelessWidget {
+  const BpReferenceDetailActions({
+    super.key, required this.onViewLedger, this.onEdit,
+    this.editKey, this.ledgerKey,
+  });
+  final VoidCallback? onEdit;
+  final VoidCallback onViewLedger;
+  final Key? editKey;
+  final Key? ledgerKey;
+
+  @override
+  Widget build(BuildContext context) {
+    final style = BpReferenceStyle.of(context);
+    return Column(mainAxisSize: MainAxisSize.min, children: [
+      const BpReferenceFooterWave(),
+      SafeArea(top: false, child: Container(
+        padding: const EdgeInsets.fromLTRB(11, 7, 11, 11),
+        decoration: BoxDecoration(
+          color: style.surface,
+          borderRadius: const BorderRadius.vertical(
+            top: Radius.circular(20)),
+          border: Border.all(color: style.line),
+          boxShadow: [BoxShadow(
+            color: style.shadow, blurRadius: 12,
+            offset: const Offset(0, -3))]),
+        child: Row(children: [
+          Expanded(child: OutlinedButton.icon(
+            key: editKey,
+            style: OutlinedButton.styleFrom(
+              minimumSize: const Size(0, BpReferenceMetrics.actionHeight),
+              padding: const EdgeInsets.symmetric(horizontal: 6),
+              shape: RoundedRectangleBorder(borderRadius:
+                BorderRadius.circular(BpReferenceMetrics.actionRadius))),
+            onPressed: onEdit,
+            icon: const Icon(Icons.edit_outlined, size: 18),
+            label: const Text('Edit', maxLines: 1),
+          )),
+          const SizedBox(width: 8),
+          Expanded(child: FilledButton.icon(
+            key: ledgerKey,
+            style: FilledButton.styleFrom(
+              backgroundColor: const Color(0xFF006DF6),
+              foregroundColor: Colors.white,
+              minimumSize: const Size(0, BpReferenceMetrics.actionHeight),
+              padding: const EdgeInsets.symmetric(horizontal: 5),
+              shape: RoundedRectangleBorder(borderRadius:
+                BorderRadius.circular(BpReferenceMetrics.actionRadius))),
+            onPressed: onViewLedger,
+            icon: const Icon(Icons.layers_outlined, size: 18),
+            label: const FittedBox(fit: BoxFit.scaleDown,
+              child: Text('View Ledger', maxLines: 1, softWrap: false)),
+          )),
+        ]),
+      )),
+    ]);
+  }
+}
+
 /// Consistent two-column detail rows used by Customer/Supplier screens.
 class BpReferenceDetailLine extends StatelessWidget {
   const BpReferenceDetailLine({
