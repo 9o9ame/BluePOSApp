@@ -190,6 +190,40 @@ class BpReferenceFooterWave extends StatelessWidget {
   }
 }
 
+/// Consistent two-column detail rows used by Customer/Supplier screens.
+class BpReferenceDetailLine extends StatelessWidget {
+  const BpReferenceDetailLine({
+    super.key, required this.label, required this.value, required this.icon,
+  });
+  final String label;
+  final String value;
+  final IconData icon;
+
+  @override
+  Widget build(BuildContext context) {
+    final style = BpReferenceStyle.of(context);
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 8),
+      child: Row(children: [
+        Container(
+          width: 29, height: 29,
+          decoration: BoxDecoration(
+            color: style.scheme.primary.withValues(alpha: .10),
+            borderRadius: BorderRadius.circular(8)),
+          child: Icon(icon, size: 17, color: style.scheme.primary)),
+        const SizedBox(width: 8),
+        Expanded(child: Text(label, style: TextStyle(
+          fontSize: 11, fontWeight: FontWeight.w800, color: style.ink))),
+        const SizedBox(width: 8),
+        Flexible(child: Text(value.trim().isEmpty ? 'Not available' : value,
+          maxLines: 2, textAlign: TextAlign.end,
+          overflow: TextOverflow.ellipsis,
+          style: TextStyle(fontSize: 10.5, color: style.ink))),
+      ]),
+    );
+  }
+}
+
 /// Two-tier header from the approved mobile reference. The secondary bar
 /// keeps the back action and title while the top brand remains consistent.
 class BpReferenceSubpageAppBar extends StatelessWidget
