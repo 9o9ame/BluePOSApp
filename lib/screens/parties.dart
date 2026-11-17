@@ -162,6 +162,7 @@ class _PartyDirectoryState extends State<PartyDirectory> {
                 const SizedBox(height: 4),
                 BpReferenceFormField(
                   label: 'Code *', hint: 'Enter party code',
+                  fieldKey: const ValueKey('party-editor-code'),
                   icon: Icons.qr_code_rounded, controller: code,
                   maxLength: 64),
                 Text('The party code is required by the BluePOS API.',
@@ -169,6 +170,7 @@ class _PartyDirectoryState extends State<PartyDirectory> {
                     color: Theme.of(sheet).colorScheme.onSurfaceVariant)),
                 BpReferenceFormField(
                   label: 'Name *', hint: 'Enter name',
+                  fieldKey: const ValueKey('party-editor-name'),
                   icon: Icons.person_rounded, controller: name,
                   maxLength: 180),
                 BpReferenceFormField(
@@ -198,6 +200,7 @@ class _PartyDirectoryState extends State<PartyDirectory> {
                 if (widget.type == 'customer' || widget.type == 'vendor')
                   BpReferenceFormField(
                     label: 'City / Area', hint: 'Enter city / area',
+                    fieldKey: const ValueKey('party-editor-area'),
                     icon: Icons.location_on_rounded,
                     controller: area, maxLength: 120),
                 BpReferenceFormField(
