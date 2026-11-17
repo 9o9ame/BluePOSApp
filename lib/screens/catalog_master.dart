@@ -222,7 +222,7 @@ class _CatalogMasterScreenState extends State<CatalogMasterScreen> {
               title: formTitle,
               onNotifications: () => Navigator.of(sheetContext).push(
                 MaterialPageRoute(builder: (_) =>
-                  NotificationsScreen(app: widget.app))),
+                  NotificationsScreen(app: widget.app)))),
             body: Stack(children: [
               const Positioned(top: 0, right: 0,
                 child: BpReferenceTopAccent()),
@@ -371,8 +371,7 @@ class _CatalogMasterScreenState extends State<CatalogMasterScreen> {
                   const SizedBox(height: 9),
                 ],
                 const SizedBox(height: 6),
-                ...[
-                  Row(children: [
+                Row(children: [
                     Icon(Icons.text_fields_rounded, size: 19,
                       color: Theme.of(sheetContext).colorScheme.primary),
                     const SizedBox(width: 7),
@@ -380,8 +379,7 @@ class _CatalogMasterScreenState extends State<CatalogMasterScreen> {
                       fontSize: 12, fontWeight: FontWeight.w900,
                       color: BpReferenceStyle.of(sheetContext).ink)),
                   ]),
-                  const SizedBox(height: 6),
-                ],
+                const SizedBox(height: 6),
                 TextField(
                   key: const ValueKey('catalog-editor-name'),
                   controller: name, maxLength: 160,
@@ -667,7 +665,6 @@ class _CatalogMasterScreenState extends State<CatalogMasterScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
     final query = search.text.trim().toLowerCase();
     final config = widget.config;
     final filtered = rows.where((row) {
@@ -677,12 +674,9 @@ class _CatalogMasterScreenState extends State<CatalogMasterScreen> {
     }).toList();
     final isSub = config.needsCategory;
     final isBrand = config.apiPath == '/api/brands';
-    final icon = isSub ? Icons.layers_outlined
-      : isBrand ? Icons.sell_outlined : config.isUnit
-      ? Icons.straighten_rounded : Icons.category_outlined;
     final singular = config.title == 'Categories' ? 'Category'
       : config.title == 'Subcategories' ? 'Subcategory'
-      : config.title == 'Brands' ? 'Brand' : config.title;
+      : config.title == 'Brands' ? 'Brand' : 'Unit';
     if (config.apiPath == '/api/categories') {
       return _categoryReferenceScreen(context, filtered);
     }
