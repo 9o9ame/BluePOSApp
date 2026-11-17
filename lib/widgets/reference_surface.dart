@@ -68,9 +68,13 @@ class BpReferenceSubpageAppBar extends StatelessWidget
   @override
   Widget build(BuildContext context) {
     final style = BpReferenceStyle.of(context);
-    return Material(
-      color: style.page,
-      child: SafeArea(bottom: false, child: Column(children: [
+    return AppBar(
+      backgroundColor: style.page,
+      surfaceTintColor: Colors.transparent,
+      automaticallyImplyLeading: false,
+      toolbarHeight: 112,
+      titleSpacing: 0,
+      title: Column(children: [
         SizedBox(
           height: 58,
           child: Stack(alignment: Alignment.center, children: [
@@ -123,7 +127,7 @@ class BpReferenceSubpageAppBar extends StatelessWidget
           else
             const SizedBox(width: 48),
         ])),
-      ])),
+      ]),
     );
   }
 }
