@@ -40,7 +40,12 @@ _Source: numbered 92-image reference ZIP and live Android screenshots supplied b
 | 33 | Create Sales Invoice | Existing approved/frozen POS reused | No geometry or posting logic changes in this batch; preserves server totals/stock rules |
 | 34 | Sales Invoice Detail | UI implemented, device QA pending | Existing real sale detail + PDF export reused; table-style read-only rows, totals and pinned Print/Share footer |
 | 35 | Purchase Invoices | UI implemented, device QA pending | Existing server-backed draft/post flows preserved; shared TransactionDirectory reference list/search and Add Purchase CTA refined |
-| 36–92 | Later modules/screens | Not claimed complete by this document | Next reference batch 36–40; inspect current code/API before changes |
+| 36 | Create Purchase Invoice | Reference-style functional draft editor; device QA pending | Compact server-backed Supplier/Date/Warehouse/Remarks, product cards and shared Create Draft/Post footer; uses existing authorized purchase draft/line/post methods |
+| 37 | Purchase Invoice Detail | Reference-style real detail; device QA pending | Server-confirmed purchase lines/totals/status; Print PDF from authorized server response and vendor View Ledger when permitted, without a fake purchase-ledger endpoint |
+| 38 | Sales Returns | Functional server list, styled; device QA pending | Real `/api/sales-returns`, search/status filter, compact colored reference cards, Add Return; no sample returns |
+| 39 | Create Sales Return | Reference-style functional return editor; device QA pending | Posted original sale selection, server returnable lines, draft/line edit/delete, preserved persisted idempotency key and server Post Return; compact form/item cards and footer |
+| 40 | Purchase Returns | Functional server list, styled; device QA pending | Real `/api/purchase-returns`, search/status filters, Add Return; existing server purchase return editor/posting reuse |
+| 41–92 | Remaining references | Not claimed complete by this document | Next batch 41–45; inspect reference PNGs and live API before implementation |
 
 ## Current fixes from user feedback
 
@@ -89,8 +94,20 @@ This was an **inspection only** of the web repository; it was not edited.
 - **33 Create Sales Invoice:** unchanged existing `SalesInvoiceEntryScreen` delegates to POS `SaleScreen`; its UI is frozen. No new client posting or total calculation.
 - **34 Sales Invoice Detail:** `ReceiptScreen` now uses reference-styled readonly, authorized invoice rows/totals with pinned Print/Share buttons. Existing PDF/OS print/share flows preserved.
 - **35 Purchase Invoices:** `TransactionDirectory(referenceStyle: true)` uses a reference header, compact cards, search and Add Purchase CTA. Actual `PurchaseInvoicesScreen` continues to own server draft/header/line/post flow; no parallel purchasing implementation.
-- New test `test/mobile_reference_31_35_test.dart` covers shared detail actions and disabled Edit state. **Not executed** in current environment.
+- New test `test/mobile_reference_31_35_test.dart test/mobile_reference_36_40_test.dart` covers shared detail actions and disabled Edit state. **Not executed** in current environment.
 - Static delimiter/nesting inspection performed on changed Dart sources. Flutter analyzer, tests and Android visual QA **pending**.
+
+## Latest reference batch — Screens 36–40 (2026-11-17)
+
+- Reference PNGs reviewed: `36_Purchase_Invoice_Entry.png`, `37_Purchase_Invoice_Details.png`, `38_Sales_Returns.png`, `39_Sales_Return_Entry.png`, `40_Purchase_Returns.png`.
+- `lib/widgets/reference_surface.dart`: added **`BpReferenceWorkflowActions`** using shared 43px button height, single-line responsive labels and caller-owned callbacks. It does not perform financial calculations or posting.
+- `lib/screens/purchase_invoices.dart`: screen 36/37 compact real supplier/date/warehouse inputs, server-returned purchase line cards, conditional server totals, Create Draft/Save Header/Post Purchase footer with existing permissions. Posted purchase print exports an authorized server-data PDF; View Ledger opens the existing **supplier party ledger** (not an invented purchase-specific ledger) only when supplier ULID and permissions are valid. No duplicate Post button.
+- `lib/screens/transaction_widgets.dart`: screens 38/40 reuse generic real-data `TransactionDirectory`, adding iconography, reference search/filter (filter applies to **loaded** items only) and Add Return CTA. Other transaction directories retain their existing logic.
+- `lib/screens/returns.dart`: screen 39 now uses compact shared form fields and returned-items cards; real source selection, server-calculated return totals, existing create/line/post permissions, idempotency and uncertainty handling remain untouched. The same existing editor also opens authorized purchase returns from screen 40.
+- `test/mobile_reference_36_40_test.dart`: focused tests for route/source keys, small footer, and disabled Post state were added but not executed in this environment.
+- Web contract previously verified: `backend/routes/api.php` exposes `/api/purchases`, `/api/purchases/{ulid}/post`, `/api/sales-returns`, `/api/sales-returns/{ulid}/post`, `/api/purchase-returns`, `/api/purchase-returns/{ulid}/post`, and party ledger. **No purchase-specific ledger endpoint** is implied by the mockups.
+- No backend/schema migrations, fake line totals or sample return data. No change to frozen Sales Invoice creation geometry.
+- **Pending:** Flutter compiler/analyzer and focused tests; 360–390px device screenshots, Android UI review, real RBAC/API integration QA, server posting and retry tests on `bluepos_test`. The GitHub tool commits are not proof of runtime success.
 
 ## Validation
 
@@ -106,7 +123,7 @@ cd "C:\Projects\BluePOSApp"
 git status --short
 git branch --show-current
 git pull --ff-only origin feature/daily-entries
-flutter analyze lib/widgets/reference_surface.dart lib/widgets/party_ledger_summary.dart lib/screens/parties.dart lib/screens/customer_detail.dart lib/screens/supplier_detail.dart lib/screens/modules.dart lib/screens/receipt.dart lib/screens/transaction_widgets.dart
+flutter analyze lib/widgets/reference_surface.dart lib/screens/purchase_invoices.dart lib/screens/returns.dart lib/screens/transaction_widgets.dart
 flutter test test/reference_11_15_smoke_test.dart test/catalog_reference_16_20_test.dart test/mobile_reference_21_25_test.dart test/mobile_reference_26_30_test.dart
 flutter run
 ```
