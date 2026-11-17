@@ -220,9 +220,6 @@ class _PartyDirectoryState extends State<PartyDirectory> {
                   fieldKey: const ValueKey('party-editor-code'),
                   icon: Icons.qr_code_rounded, controller: code,
                   maxLength: 64),
-                Text('The party code is required by the BluePOS API.',
-                  style: TextStyle(fontSize: 11,
-                    color: Theme.of(sheet).colorScheme.onSurfaceVariant)),
                 BpReferenceFormField(
                   label: 'Name *', hint: 'Enter name',
                   fieldKey: const ValueKey('party-editor-name'),
@@ -234,7 +231,11 @@ class _PartyDirectoryState extends State<PartyDirectory> {
                   child: DropdownButtonFormField<String>(
                   isExpanded: true,
                   initialValue: selected.isEmpty ? null : selected,
-                  decoration: const InputDecoration(labelText: 'Account type *'),
+                  decoration: BpReferenceStyle.of(sheet)
+                    .search('Select account type').copyWith(
+                      isDense: true,
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 10, vertical: 7)),
                   items: accounts.map((row) => DropdownMenuItem<String>(
                     value: field(row['ulid']),
                     child: Text(field(row['name']),
@@ -278,16 +279,12 @@ class _PartyDirectoryState extends State<PartyDirectory> {
                     controller: creditDays,
                     keyboardType: TextInputType.number),
                 ],
-                const Text('Status *',
-                  style: TextStyle(fontWeight: FontWeight.w800)),
-                SegmentedButton<bool>(
-                  segments: const [
-                    ButtonSegment(value: true, label: Text('Active')),
-                    ButtonSegment(value: false, label: Text('Inactive')),
-                  ],
-                  selected: {active},
-                  onSelectionChanged: saving ? null :
-                    (values) => update(() => active = values.first)),
+                BpReferenceFormField(
+                  label: 'Status *', hint: '',
+                  icon: Icons.verified_user_outlined,
+                  child: BpReferenceStatusSelector(
+                    active: active, enabled: !saving,
+                    onChanged: (value) => update(() => active = value))),
                 if (message != null) Text(message!, style: TextStyle(
                   color: Theme.of(sheet).colorScheme.error)),
                 const SizedBox(height: 10),
