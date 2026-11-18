@@ -4,6 +4,7 @@ import '../core/api.dart';
 import '../core/sale_attempt.dart';
 import '../core/session.dart';
 import '../widgets/common.dart';
+import '../widgets/reference_surface.dart';
 import 'transaction_widgets.dart';
 
 enum VoucherKind { payment, receiving, journal, opening }
@@ -484,8 +485,196 @@ class _VoucherEditorState extends State<VoucherEditor> {
     }
   }
 
+  /// Reference 46/48/50; existing voucher domain methods remain authoritative.
+  Widget referenceEditor(BuildContext context) {
+    final style = BpReferenceStyle.of(context);
+    final editable = !saving && !pendingAttempt &&
+        (!created || draft && canEdit);
+    final isJournal = kind == VoucherKind.journal;
+    final title = isJournal ? 'Create Journal Voucher'
+      : kind == VoucherKind.payment ? 'Create Payment' : 'Create Receipt';
+    return Scaffold(
+      backgroundColor: style.page,
+      appBar: BpReferenceSubpageAppBar(
+        title: created ? kind.label : title),
+      bottomNavigationBar: !loading && (!created || draft)
+        ? BpReferenceWorkflowActions(
+            leftKey: const ValueKey('voucher-save-draft'),
+            rightKey: const ValueKey('voucher-post'),
+            leftLabel: pendingAttempt ? 'Retry Saved Draft'
+              : created ? 'Save Draft' : 'Create Draft',
+            rightLabel: isJournal ? 'Post Journal'
+              : kind == VoucherKind.payment ? 'Post Payment' : 'Post Receipt',
+            rightColor: const Color(0xFF006DF6),
+            onLeft: editable && canEdit ? save : null,
+            onRight: created && draft && canPost && !saving
+              ? post : null)
+        : null,
+      body: Stack(children: [
+        const Positioned(top: 0, right: 0,
+          child: BpReferenceTopAccent()),
+        ListView(
+          key: const ValueKey('reference-voucher-editor'),
+          padding: const EdgeInsets.fromLTRB(11, 10, 11, 94),
+          children: [
+            if (loading) pageLoading()
+            else ...[
+              Row(children: [
+                Expanded(child: BpReferenceCompactField(
+                  label: 'Voucher No. (server)',
+                  icon: Icons.description_outlined,
+                  value: field(voucher?['voucher_number']),
+                  hint: 'Assigned on draft')),
+                const SizedBox(width: 7),
+                Expanded(child: BpReferenceCompactField(
+                  label: 'Date *', icon: Icons.calendar_month_outlined,
+                  value: isoLocalDate(entryDate),
+                  onTap: editable ? chooseDate : null)),
+              ]),
+              const SizedBox(height: 7),
+              BpReferenceFormField(
+                label: isJournal ? 'Narration / Description'
+                  : 'Description (optional)',
+                hint: 'Enter narration',
+                icon: Icons.notes_outlined,
+                controller: description, maxLength: 500,
+                maxLines: 2, readOnly: !editable),
+              BpReferenceFormField(
+                label: 'Book Number (optional)',
+                hint: 'Enter book reference',
+                icon: Icons.tag_outlined,
+                controller: book, maxLength: 50,
+                readOnly: !editable),
+              if (kind.hasHeader)
+                BpReferenceFormField(
+                  label: 'Cash / Bank Account *',
+                  hint: 'Select account',
+                  icon: Icons.account_balance_wallet_outlined,
+                  child: InkWell(
+                    onTap: editable ? chooseHeader : null,
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 8),
+                      child: Row(children: [
+                        Expanded(child: Text(
+                          field(headerAccount?['name'],
+                            'Choose cash or bank account'),
+                          maxLines: 1, overflow: TextOverflow.ellipsis)),
+                        const Icon(Icons.chevron_right_rounded),
+                      ]),
+                    ))),
+              Row(children: [
+                Expanded(child: Text(isJournal
+                  ? 'Journal Lines (Double Entry)' : 'Account Lines',
+                  style: TextStyle(color: style.ink,
+                    fontWeight: FontWeight.w900, fontSize: 12))),
+                if (editable && canEdit)
+                  OutlinedButton.icon(
+                    onPressed: () => addLine(),
+                    icon: const Icon(Icons.add, size: 16),
+                    label: const Text('Add Line')),
+              ]),
+              if (rows.isEmpty)
+                Container(
+                  decoration: style.card(radius: 13),
+                  padding: const EdgeInsets.all(12),
+                  child: Text('Select real chart-of-account lines. '
+                    'The server validates debit/credit totals before posting.',
+                    style: TextStyle(color: style.muted, fontSize: 11)))
+              else for (final row in rows)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 6),
+                  child: Container(
+                    decoration: style.card(radius: 13),
+                    padding: const EdgeInsets.all(9),
+                    child: Row(children: [
+                      Icon(Icons.account_balance_outlined,
+                        color: style.scheme.primary),
+                      const SizedBox(width: 8),
+                      Expanded(child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(field(row.account['name']),
+                            maxLines: 2, overflow: TextOverflow.ellipsis,
+                            style: TextStyle(color: style.ink,
+                              fontWeight: FontWeight.w800, fontSize: 11)),
+                          Text(field(row.account['code']),
+                            style: TextStyle(color: style.muted, fontSize: 10)),
+                          if (row.narration.isNotEmpty)
+                            Text(row.narration, maxLines: 1,
+                              style: TextStyle(color: style.muted,
+                                fontSize: 10)),
+                        ])),
+                      Column(crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          Text(kind.hasHeader
+                            ? money(row.amount, widget.app.currency)
+                            : validPositiveDecimal(row.debit, 4)
+                              ? 'Dr ${money(row.debit, widget.app.currency)}'
+                              : 'Cr ${money(row.credit, widget.app.currency)}',
+                            style: TextStyle(color: style.ink,
+                              fontWeight: FontWeight.w900, fontSize: 10)),
+                          if (editable) Row(
+                            mainAxisSize: MainAxisSize.min, children: [
+                              IconButton(
+                                onPressed: () => addLine(row),
+                                visualDensity: VisualDensity.compact,
+                                constraints: const BoxConstraints(
+                                  minWidth: 30, minHeight: 30),
+                                icon: const Icon(Icons.edit_outlined,
+                                  size: 17)),
+                              IconButton(
+                                onPressed: () => setState(
+                                  () => rows.remove(row)),
+                                visualDensity: VisualDensity.compact,
+                                constraints: const BoxConstraints(
+                                  minWidth: 30, minHeight: 30),
+                                icon: Icon(Icons.remove_circle_outline,
+                                  size: 17, color: style.scheme.error)),
+                            ]),
+                        ]),
+                    ]),
+                  ),
+                ),
+              if (created)
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: style.card(radius: 13),
+                  child: Column(children: [
+                    BpReferenceDetailLine(
+                      label: 'Server Debit',
+                      icon: Icons.south_west_rounded,
+                      value: money(voucher?['total_debit'],
+                        widget.app.currency)),
+                    BpReferenceDetailLine(
+                      label: 'Server Credit',
+                      icon: Icons.north_east_rounded,
+                      value: money(voucher?['total_credit'],
+                        widget.app.currency)),
+                    Text('Status: ${field(voucher?['status'])}',
+                      style: TextStyle(color: style.muted,
+                        fontSize: 11)),
+                  ]),
+                ),
+              if (created && draft && canEdit)
+                TextButton.icon(
+                  onPressed: saving ? null : deleteDraft,
+                  icon: Icon(Icons.delete_outline,
+                    color: style.scheme.error),
+                  label: const Text('Delete Draft')),
+              if (pendingAttempt)
+                const Text('Unconfirmed voucher. Retry original request only.'),
+              if (error != null)
+                Text(error!, style: TextStyle(color: style.scheme.error)),
+            ],
+          ],
+        ),
+      ]),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    if (widget.lockInitialKind) return referenceEditor(context);
     final colors = Theme.of(context).colorScheme;
     final editable = !saving && !pendingAttempt &&
       (!created || draft && canEdit);
