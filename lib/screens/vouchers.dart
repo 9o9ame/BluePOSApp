@@ -336,7 +336,7 @@ class _VoucherEditorState extends State<VoucherEditor> {
             ]),
           ),
         ));
-      if (accepted == true && mounted) setState(() {
+      if (accepted == true && mounted) { setState(() {
         final replacement = VoucherRowDraft(
           account: account,
           amount: amount.text.trim(),
@@ -344,9 +344,9 @@ class _VoucherEditorState extends State<VoucherEditor> {
           credit: credit.text.trim(),
           narration: narration.text.trim(),
         );
-        if (original == null) rows.add(replacement);
-        else rows[rows.indexOf(original)] = replacement;
-      });
+        if (original == null) { rows.add(replacement); }
+        else { rows[rows.indexOf(original)] = replacement; }
+      }); }
     } finally {
       amount.dispose(); debit.dispose(); credit.dispose(); narration.dispose();
     }
@@ -388,8 +388,8 @@ class _VoucherEditorState extends State<VoucherEditor> {
         pendingAttempt = false;
         unconfirmedKey = null;
         unconfirmedPayload = null;
-        if (mounted) setState(() => error =
-          'Cannot securely store voucher request. Nothing was sent.');
+        if (mounted) { setState(() => error =
+          'Cannot securely store voucher request. Nothing was sent.'); }
         return;
       }
     }
@@ -419,12 +419,12 @@ class _VoucherEditorState extends State<VoucherEditor> {
         unconfirmedKey = null;
         unconfirmedPayload = null;
       }
-      if (mounted) setState(() => error = pendingAttempt
+      if (mounted) { setState(() => error = pendingAttempt
         ? 'Voucher save is unconfirmed. Retry this saved request safely.'
-        : ex.message);
+        : ex.message); }
     } catch (_) {
-      if (mounted) setState(() => error =
-        'Voucher save is unconfirmed. Retry this saved request safely.');
+      if (mounted) { setState(() => error =
+        'Voucher save is unconfirmed. Retry this saved request safely.'); }
     } finally {
       if (mounted) setState(() => saving = false);
     }
@@ -438,8 +438,8 @@ class _VoucherEditorState extends State<VoucherEditor> {
         body: payload);
       await refresh();
     } catch (ex) {
-      if (mounted) setState(() => error =
-        'Draft update unconfirmed. Refresh this voucher before editing again. $ex');
+      if (mounted) { setState(() => error =
+        'Draft update unconfirmed. Refresh this voucher before editing again. $ex'); }
     } finally {
       if (mounted) setState(() => saving = false);
     }
@@ -451,7 +451,7 @@ class _VoucherEditorState extends State<VoucherEditor> {
       title: 'Post ${kind.label}?',
       warning: 'BluePOS verifies account entries and posts an immutable '
         'journal document. Posted vouchers cannot be edited.',
-      actionLabel: 'Post Voucher')) return;
+      actionLabel: 'Post Voucher')) { return; }
     setState(() { saving = true; error = null; });
     try {
       await widget.app.api.post('/api/vouchers/$id/post', {});
@@ -459,8 +459,8 @@ class _VoucherEditorState extends State<VoucherEditor> {
     } catch (ex) {
       if (mounted) {
         await refresh();
-        if (mounted) setState(() => error =
-          'Posting status uncertain. Check the voucher status before retrying. $ex');
+        if (mounted) { setState(() => error =
+          'Posting status uncertain. Check the voucher status before retrying. $ex'); }
       }
     } finally {
       if (mounted) setState(() => saving = false);
@@ -473,7 +473,7 @@ class _VoucherEditorState extends State<VoucherEditor> {
       title: 'Delete unposted voucher?',
       warning: 'This deletes the draft and its journal lines. '
         'Posted accounting entries cannot be deleted.',
-      actionLabel: 'Delete Draft')) return;
+      actionLabel: 'Delete Draft')) { return; }
     setState(() => saving = true);
     try {
       await widget.app.api.request('DELETE', '/api/vouchers/$id');
