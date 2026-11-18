@@ -2,6 +2,17 @@
 
 _Updated 2026-11-18. Authoritative working repository: `9o9ame/BluePOSApp`, branch `feature/daily-entries`._
 
+## ADDENDUM: completion details for the rejected screenshot fixes (2026-11-18)
+
+- Updated `BpReferenceSubpageAppBar` with **opt-in** `titleBelowBack: true`, producing reference-style left-aligned headings below logo/back (130px). Default remains the previous 112px centered title so frozen/approved screens are unchanged.
+- Applied opt-in heading to 44 Expense, 46/48/50 voucher editor and voucher directories 45/47/49 only. Do not change global AppBar behavior to fix a single reference.
+- In `VoucherEditor.referenceEditor`, empty account lines now render a tappable real `Add Line` entry row, not a large inactive explanatory box. The existing modal/account picker performs the real selected-account input; no dummy records.
+- Voucher directory cards use actual server fields with fixed voucher identity tones: Journal indigo, Payment red, Receiving green; document status still comes from the backend. List remains honestly empty when tenant has no records.
+- New narrow layout test and optional heading-height regression tests in `test/mobile_reference_46_50_test.dart`. **Not executed** on a Flutter runtime here.
+- **Visual focus:** user rejected previous 44/46/48/50 screens. This new code is significantly closer in row density/heading placement but **has not yet been compared against a fresh installed Android build**. Most recent visible old screenshots are not QA of new commits.
+- **Current tasks on continuation:** run Flutter analyzer/test after pulling, correct any compiler or overflow issues, compare new phone screenshots; do not skip that and jump to 51–55 claiming 44/46/48/50 approved.
+- Web `PROJECT_UI_DESIGN_SYSTEM.md` requires unified controls and voucher identity colors. Web and mobile have separate UI technologies. Manual Payment/Receiving Voucher API is distinct from invoice-specific payment allocation. Preserve that distinction.
+
 ## MOST RECENT CORRECTION — 2026-11-18, read before anything below
 
 The user supplied Android screenshots for **44 Create Expense Voucher**, **46 Create Journal Voucher**, **48 Create Payment**, **50 Create Receipt** and strongly rejected the previous visual design: every field was a tall independent card with excessive blank space, unlike the reference's compact one-card horizontal field rows and small right-aligned controls. The rejected UI **has been replaced in code and committed on `feature/daily-entries`**, but a fresh Android screenshot has **not** been received; pixel-perfect approval and Flutter compile remain pending.
