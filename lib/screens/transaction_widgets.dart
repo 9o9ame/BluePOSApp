@@ -281,6 +281,12 @@ class _TransactionDirectoryState extends State<TransactionDirectory> {
       _ => style.scheme.primary,
     };
     final isVoucher = widget.endpoint.startsWith('/api/vouchers');
+    final voucherTone = widget.endpoint.contains('type=payment')
+      ? const Color(0xFFE85B67)
+      : widget.endpoint.contains('type=receiving')
+        ? const Color(0xFF09A758)
+        : const Color(0xFF7953DE);
+    final plateColor = isVoucher ? voucherTone : statusColor;
     final party = isVoucher
       ? field(item['description'],
           field(item['book_number'],
@@ -302,7 +308,7 @@ class _TransactionDirectoryState extends State<TransactionDirectory> {
         Container(
           width: 42, height: 44,
           decoration: BoxDecoration(
-            color: statusColor.withValues(alpha: .12),
+            color: plateColor.withValues(alpha: .12),
             borderRadius: BorderRadius.circular(11)),
           child: Icon(isVoucher
               ? widget.endpoint.contains('type=payment')
@@ -311,7 +317,7 @@ class _TransactionDirectoryState extends State<TransactionDirectory> {
                   ? Icons.move_to_inbox_rounded
                   : Icons.menu_book_outlined
             : isReturn ? Icons.assignment_return_rounded
-            : Icons.receipt_long_rounded, size: 23, color: statusColor)),
+            : Icons.receipt_long_rounded, size: 23, color: plateColor)),
         const SizedBox(width: 9),
         Expanded(child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -322,6 +328,10 @@ class _TransactionDirectoryState extends State<TransactionDirectory> {
                 fontWeight: FontWeight.w900)),
             Text(party, maxLines: 1, overflow: TextOverflow.ellipsis,
               style: TextStyle(color: style.muted, fontSize: 10)),
+            if (isVoucher)
+              Text(field(item[widget.dateKey]),
+                maxLines: 1, overflow: TextOverflow.ellipsis,
+                style: TextStyle(color: style.muted, fontSize: 9.5)),
             if (isReturn && source.isNotEmpty)
               Text('Inv: $source', maxLines: 1,
                 overflow: TextOverflow.ellipsis,
@@ -342,8 +352,9 @@ class _TransactionDirectoryState extends State<TransactionDirectory> {
                 style: TextStyle(fontSize: 9.5,
                   color: statusColor, fontWeight: FontWeight.w800))),
             const SizedBox(height: 3),
-            Text(field(item[widget.dateKey]),
-              style: TextStyle(fontSize: 9.5, color: style.muted)),
+            if (!isVoucher)
+              Text(field(item[widget.dateKey]),
+                style: TextStyle(fontSize: 9.5, color: style.muted)),
             if (amount != null)
               Text(money(amount, widget.app.currency),
                 style: TextStyle(color: style.ink, fontSize: 10.5,
