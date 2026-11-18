@@ -248,7 +248,7 @@ class _MoneyActionScreenState extends State<MoneyActionScreen> {
     final style = BpReferenceStyle.of(context);
     return Scaffold(
       backgroundColor: style.page,
-      appBar: const BpReferenceSubpageAppBar(title: 'Record Expense'),
+      appBar: const BpReferenceSubpageAppBar(title: 'Create Expense Voucher'),
       bottomNavigationBar: BpReferenceWorkflowActions(
         leftLabel: 'Cancel',
         rightLabel: unconfirmed ? 'Retry Saved Request' : 'Confirm Expense',
@@ -304,14 +304,10 @@ class _MoneyActionScreenState extends State<MoneyActionScreen> {
               label: 'Description (optional)', hint: 'Enter description',
               icon: Icons.notes_outlined,
               controller: description, maxLength: 500, maxLines: 2),
-            const SizedBox(height: 10),
-            Container(
-              padding: const EdgeInsets.all(11),
-              decoration: style.card(radius: 13),
-              child: Text('This BluePOS API posts the expense immediately '
-                'after confirmation. Draft and separate posting actions '
-                'are not supported. All balances are server-calculated.',
-                style: TextStyle(fontSize: 11, color: style.muted))),
+            const SizedBox(height: 6),
+            Text('Confirm Expense posts to BluePOS immediately. '
+              'Please verify both accounts and the amount.',
+              style: TextStyle(fontSize: 10, color: style.muted)),
           ],
           if (error != null) Padding(
             padding: const EdgeInsets.only(top: 9),
