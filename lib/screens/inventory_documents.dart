@@ -804,6 +804,10 @@ class _InventoryDocumentEditorState extends State<InventoryDocumentEditor> {
             ],
           ],
         ),
+        const Positioned(
+          bottom: 0, left: 0, right: 0,
+          child: IgnorePointer(
+            child: BpReferenceFooterWave())),
       ]),
     );
   }
