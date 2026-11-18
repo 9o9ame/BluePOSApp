@@ -80,18 +80,23 @@ class JournalVoucherDirectoryScreen extends StatelessWidget {
     numberKey: 'voucher_number',
     dateKey: 'entry_date', amountKey: 'total_debit',
     referenceStyle: true, createPermission: 'vouchers.create',
-    onCreate: (ctx) async => await Navigator.push<bool>(ctx,
-      MaterialPageRoute(builder: (_) => VoucherEditor(
-        app: app, initialKind: VoucherKind.journal,
-        lockInitialKind: true))) ?? false,
+    onCreate: (ctx) async {
+      await Navigator.push<void>(ctx,
+        MaterialPageRoute(builder: (_) => VoucherEditor(
+          app: app, initialKind: VoucherKind.journal,
+          lockInitialKind: true)));
+      return true; // Refresh server list after returning from editor.
+    },
     onOpen: (ctx, row) async {
       final id = field(row['ulid']);
       if (!validPublicUlid(id)) return false;
-      return await Navigator.push<bool>(ctx,
+      await Navigator.push<void>(ctx,
         MaterialPageRoute(builder: (_) => VoucherEditor(
           app: app, voucherUlid: id,
           initialKind: VoucherKind.journal,
-          lockInitialKind: true))) ?? false;
+          lockInitialKind: true)));
+      return true; // Reload status after drafts or posting.
+
     },
   );
 }
