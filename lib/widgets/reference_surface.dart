@@ -215,6 +215,77 @@ class BpReferenceCompactField extends StatelessWidget {
   }
 }
 
+/// Dense one-line reference transaction field. The caller owns its
+/// controller, account picker, permissions, validation and server payload.
+/// Unlike stacked FormField tiles, all rows share a single card surface.
+class BpReferenceInlineRow extends StatelessWidget {
+  const BpReferenceInlineRow({
+    super.key, required this.label, required this.icon, required this.child,
+    this.iconColor, this.minHeight = 39, this.requiredField = false,
+  });
+  final String label;
+  final IconData icon;
+  final Widget child;
+  final Color? iconColor;
+  final double minHeight;
+  final bool requiredField;
+
+  @override
+  Widget build(BuildContext context) {
+    final style = BpReferenceStyle.of(context);
+    final tone = iconColor ?? style.scheme.primary;
+    return ConstrainedBox(
+      constraints: BoxConstraints(minHeight: minHeight),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+        child: Row(children: [
+          Container(
+            width: 29, height: 30,
+            decoration: BoxDecoration(
+              color: tone.withValues(alpha: .11),
+              borderRadius: BorderRadius.circular(8)),
+            child: Icon(icon, size: 17, color: tone)),
+          const SizedBox(width: 8),
+          SizedBox(width: 107, child: Text.rich(
+            TextSpan(children: [
+              TextSpan(text: label),
+              if (requiredField)
+                TextSpan(text: ' *', style: TextStyle(
+                  color: style.scheme.error)),
+            ]),
+            maxLines: 2, overflow: TextOverflow.ellipsis,
+            style: TextStyle(fontSize: 10.1, color: style.ink,
+              fontWeight: FontWeight.w800))),
+          const SizedBox(width: 5),
+          Expanded(child: child),
+        ]),
+      ),
+    );
+  }
+}
+
+/// Shared grouped surface for compact reference transaction rows.
+class BpReferenceInlinePanel extends StatelessWidget {
+  const BpReferenceInlinePanel({super.key, required this.children});
+  final List<Widget> children;
+
+  @override
+  Widget build(BuildContext context) {
+    final style = BpReferenceStyle.of(context);
+    return Container(
+      decoration: style.card(radius: 14),
+      clipBehavior: Clip.antiAlias,
+      child: Column(mainAxisSize: MainAxisSize.min, children: [
+        for (var index = 0; index < children.length; index++) ...[
+          if (index > 0)
+            Divider(height: 1, thickness: .7, color: style.line),
+          children[index],
+        ],
+      ]),
+    );
+  }
+}
+
 /// Shared small, single-line bottom actions; Wave stays outside content.
 class BpReferenceFooter extends StatelessWidget {
   const BpReferenceFooter({
