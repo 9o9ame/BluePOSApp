@@ -82,7 +82,7 @@ class JournalVoucherDirectoryScreen extends StatelessWidget {
     dateKey: 'entry_date', amountKey: 'total_debit',
     referenceStyle: true, createPermission: 'vouchers.create',
     onCreate: (ctx) async {
-      await Navigator.push<void>(ctx,
+      await Navigator.push<bool>(ctx,
         MaterialPageRoute(builder: (_) => VoucherEditor(
           app: app, initialKind: VoucherKind.journal,
           lockInitialKind: true)));
@@ -91,7 +91,7 @@ class JournalVoucherDirectoryScreen extends StatelessWidget {
     onOpen: (ctx, row) async {
       final id = field(row['ulid']);
       if (!validPublicUlid(id)) return false;
-      await Navigator.push<void>(ctx,
+      await Navigator.push<bool>(ctx,
         MaterialPageRoute(builder: (_) => VoucherEditor(
           app: app, voucherUlid: id,
           initialKind: VoucherKind.journal,
@@ -122,7 +122,7 @@ class CashVoucherDirectoryScreen extends StatelessWidget {
     referenceStyle: true,
     createPermission: 'vouchers.create',
     onCreate: (ctx) async {
-      await Navigator.push<void>(ctx,
+      await Navigator.push<bool>(ctx,
         MaterialPageRoute(builder: (_) => VoucherEditor(
           app: app, initialKind: kind, lockInitialKind: true)));
       return true;
@@ -130,7 +130,7 @@ class CashVoucherDirectoryScreen extends StatelessWidget {
     onOpen: (ctx, row) async {
       final ulid = field(row['ulid']);
       if (!validPublicUlid(ulid)) return false;
-      await Navigator.push<void>(ctx,
+      await Navigator.push<bool>(ctx,
         MaterialPageRoute(builder: (_) => VoucherEditor(
           app: app, voucherUlid: ulid,
           initialKind: kind, lockInitialKind: true)));
