@@ -38,6 +38,15 @@ void main() {
     expect(line.payload(VoucherKind.payment).containsKey('debit'), isFalse);
   });
 
+  test('voucher title layout is opt-in; other screens stay frozen', () {
+    const reference = BpReferenceSubpageAppBar(
+      title: 'Create Journal Voucher', titleBelowBack: true);
+    const standard = BpReferenceSubpageAppBar(
+      title: 'Other Screen');
+    expect(reference.preferredSize.height, 130);
+    expect(standard.preferredSize.height, 112);
+  });
+
   testWidgets('reference fields share a compact grouped panel at 360px',
       (tester) async {
     await tester.binding.setSurfaceSize(const Size(360, 780));
