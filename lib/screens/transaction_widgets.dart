@@ -280,10 +280,14 @@ class _TransactionDirectoryState extends State<TransactionDirectory> {
       'adjusted' => const Color(0xFF8C51D7),
       _ => style.scheme.primary,
     };
-    final party = field(objectOf(item['supplier'])['name'],
-      field(objectOf(item['customer'])['name'],
-        field(item['supplier_name'],
-          field(item['customer_name'], 'Walk-in / Not assigned'))));
+    final isVoucher = widget.endpoint.startsWith('/api/vouchers');
+    final party = isVoucher
+      ? field(item['description'],
+          field(item['book_number'], 'Journal voucher'))
+      : field(objectOf(item['supplier'])['name'],
+          field(objectOf(item['customer'])['name'],
+            field(item['supplier_name'],
+              field(item['customer_name'], 'Party not assigned'))));
     final source = field(
       objectOf(item['original_sale'])['document_number'],
       field(objectOf(item['original_purchase'])['document_number']));
@@ -297,7 +301,8 @@ class _TransactionDirectoryState extends State<TransactionDirectory> {
           decoration: BoxDecoration(
             color: statusColor.withValues(alpha: .12),
             borderRadius: BorderRadius.circular(11)),
-          child: Icon(isReturn ? Icons.assignment_return_rounded
+          child: Icon(isVoucher ? Icons.menu_book_outlined
+            : isReturn ? Icons.assignment_return_rounded
             : Icons.receipt_long_rounded, size: 23, color: statusColor)),
         const SizedBox(width: 9),
         Expanded(child: Column(
@@ -389,7 +394,9 @@ class _TransactionDirectoryState extends State<TransactionDirectory> {
                   ? 'Search return, party, invoice...'
                   : widget.endpoint == '/api/sales'
                     ? 'Search invoice or customer...'
-                    : 'Search invoice or supplier...',
+                    : widget.endpoint.startsWith('/api/vouchers')
+                      ? 'Search voucher, narration, account...'
+                      : 'Search invoice or supplier...',
                   prefixIcon: const Icon(Icons.search_rounded))
                   .copyWith(isDense: true)
               : const InputDecoration(
