@@ -596,8 +596,223 @@ class _InventoryDocumentEditorState extends State<InventoryDocumentEditor> {
     }
   }
 
+  /// Screen 55. Opening Stock requires a real draft before line creation.
+  /// Qty and unit cost use the existing server validation/posting flow.
+  Widget openingReference(BuildContext context) {
+    final style = BpReferenceStyle.of(context);
+    final lines = recordsOf(document?['lines']);
+    final editable = !saving && !uncertainCreate &&
+      (!created || (draft && canEdit));
+    Widget valueBox(String value, {VoidCallback? onTap}) => InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(9),
+      child: Container(
+        constraints: const BoxConstraints(minHeight: 31),
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+        decoration: BoxDecoration(color: style.surface,
+          borderRadius: BorderRadius.circular(9),
+          border: Border.all(color: style.line)),
+        child: Row(children: [
+          Expanded(child: Text(value,
+            maxLines: 1, overflow: TextOverflow.ellipsis,
+            style: TextStyle(color: style.ink, fontSize: 10.8))),
+          if (onTap != null)
+            Icon(Icons.chevron_right_rounded, size: 16,
+              color: style.muted),
+        ]),
+      ),
+    );
+    return Scaffold(
+      backgroundColor: style.page,
+      appBar: BpReferenceSubpageAppBar(
+        title: created ? 'Opening Stock Detail' : 'Add Opening Stock',
+        titleBelowBack: true),
+      bottomNavigationBar: BpReferenceWorkflowActions(
+        leftKey: const ValueKey('opening-stock-save'),
+        rightKey: const ValueKey('opening-stock-post'),
+        leftLabel: !created ? 'Create Draft' : 'Save Draft',
+        rightLabel: created && lines.isEmpty
+          ? 'Add Stock Line' : 'Post Opening Stock',
+        leftIcon: Icons.save_outlined,
+        rightIcon: created && lines.isEmpty
+          ? Icons.add_rounded : Icons.verified_rounded,
+        onLeft: !editable ? null : !created ? create : updateHeader,
+        onRight: saving || uncertainCreate || !created || !draft
+          ? null : lines.isEmpty
+            ? canEdit ? () => lineEditor() : null
+            : canPost ? post : null,
+      ),
+      body: Stack(children: [
+        const Positioned(top: 0, right: 0,
+          child: BpReferenceTopAccent()),
+        ListView(
+          key: const ValueKey('opening-stock-reference-editor'),
+          padding: const EdgeInsets.fromLTRB(12, 10, 12, 95),
+          children: [
+            if (loading) pageLoading()
+            else ...[
+              BpReferenceInlinePanel(children: [
+                BpReferenceInlineRow(
+                  label: 'Warehouse / Store', requiredField: true,
+                  icon: Icons.warehouse_outlined,
+                  iconColor: style.green,
+                  child: valueBox(created
+                    ? field(objectOf(document?['warehouse'])['name'],
+                        widget.app.warehouseName)
+                    : widget.app.warehouseName)),
+                BpReferenceInlineRow(
+                  label: 'Date', requiredField: true,
+                  icon: Icons.calendar_month_outlined,
+                  iconColor: const Color(0xFF1398F0),
+                  child: valueBox(isoLocalDate(documentDate),
+                    onTap: editable ? chooseDate : null)),
+                BpReferenceInlineRow(
+                  label: 'Remarks',
+                  icon: Icons.notes_outlined,
+                  iconColor: const Color(0xFF8C5DEC),
+                  child: TextField(
+                    controller: notes,
+                    readOnly: !editable,
+                    maxLines: 2,
+                    maxLength: 500,
+                    style: TextStyle(color: style.ink, fontSize: 11),
+                    decoration: InputDecoration(
+                      hintText: 'Optional stock notes',
+                      isDense: true,
+                      counterText: '',
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 8, vertical: 6),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(9)),
+                    )),
+                ),
+              ]),
+              const SizedBox(height: 10),
+              BpReferenceInlinePanel(children: [
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(10, 7, 10, 6),
+                  child: Row(children: [
+                    Icon(Icons.inventory_2_outlined, size: 22,
+                      color: style.scheme.primary),
+                    const SizedBox(width: 8),
+                    Expanded(child: Text('Opening Stock Items',
+                      style: TextStyle(color: style.ink,
+                        fontSize: 12, fontWeight: FontWeight.w900))),
+                    if (created && draft && canEdit && !saving)
+                      OutlinedButton.icon(
+                        onPressed: () => lineEditor(),
+                        style: OutlinedButton.styleFrom(
+                          minimumSize: const Size(0, 31),
+                          visualDensity: VisualDensity.compact),
+                        icon: const Icon(Icons.add, size: 16),
+                        label: const Text('Add Item')),
+                  ]),
+                ),
+                if (!created)
+                  Padding(
+                    padding: const EdgeInsets.all(11),
+                    child: Text(
+                      'Create the authorized warehouse draft first. '
+                      'Then add products, quantities and unit costs.',
+                      style: TextStyle(color: style.muted, fontSize: 10.5))),
+                if (created && lines.isEmpty)
+                  Padding(
+                    padding: const EdgeInsets.all(11),
+                    child: Text(
+                      'No opening stock lines. Add a real product.',
+                      style: TextStyle(color: style.muted, fontSize: 10.5))),
+                for (final line in lines)
+                  InkWell(
+                    onTap: draft && canEdit && !saving
+                      ? () => lineEditor(line) : null,
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(9, 7, 9, 7),
+                      child: Row(children: [
+                        Container(width: 34, height: 38,
+                          decoration: BoxDecoration(
+                            color: style.scheme.primary.withValues(
+                              alpha: .11),
+                            borderRadius: BorderRadius.circular(9)),
+                          child: Icon(Icons.inventory_2_outlined,
+                            size: 20, color: style.scheme.primary)),
+                        const SizedBox(width: 7),
+                        Expanded(child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(field(objectOf(line['product'])['name']),
+                              maxLines: 1, overflow: TextOverflow.ellipsis,
+                              style: TextStyle(fontSize: 11,
+                                color: style.ink,
+                                fontWeight: FontWeight.w900)),
+                            Text('Qty: ${bpReferenceDecimalLabel(line['quantity'])}'
+                              '  ·  Cost: ${money(line['unit_cost'], widget.app.currency)}',
+                              style: TextStyle(color: style.muted,
+                                fontSize: 9.5)),
+                          ])),
+                        Text(money(line['total_cost'], widget.app.currency),
+                          style: TextStyle(color: style.green,
+                            fontWeight: FontWeight.w900,
+                            fontSize: 10.5)),
+                        if (draft && canEdit && !saving)
+                          IconButton(
+                            constraints: const BoxConstraints(
+                              minWidth: 30, minHeight: 32),
+                            icon: Icon(Icons.delete_outline,
+                              color: style.scheme.error, size: 18),
+                            onPressed: () => removeLine(line)),
+                      ]),
+                    )),
+              ]),
+              if (created) ...[
+                const SizedBox(height: 8),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 11, vertical: 11),
+                  decoration: BoxDecoration(
+                    color: style.dark
+                      ? const Color(0xFF1B422B)
+                      : const Color(0xFFDEF9E6),
+                    borderRadius: BorderRadius.circular(13)),
+                  child: Row(children: [
+                    Icon(Icons.check_circle_outline,
+                      color: style.green),
+                    const SizedBox(width: 7),
+                    Expanded(child: Text(
+                      'Server status: ${field(document?['status'])}',
+                      style: TextStyle(color: style.ink,
+                        fontWeight: FontWeight.w800,
+                        fontSize: 11))),
+                    Text('${lines.length} items',
+                      style: TextStyle(color: style.green,
+                        fontWeight: FontWeight.w900, fontSize: 11)),
+                  ]),
+                ),
+              ],
+              if (created && draft && canEdit)
+                TextButton.icon(
+                  onPressed: saving ? null : removeDraft,
+                  icon: Icon(Icons.delete_outline,
+                    color: style.scheme.error),
+                  label: const Text('Delete Draft')),
+              if (uncertainCreate)
+                Text('Draft status unconfirmed. Check stock records '
+                  'before trying again.',
+                  style: TextStyle(color: style.scheme.error)),
+              if (error != null)
+                Text(error!, style: TextStyle(
+                  color: style.scheme.error)),
+            ],
+          ],
+        ),
+      ]),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    if (widget.kind == InventoryDocumentKind.opening) {
+      return openingReference(context);
+    }
     final palette = Theme.of(context).colorScheme;
     final lines = recordsOf(document?['lines']);
     return Scaffold(
