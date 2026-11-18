@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:pdf/pdf.dart';
+import 'package:pdf/widgets.dart' as pw;
+import 'package:printing/printing.dart';
 
 import '../core/api.dart';
 import '../core/sale_attempt.dart';
@@ -73,6 +76,7 @@ class ReturnDocumentEditor extends StatefulWidget {
 class _ReturnDocumentEditorState extends State<ReturnDocumentEditor> {
   final reason = TextEditingController();
   final notes = TextEditingController();
+  final supplierReference = TextEditingController();
   final pending = const SaleReturnAttemptStore();
   DateTime date = DateTime.now();
   Map<String, dynamic>? source, document;
@@ -100,7 +104,7 @@ class _ReturnDocumentEditorState extends State<ReturnDocumentEditor> {
 
   @override
   void dispose() {
-    reason.dispose(); notes.dispose();
+    reason.dispose(); notes.dispose(); supplierReference.dispose();
     super.dispose();
   }
 
@@ -136,6 +140,7 @@ class _ReturnDocumentEditorState extends State<ReturnDocumentEditor> {
           ?? DateTime.now();
         reason.text = field(fetched['reason']);
         notes.text = field(fetched['notes']);
+        supplierReference.text = field(fetched['supplier_reference']);
       });
       if (validPublicUlid(sourceUlid)) await loadAvailable();
     } catch (ex) {
@@ -202,6 +207,8 @@ class _ReturnDocumentEditorState extends State<ReturnDocumentEditor> {
         'return_date': isoLocalDate(date),
         'reason': reason.text.trim(),
         'notes': notes.text.trim(),
+        if (widget.kind == ReturnDocumentKind.purchase)
+          'supplier_reference': supplierReference.text.trim(),
       };
       if (widget.kind == ReturnDocumentKind.purchase) {
         // Purchase Returns may accept an active warehouse, but the server
@@ -275,6 +282,8 @@ class _ReturnDocumentEditorState extends State<ReturnDocumentEditor> {
         'return_date': isoLocalDate(date),
         'reason': reason.text.trim(),
         'notes': notes.text.trim(),
+        if (widget.kind == ReturnDocumentKind.purchase)
+          'supplier_reference': supplierReference.text.trim(),
       });
       await refresh();
     } catch (ex) {
@@ -456,6 +465,46 @@ class _ReturnDocumentEditorState extends State<ReturnDocumentEditor> {
     }
   }
 
+  Future<void> printPostedReturn() async {
+    if (!created || draft || saving) return;
+    setState(() => saving = true);
+    try {
+      // Server response remains the source of truth for all figures.
+      final data = objectOf(document);
+      final pdf = pw.Document(title: 'BluePOS Purchase Return');
+      pdf.addPage(pw.MultiPage(
+        pageFormat: PdfPageFormat.a4,
+        build: (_) => [
+          pw.Header(level: 0, child: pw.Text('BluePOS — Purchase Return')),
+          pw.Text('Document: ${field(data['document_number'])}'),
+          pw.Text('Date: ${field(data['return_date'])}'),
+          pw.Text('Supplier: ${field(objectOf(data['supplier'])['name'])}'),
+          pw.Text('Status: ${field(data['status'])}'),
+          pw.SizedBox(height: 12),
+          pw.TableHelper.fromTextArray(
+            headers: ['Product', 'Return qty', 'Rate', 'Amount'],
+            data: recordsOf(data['lines']).map((line) => [
+              field(objectOf(line['product'])['name']),
+              field(line['quantity']), field(line['unit_cost']),
+              field(line['line_total']),
+            ]).toList(),
+          ),
+          pw.SizedBox(height: 12),
+          pw.Text('Server total: ${field(data['grand_total'])}'),
+          if (field(data['notes']).isNotEmpty)
+            pw.Text('Notes: ${field(data['notes'])}'),
+        ],
+      ));
+      await Printing.layoutPdf(
+        onLayout: (_) async => pdf.save(),
+        name: 'Purchase Return ${field(data['document_number'])}');
+    } catch (ex) {
+      if (mounted) await showApiError(context, ex);
+    } finally {
+      if (mounted) setState(() => saving = false);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final palette = Theme.of(context).colorScheme;
@@ -493,7 +542,16 @@ class _ReturnDocumentEditorState extends State<ReturnDocumentEditor> {
               : draft && editable ? saveHeader : null,
           onRight: saving || !created || !draft ||
               !canPost || lines.isEmpty ? null : post)
-        : null,
+        : created && !draft &&
+            widget.kind == ReturnDocumentKind.purchase
+          ? BpReferenceWorkflowActions(
+              leftLabel: 'Print', rightLabel: 'Posted',
+              leftIcon: Icons.print_outlined,
+              rightIcon: Icons.verified_rounded,
+              onLeft: saving ? null : printPostedReturn,
+              onRight: null,
+            )
+          : null,
       body: Stack(children: [
         const Positioned(top: 0, right: 0,
           child: BpReferenceTopAccent()),
@@ -539,6 +597,13 @@ class _ReturnDocumentEditorState extends State<ReturnDocumentEditor> {
             label: 'Notes (optional)', hint: 'Enter remarks',
             controller: notes, maxLength: 5000, maxLines: 2,
             readOnly: !canEditNow),
+          if (!isSale)
+            BpReferenceFormField(
+              icon: Icons.tag_outlined,
+              label: 'Supplier Reference (optional)',
+              hint: 'Supplier return reference',
+              controller: supplierReference, maxLength: 100,
+              readOnly: !canEditNow),
           if (!created && available.isNotEmpty) ...[
             const SizedBox(height: 10),
             Row(children: [
@@ -581,6 +646,22 @@ class _ReturnDocumentEditorState extends State<ReturnDocumentEditor> {
             const SizedBox(height: 7),
             Text('Create the draft to choose return quantities; posting stays on the server.',
               style: TextStyle(color: style.muted, fontSize: 10)),
+          ],
+          if (created && !isSale && !draft) ...[
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: style.card(radius: 13),
+              child: Row(children: [
+                Icon(Icons.inventory_2_outlined, color: style.green),
+                const SizedBox(width: 8),
+                Expanded(child: Text(
+                  'Posted purchase return — stock processed by BluePOS',
+                  style: TextStyle(color: style.ink,
+                    fontWeight: FontWeight.w800, fontSize: 11))),
+                Icon(Icons.check_circle_rounded, color: style.green),
+              ]),
+            ),
+            const SizedBox(height: 8),
           ],
           if (created) ...[
             if (widget.kind == ReturnDocumentKind.purchase) ...[
