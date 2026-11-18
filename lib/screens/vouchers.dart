@@ -82,13 +82,16 @@ class JournalVoucherDirectoryScreen extends StatelessWidget {
     referenceStyle: true, createPermission: 'vouchers.create',
     onCreate: (ctx) async => await Navigator.push<bool>(ctx,
       MaterialPageRoute(builder: (_) => VoucherEditor(
-        app: app, initialKind: VoucherKind.journal))) ?? false,
+        app: app, initialKind: VoucherKind.journal,
+        lockInitialKind: true))) ?? false,
     onOpen: (ctx, row) async {
       final id = field(row['ulid']);
       if (!validPublicUlid(id)) return false;
       return await Navigator.push<bool>(ctx,
         MaterialPageRoute(builder: (_) => VoucherEditor(
-          app: app, voucherUlid: id))) ?? false;
+          app: app, voucherUlid: id,
+          initialKind: VoucherKind.journal,
+          lockInitialKind: true))) ?? false;
     },
   );
 }
@@ -99,10 +102,12 @@ class VoucherEditor extends StatefulWidget {
   const VoucherEditor({
     super.key, required this.app, this.voucherUlid,
     this.initialKind = VoucherKind.payment,
+    this.lockInitialKind = false,
   });
   final AppController app;
   final String? voucherUlid;
   final VoucherKind initialKind;
+  final bool lockInitialKind;
   @override
   State<VoucherEditor> createState() => _VoucherEditorState();
 }
@@ -453,7 +458,7 @@ class _VoucherEditorState extends State<VoucherEditor> {
         const SectionHeading('Manual accounting voucher'),
         if (loading) pageLoading()
         else ...[
-          if (!created && !pendingAttempt)
+          if (!created && !pendingAttempt && !widget.lockInitialKind)
             DropdownButtonFormField<VoucherKind>(
               initialValue: kind,
               isExpanded: true,
@@ -472,6 +477,12 @@ class _VoucherEditorState extends State<VoucherEditor> {
                   headerAccount = null;
                 });
               } : null),
+          if (widget.lockInitialKind)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 7),
+              child: Text('Journal Voucher',
+                style: TextStyle(fontWeight: FontWeight.w900,
+                  color: colors.primary))),
           const SizedBox(height: 10),
           OutlinedButton.icon(onPressed: editable ? chooseDate : null,
             icon: const Icon(Icons.calendar_today_outlined),
