@@ -2,6 +2,21 @@
 
 _Updated 2026-11-18. Authoritative working repository: `9o9ame/BluePOSApp`, branch `feature/daily-entries`._
 
+## MOST RECENT CORRECTION — 2026-11-18, read before anything below
+
+The user supplied Android screenshots for **44 Create Expense Voucher**, **46 Create Journal Voucher**, **48 Create Payment**, **50 Create Receipt** and strongly rejected the previous visual design: every field was a tall independent card with excessive blank space, unlike the reference's compact one-card horizontal field rows and small right-aligned controls. The rejected UI **has been replaced in code and committed on `feature/daily-entries`**, but a fresh Android screenshot has **not** been received; pixel-perfect approval and Flutter compile remain pending.
+
+**Latest actual changes:**
+1. `lib/widgets/reference_surface.dart`: **`BpReferenceInlineRow` + `BpReferenceInlinePanel`**, reusable theme-aware compact horizontal field rows and grouped card. Do not create another page-specific field chrome.
+2. `lib/screens/vouchers.dart`: replace the shared `referenceEditor` used by 46/48/50 with a single compact field panel (server-generated voucher number; real date; description/narration; optional book number; Cash/Bank header only for Payment/Receiving), dense actual account-line cards with edit/delete via existing `addLine`, real server debit/credit values after draft creation, existing `save`/`post`/RBAC/idempotency unchanged.
+3. `lib/screens/money_actions.dart`: 44 Expense direct-post entry uses same compact field panel with **only** verified web fields (`expense_date`, `expense_account_ulid`, `payment_account_ulid`, positive 4dp `amount`, optional `reference`, `description`). Preview shows the **entered amount verbatim**, not client-derived tax or a fabricated financial total. Existing direct-post attempt safety unchanged.
+4. `test/mobile_reference_46_50_test.dart`: new 360px compact grouped-panel and picker interaction test. This test and Flutter analyzer have **not** run in the assistant environment.
+5. `docs/MOBILE_REFERENCE_PROGRESS.md`: rows 44/46/48/50 and latest correction history updated.
+
+**Web API contract is mandatory:** Generic voucher `POST /api/vouchers` accepts `type`, `entry_date`, `description`, `book_number`, `header_account_ulid` for cash/bank types, and line `account_ulid` plus `amount` (payment/receiving) or `debit/credit` (journal). No generic manual-voucher invoice/payee/payment-method fields. The reference 48/50 pictures show *invoice-specific settlement*, which is a **different** flow from these existing generic voucher endpoints. Do not fake it or silently wire invoice settlement to journal vouchers. Expense `POST /api/sales/expenses` posts directly; no Save Draft endpoint. Web design-system document identifies Journal=indigo, Payment=red, Receiving=green and requires shared controls; Flutter owns its own `BpReference*` widgets.
+
+**Next instruction to future chat:** Pull latest `feature/daily-entries`, run `flutter analyze` on `reference_surface.dart`, `vouchers.dart`, `money_actions.dart`, and run `flutter test test/mobile_reference_46_50_test.dart`. Fix any compilation/widget failures before claiming screenshot match or proceeding to screens **51–55**. Compare fresh screenshot to user's uploaded 44/46/48/50 references. No backend changes, migrations, deleted data, main merge or production posting tests were made in this correction.
+
 ## CURRENT AUTHORITATIVE STATUS — 2026-11-18
 
 **Working repositories:** Mobile Flutter `9o9ame/BluePOSApp` long-lived branch **`feature/daily-entries`**; web Laravel/React `9o9ame/bluepos` **READ-ONLY** contract source on `main`. Do not switch to or implement on mobile `main`. Web repo remains unmodified. Reference visuals: `BluePOS_Mobile_92_Screens_Numbered_Batches_and_Visual_QA.zip`, grouped in numbered batches. Light-first design; preserve user-selectable Dark/System. The web `PROJECT_UI_DESIGN_SYSTEM.md` applies to the web UI and provides shared visual principles; the mobile repo does not have that root file. Keep Flutter styling in existing `BpReference*` widgets rather than copying web CSS.
