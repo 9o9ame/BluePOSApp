@@ -2,6 +2,39 @@
 
 _Updated 2026-11-18. Authoritative working repository: `9o9ame/BluePOSApp`, branch `feature/daily-entries`._
 
+## MOST CURRENT STATE — Screens 51–55 implemented/previewed (2026-11-18)
+
+**Branch:** Mobile `9o9ame/BluePOSApp` `feature/daily-entries`; web `9o9ame/bluepos` `main` used READ ONLY for real Laravel API contracts. Do not switch branches or edit web backend without scope and approval. UI screenshot references for this batch: `BATCH_06_51-60/51_Delivery_Challans.png`, `52_Delivery_Challan_Form.png`, `53_Delivery_Challan_Details.png`, `54_Opening_Stock.png`, `55_Opening_Stock_Entry.png`. Reference **visuals only**, not fake tenant records or guaranteed web fields.
+
+**Current verified user results before 51–55:** Windows fast-forward pull successful and `flutter test test/mobile_reference_46_50_test.dart` passed **6 tests**. `flutter analyze` showed **17 INFO-only curly-braces warnings** (`money_actions.dart`, `vouchers.dart`). These exact reported cases were cleaned in the 51–55 GitHub pass, but **analyzer has not been rerun after cleanup**.
+
+**This pass:**
+1. `lib/screens/delivery_challans.dart` **NEW, SCREENS 51–53 PREVIEW ONLY**: compact reference list/create/detail look and navigation. The live `backend/routes/api.php` has **NO Delivery Challan API**, so Save Draft, Dispatch, Print and Share remain nonfunctional/disabled. No imaginary customer/invoice, driver, vehicle, quantities or totals. Do not claim these screens production-complete or fabricate backend.
+2. `lib/screens/inventory_documents.dart`: **SCREEN 54** `OpeningStockReferenceDirectory` fetches actual `/api/inventory/opening-balances`, groups each server-returned product line with real warehouse/qty/unit_cost/**server total_cost**, supports simple client search, refresh, and ULID tap. API list is bounded by backend to 100 docs; don't assert complete server-wide search. Honest empty state with no data.
+3. Same file **SCREEN 55** `openingReference` is a reference-styled *real two-stage* stock draft/line/post form. `CreateOpeningBalanceAction` requires warehouse/date before `UpsertOpeningBalanceLineAction` can add product ULID, 6dp qty, 4dp unit cost, notes. Reuses current `create`, `lineEditor`, `updateHeader`, `removeLine`, `post`, `removeDraft`, authZ and uncertain-create safeguards. The backend calculates totals; posted stock immutable. `Batch/Lot` and `Expiry Date` are NOT in verified Opening Balance line request: omit them (even though screenshot displays them).
+4. `lib/screens/modules.dart`: references 51–53 linked as a clearly labeled read-only Delivery Challan preview action (sales.view), Opening Stock uses real directory instead of old generic. `stockTake` and `adjustment` code paths unchanged.
+5. `test/mobile_reference_51_55_test.dart` **NEW**, contract and preview widget tests, unexecuted.
+6. `lib/screens/money_actions.dart`, `lib/screens/vouchers.dart`: brace-lint cleanup for Windows reported 17 INFO findings; no intended business logic change.
+7. `docs/MOBILE_REFERENCE_PROGRESS.md` updated individual 51–55 statuses. **NEXT BATCH 56–60**, but first compile/device-review newly committed screens and last rejected 44/46/48/50.
+
+**Real backend contract verified:** `backend/routes/api.php` inventory opening balances routes `GET /api/inventory/opening-balances`, `POST`, `GET/{ulid}`, `PATCH/{ulid}`, lines `POST/PATCH/DELETE` and `POST/{ulid}/post`. `backend/app/Http/Controllers/Api/Inventory/OpeningBalanceController.php`: header `warehouse_ulid` required, optional `document_date` and `notes` max500; line `product_ulid`, `quantity` decimal scale6, `unit_cost` decimal scale4, notes max500. `OpeningBalanceResource`: document ULID/number/date/status/warehouse/lines; `OpeningBalanceLineResource`: product ULID/name/SKU, quantity, unit_cost, total_cost. No batch/lot/expiry fields. No delivery challan API present in `api.php`. Any delivery backend implementation demands separate justified multi-domain review before enabling writes.
+
+**Do not repeat mistakes:** No fake rows to fill empty lists, no server-generated client document numbers, no screenshot-driven unsupported fields, no client-financial calculations, no new stock/posting logic, no changing frozen Sales Invoice geometry, no posting tests on development DB. Use `bluepos_test` for authorized posting/idempotency/stock tests. Light theme first; Dark/System selectable; use shared `BpReference*` Flutter components and the approved UI source as visual guide.
+
+**Run on user's Windows machine (not verified in assistant runtime):**
+
+```powershell
+cd "C:\Projects\BluePOSApp"
+git status --short
+git pull --ff-only origin feature/daily-entries
+git log -1 --oneline
+flutter analyze lib/screens/inventory_documents.dart lib/screens/delivery_challans.dart lib/screens/modules.dart lib/screens/money_actions.dart lib/screens/vouchers.dart lib/widgets/reference_surface.dart
+flutter test test/mobile_reference_51_55_test.dart test/mobile_reference_46_50_test.dart
+flutter run
+```
+
+**Reporting:** GitHub commit plus changed file list; no migration/backend changes; previous 6 tests pass as reported by user, new tests unrun; pixel-accurate Android QA still pending; next reference batch 56–60. This is the latest authoritative section and OVERRIDES historical statements below claiming 51–55 "next."
+
 ## ADDENDUM: completion details for the rejected screenshot fixes (2026-11-18)
 
 - Updated `BpReferenceSubpageAppBar` with **opt-in** `titleBelowBack: true`, producing reference-style left-aligned headings below logo/back (130px). Default remains the previous 112px centered title so frozen/approved screens are unchanged.
