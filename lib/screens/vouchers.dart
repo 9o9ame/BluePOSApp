@@ -506,7 +506,8 @@ class _VoucherEditorState extends State<VoucherEditor> {
             rightLabel: isJournal ? 'Post Journal'
               : kind == VoucherKind.payment ? 'Post Payment' : 'Post Receipt',
             rightColor: const Color(0xFF006DF6),
-            onLeft: editable && canEdit ? save : null,
+            onLeft: !saving && canEdit && (!created || draft)
+              ? save : null,
             onRight: created && draft && canPost && !saving
               ? post : null)
         : null,
