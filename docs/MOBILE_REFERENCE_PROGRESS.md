@@ -199,6 +199,14 @@ Visual images guide **appearance only**, not server field availability.
 
 **Design/API boundary:** The provided 48/50 mockups depict invoice-specific settlement (payee, purchase/sales invoice, balance, payment mode) but the implemented menu actions are generic manual `/api/vouchers` Payment/Receiving types, which **do not have those request fields**. Keep them absent until a dedicated invoice-payment flow is explicitly scoped and verified. The web `PROJECT_UI_DESIGN_SYSTEM.md` confirms voucher colors and the single shared-component principle; the mobile repository has separate Flutter widgets.
 
+### Additional layout corrections in the same 44/46/48/50 pass
+
+- The journal/payment/receipt reference editor now has a **clickable empty account-line row**. It opens the existing real `addLine` picker; no placeholder account or transaction is fabricated.
+- Shared `BpReferenceSubpageAppBar(titleBelowBack: true)` adds the reference's **logo → back → left-aligned heading** hierarchy for Expense and voucher editors, plus the 45/47/49 voucher directories. Its default remains unchanged to protect approved/frozen pages.
+- `lib/screens/transaction_widgets.dart` voucher list cards use backend-independent voucher identity tones (Journal indigo, Payment red, Receiving green), with the actual voucher date under the real narration/description. Status badges still reflect only server status.
+- `test/mobile_reference_46_50_test.dart` includes a header opt-in regression check alongside the responsive grouped-panel test.
+- **The user has not yet provided updated Android output after these commits.** Prior rough screenshots are evidence of the old design; they do not verify this new code. Any visual acceptance claim is pending.
+
 ## Validation
 
 - Repository files edited on `feature/daily-entries`; no main merge.
