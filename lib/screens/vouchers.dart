@@ -551,7 +551,8 @@ class _VoucherEditorState extends State<VoucherEditor> {
     return Scaffold(
       backgroundColor: style.page,
       appBar: BpReferenceSubpageAppBar(
-        title: created ? kind.label : title),
+        title: created ? kind.label : title,
+        titleBelowBack: true),
       bottomNavigationBar: !loading && (!created || draft)
         ? BpReferenceWorkflowActions(
             leftKey: const ValueKey('voucher-save-draft'),
