@@ -298,7 +298,7 @@ class _MoneyActionScreenState extends State<MoneyActionScreen> {
     return Scaffold(
       backgroundColor: style.page,
       appBar: const BpReferenceSubpageAppBar(
-        title: 'Create Expense Voucher'),
+        title: 'Create Expense Voucher', titleBelowBack: true),
       bottomNavigationBar: BpReferenceWorkflowActions(
         leftLabel: 'Cancel',
         rightLabel: unconfirmed ? 'Retry Saved Request'
