@@ -31,6 +31,7 @@ import 'purchase_invoices.dart';
 import 'transaction_widgets.dart';
 import 'receipt.dart';
 import 'inventory_documents.dart';
+import 'delivery_challans.dart';
 import 'vouchers.dart';
 import 'returns.dart';
 import 'trial_balance.dart';
@@ -254,6 +255,10 @@ class _ModulesScreenState extends State<ModulesScreen> {
         Icons.assignment_outlined,
         () => _open(PurchaseOrdersScreen(app: widget.app)),
         permissions: const ['purchases.view'], entitlement: 'purchases'),
+      ModuleAction('Delivery Challans', 'Reference preview — server contract pending',
+        Icons.local_shipping_outlined,
+        () => _open(const DeliveryChallanReferenceScreen()),
+        permissions: const ['sales.view'], entitlement: 'sales'),
       ModuleAction('Purchase Returns', 'Source-linked purchase returns and posting',
         Icons.assignment_return_rounded,
         () => _open(ReturnDocumentsScreen(
@@ -264,10 +269,9 @@ class _ModulesScreenState extends State<ModulesScreen> {
         () => _open(InventoryDocumentDirectory(app: widget.app,
           kind: InventoryDocumentKind.adjustment)),
         permissions: const ['inventory.view'], entitlement: 'inventory'),
-      ModuleAction('Opening Stock', 'Opening stock drafts and posted balances',
+      ModuleAction('Opening Stock', 'Warehouse stock entry and real posted balances',
         Icons.inventory_outlined,
-        () => _open(InventoryDocumentDirectory(app: widget.app,
-          kind: InventoryDocumentKind.opening)),
+        () => _open(OpeningStockReferenceDirectory(app: widget.app)),
         permissions: const ['inventory.opening_balance.view', 'inventory.view'],
         entitlement: 'inventory'),
       ModuleAction('Stock Taking', 'Count stock and post verified movements',
@@ -741,6 +745,9 @@ class _ModulesScreenState extends State<ModulesScreen> {
         icon: Icons.wallet_rounded, tone: const Color(0xFFF34A7B)),
       (title: 'Stock Adjustments', label: 'Stock Adjustment',
         icon: Icons.inventory_2_rounded, tone: const Color(0xFFF5A318)),
+      (title: 'Delivery Challans', label: 'Delivery Challan Preview',
+        icon: Icons.local_shipping_outlined,
+        tone: const Color(0xFF078EE8)),
       (title: 'Opening Stock', label: 'Opening Stock',
         icon: Icons.inventory_outlined, tone: const Color(0xFF0BBCE3)),
       (title: 'Stock Taking', label: 'Stock Taking',
