@@ -580,15 +580,17 @@ class BpReferenceSubpageAppBar extends StatelessWidget
     this.onBack,
     this.onNotifications,
     this.onSearch,
+    this.titleBelowBack = false,
   });
 
   final String title;
   final VoidCallback? onBack;
   final VoidCallback? onNotifications;
   final VoidCallback? onSearch;
+  final bool titleBelowBack;
 
   @override
-  Size get preferredSize => const Size.fromHeight(112);
+  Size get preferredSize => Size.fromHeight(titleBelowBack ? 130 : 112);
 
   @override
   Widget build(BuildContext context) {
@@ -597,7 +599,7 @@ class BpReferenceSubpageAppBar extends StatelessWidget
       backgroundColor: style.page,
       surfaceTintColor: Colors.transparent,
       automaticallyImplyLeading: false,
-      toolbarHeight: 112,
+      toolbarHeight: titleBelowBack ? 130 : 112,
       titleSpacing: 0,
       title: Column(children: [
         SizedBox(
@@ -635,23 +637,57 @@ class BpReferenceSubpageAppBar extends StatelessWidget
                   onPressed: onNotifications)),
           ]),
         ),
-        SizedBox(height: 54, child: Row(children: [
-          IconButton(
-            tooltip: 'Back',
-            icon: Icon(Icons.arrow_back_rounded, color: style.ink),
-            onPressed: onBack ?? () => Navigator.of(context).maybePop()),
-          Expanded(child: Text(title, textAlign: TextAlign.center,
-            maxLines: 1, overflow: TextOverflow.ellipsis,
-            style: TextStyle(color: style.ink, fontSize: 21,
-              fontWeight: FontWeight.w900))),
-          if (onSearch != null)
+        if (titleBelowBack) ...[
+          SizedBox(height: 28, child: Row(children: [
             IconButton(
-              tooltip: 'Search',
-              icon: Icon(Icons.search_rounded, color: style.ink),
-              onPressed: onSearch)
-          else
-            const SizedBox(width: 48),
-        ])),
+              tooltip: 'Back',
+              constraints: const BoxConstraints(
+                minWidth: 48, minHeight: 28),
+              padding: EdgeInsets.zero,
+              icon: Icon(Icons.arrow_back_rounded,
+                color: style.ink, size: 23),
+              onPressed: onBack ??
+                () => Navigator.of(context).maybePop()),
+            const Spacer(),
+            if (onSearch != null)
+              IconButton(
+                tooltip: 'Search',
+                constraints: const BoxConstraints(
+                  minWidth: 48, minHeight: 28),
+                padding: EdgeInsets.zero,
+                icon: Icon(Icons.search_rounded,
+                  color: style.ink, size: 22),
+                onPressed: onSearch),
+          ])),
+          SizedBox(height: 44, child: Padding(
+            padding: const EdgeInsets.fromLTRB(17, 7, 12, 0),
+            child: Align(
+              alignment: Alignment.centerLeft,
+              child: Text(title, maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(color: style.ink,
+                  fontSize: 20, fontWeight: FontWeight.w900)),
+            ),
+          )),
+        ] else
+          SizedBox(height: 54, child: Row(children: [
+            IconButton(
+              tooltip: 'Back',
+              icon: Icon(Icons.arrow_back_rounded, color: style.ink),
+              onPressed: onBack ??
+                () => Navigator.of(context).maybePop()),
+            Expanded(child: Text(title, textAlign: TextAlign.center,
+              maxLines: 1, overflow: TextOverflow.ellipsis,
+              style: TextStyle(color: style.ink, fontSize: 21,
+                fontWeight: FontWeight.w900))),
+            if (onSearch != null)
+              IconButton(
+                tooltip: 'Search',
+                icon: Icon(Icons.search_rounded, color: style.ink),
+                onPressed: onSearch)
+            else
+              const SizedBox(width: 48),
+          ])),
       ]),
     );
   }
