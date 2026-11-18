@@ -379,7 +379,9 @@ class _TransactionDirectoryState extends State<TransactionDirectory> {
     return Scaffold(
       backgroundColor: widget.referenceStyle ? style.page : null,
       appBar: widget.referenceStyle
-        ? BpReferenceSubpageAppBar(title: widget.title)
+        ? BpReferenceSubpageAppBar(
+            title: widget.title,
+            titleBelowBack: widget.endpoint.startsWith('/api/vouchers'))
         : AppBar(title: Text(widget.title),
             actions: [IconButton(onPressed: loading ? null : load,
               icon: const Icon(Icons.refresh_rounded),
