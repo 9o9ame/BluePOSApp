@@ -1,6 +1,6 @@
 # BluePOS Mobile — Reference Screen Progress
 
-_Last updated: 2026-11-17. Branch: `feature/daily-entries`._
+_Last updated: 2026-11-18. Branch: `feature/daily-entries`._
 _Source: numbered 92-image reference ZIP and live Android screenshots supplied by the user._
 
 ## Rules for interpreting status
@@ -50,7 +50,12 @@ _Source: numbered 92-image reference ZIP and live Android screenshots supplied b
 | 43 | Expense Vouchers | Reference-style paginated server list, Android QA pending | True `/api/sales/expenses` server q/date filters, real accounts/date/reference/amount and read-only detail sheet; no unsupported expense status/number |
 | 44 | Record Expense | Reference-style functional direct-post form, Android QA pending | Verified `expense_date`, `expense_account_ulid`, `payment_account_ulid`, amount NUMERIC(20,4), reference, description; existing idempotency & confirm/retry preserved; API posts immediately, no fake Save Draft |
 | 45 | Journal Vouchers | Real journal-only server directory, Android QA pending | `/api/vouchers?type=journal`, draft/posted, server amounts/narration, authorized Add Journal, lock journal editor kind, refresh after exit; existing server draft/post flows reused |
-| 46–92 | Later references | Not started by this batch | Next batch 46–50. Verify exact references and live backend before modifications |
+| 46 | Create Journal Voucher | Reference editor on real voucher draft/post flow; Android QA pending | Actual `type=journal`, entry_date, server voucher_number, description/narration, book_number, debit/credit account lines, server totals. No invented journal balance calculation |
+| 47 | Payments | Real `type=payment` voucher list; Android QA pending | `GET /api/vouchers?type=payment`, server-side q/status/page, authentic draft/posted status, real voucher amount/date/narration; Add Payment route |
+| 48 | Create Payment | Real Payment Voucher editor; Android QA pending | Cash/bank header account, actual account lines and amount, date/book_number/description, safe draft/post and duplicate prevention from existing voucher service. No fictitious standalone payment document API |
+| 49 | Receipts | Real `type=receiving` voucher list; Android QA pending | `GET /api/vouchers?type=receiving` using authorized actual voucher fields and Add Receipt |
+| 50 | Create Receipt | Real Receiving Voucher editor; Android QA pending | Cash/bank header, account lines/amount and real draft/post; no invented invoice settlement/payment mode fields |
+| 51–92 | Future references | Not implemented in this batch | Next screens 51–55. Verify visual reference and web APIs before modifying |
 
 ## Current fixes from user feedback
 
@@ -163,6 +168,23 @@ Visual images guide **appearance only**, not server field availability.
 - Shared `BpReference*` appearance, selected theme and compact sizing reused. No web, database, schema, accounting valuation or posting-domain changes.
 - Added `test/mobile_reference_41_45_test.dart` with route/schema and compact-widget smoke assertions; **not executed**. Flutter/Dart SDK unavailable in this environment, and Android visual approval remains pending. Tests involving actual posting/concurrency must run against **`bluepos_test`**, never development DB.
 
+## Latest progress — Screenshot review 41–45 and new screens 46–50 (2026-11-18)
+
+**User intent:** Reference PNGs set the *visual presentation*; the authoritative real fields, permissions and posting behavior must come from `9o9ame/bluepos` web Laravel/API implementation, not from sample invoice/receipt mockups. The app has few/no actual purchase returns or journal records currently. Therefore screen 42 and 45 should show honest empty states rather than fabricated sample rows. The appearance of data-rich reference screenshots cannot be duplicated without live tenant data.
+
+**41–45 follow-up:** `lib/screens/money_actions.dart` expense entry is now titled **Create Expense Voucher** to match reference, with compact form and a short confirmation warning instead of a long developer-facing API note. Do not add mockup payee, tax, payment mode, voucher number or Save Draft to this expense API: `StoreExpenseRequest` only supports `expense_date, expense_account_ulid, payment_account_ulid, amount, reference, description` and immediately posts. `lib/screens/transaction_widgets.dart` now has contextual empty states for Purchase Returns and Journal Vouchers rather than misleading generic results. Purchase Return still depends on a real posted purchase and server-returnable lines, not an illustrative inventory table.
+
+**Verified web contract for 46–50:** `backend/routes/api.php`, `backend/app/Http/Controllers/Api/Accounting/VoucherController.php` and existing `ManageVoucherAction`. `GET /api/vouchers?type=journal|payment|receiving` accepts `q`, `status=draft|posted` and pagination. `POST /api/vouchers`, `PUT /api/vouchers/{ulid}`, `POST /api/vouchers/{ulid}/post` are the actual routes. Voucher request: `type`, `entry_date`, optional `book_number` and `description`, optional header cash/bank account ULID for payment/receiving, and account lines (amount for header types; debit/credit for journal). Server exposes `voucher_number, total_debit, total_credit, status, lines`. **There are no separate generic /api/payments or /api/receipts voucher CRUD routes**; invoice-specific payment endpoints are different workflows and were deliberately not substituted here.
+
+**Implementation:**
+- `lib/screens/vouchers.dart`: adds `CashVoucherDirectoryScreen` for **47 Payments** and **49 Receipts**, filters by true voucher type and links to authorized real `VoucherEditor`. Screens **46 Journal Entry**, **48 Payment Entry**, **50 Receipt Entry** now use a shared reference editor layout when `lockInitialKind` is enabled: compact date, server number, description, optional book reference, real account picker/lines, edit/remove lines and shared Create Draft/Post footer. `initialKind` and `lockInitialKind` prevent switching types in those routes. Safe original idempotency retry remains possible; server-side debit/credit totals are displayed only after a draft exists. No front-end ledger arithmetic or invented payable/receivable balances.
+- `lib/screens/transaction_widgets.dart`: real voucher-card content, correct Add Payment/Add Receipt/Add Journal CTAs, truthful empty states. Shared search/status/filter and server paging remain.
+- `lib/screens/modules.dart`: adds permission-gated **Payments** and **Receipts** navigation plus existing Journal entry in Daily Entries.
+- `test/mobile_reference_46_50_test.dart`: adds focused type-mapping/decimal-string payload and shared narrow-footer tests. **Not executed**.
+- `docs/MOBILE_NEXT_CHAT_HANDOFF.md`: updated current-first summary.
+
+**Validation status:** GitHub file commits and static delimiter checks only; Flutter/Dart SDK absent in this execution environment. **Not yet confirmed:** `flutter analyze`, widget tests, on-device 360px layout, real tenant permissions, actual voucher post/retry and cross-tenant tests. Never run posting tests against persistent development DB; use `bluepos_test`. No backend changes or migrations. Frozen Sales Invoice layout untouched. Next batch **51–55** after checks.
+
 ## Validation
 
 - Repository files edited on `feature/daily-entries`; no main merge.
@@ -177,8 +199,8 @@ cd "C:\Projects\BluePOSApp"
 git status --short
 git branch --show-current
 git pull --ff-only origin feature/daily-entries
-flutter analyze lib/screens/returns.dart lib/screens/money_actions.dart lib/screens/vouchers.dart lib/screens/transaction_widgets.dart lib/screens/modules.dart lib/widgets/reference_surface.dart
-flutter test test/mobile_reference_41_45_test.dart test/mobile_reference_33_40_web_contract_test.dart
+flutter analyze lib/screens/vouchers.dart lib/screens/money_actions.dart lib/screens/modules.dart lib/screens/transaction_widgets.dart lib/screens/returns.dart lib/widgets/reference_surface.dart
+flutter test test/mobile_reference_46_50_test.dart test/mobile_reference_41_45_test.dart
 flutter run
 ```
 
