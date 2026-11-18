@@ -67,14 +67,42 @@ class VoucherDirectoryScreen extends StatelessWidget {
   );
 }
 
+/// Reference 45: Journal Vouchers, filtered on the authoritative server.
+/// Do not mix payment/receiving vouchers into the journal-only directory.
+class JournalVoucherDirectoryScreen extends StatelessWidget {
+  const JournalVoucherDirectoryScreen({super.key, required this.app});
+  final AppController app;
+
+  @override
+  Widget build(BuildContext context) => TransactionDirectory(
+    app: app, title: 'Journal Vouchers',
+    endpoint: '/api/vouchers?type=journal',
+    numberKey: 'voucher_number',
+    dateKey: 'entry_date', amountKey: 'total_debit',
+    referenceStyle: true, createPermission: 'vouchers.create',
+    onCreate: (ctx) async => await Navigator.push<bool>(ctx,
+      MaterialPageRoute(builder: (_) => VoucherEditor(
+        app: app, initialKind: VoucherKind.journal))) ?? false,
+    onOpen: (ctx, row) async {
+      final id = field(row['ulid']);
+      if (!validPublicUlid(id)) return false;
+      return await Navigator.push<bool>(ctx,
+        MaterialPageRoute(builder: (_) => VoucherEditor(
+          app: app, voucherUlid: id))) ?? false;
+    },
+  );
+}
+
 /// Payment/receiving cash header, general journal and opening entries use the
 /// same authoritative ManageVoucherAction on the existing Laravel backend.
 class VoucherEditor extends StatefulWidget {
   const VoucherEditor({
     super.key, required this.app, this.voucherUlid,
+    this.initialKind = VoucherKind.payment,
   });
   final AppController app;
   final String? voucherUlid;
+  final VoucherKind initialKind;
   @override
   State<VoucherEditor> createState() => _VoucherEditorState();
 }
@@ -100,6 +128,7 @@ class _VoucherEditorState extends State<VoucherEditor> {
   @override
   void initState() {
     super.initState();
+    kind = widget.initialKind;
     if (widget.voucherUlid != null) {
       refresh();
     } else {
