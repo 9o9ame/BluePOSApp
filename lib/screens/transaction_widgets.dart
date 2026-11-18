@@ -449,9 +449,18 @@ class _TransactionDirectoryState extends State<TransactionDirectory> {
           const SizedBox(height: 12),
           if (loading) pageLoading()
           else if (error != null) FailureState(message: error!, retry: load)
-          else if (visibleRows.isEmpty) const EmptyState(
-            title: 'No matching documents',
-            subtitle: 'No records were returned for this search or status.')
+          else if (visibleRows.isEmpty) EmptyState(
+            title: widget.endpoint.contains('type=journal')
+              ? 'No journal vouchers yet'
+              : widget.endpoint.contains('type=payment')
+                ? 'No payment vouchers yet'
+                : widget.endpoint.contains('type=receiving')
+                  ? 'No receipts yet'
+                  : widget.endpoint == '/api/purchase-returns'
+                    ? 'No purchase returns yet'
+                    : 'No matching documents',
+            subtitle: 'No authorized records match these filters. '
+              'Create a document to begin or try another search.')
           else ...visibleRows.map((item) => Padding(
             padding: const EdgeInsets.only(bottom: 9),
             child: InkWell(
