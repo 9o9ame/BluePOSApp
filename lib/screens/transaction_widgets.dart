@@ -283,7 +283,10 @@ class _TransactionDirectoryState extends State<TransactionDirectory> {
     final isVoucher = widget.endpoint.startsWith('/api/vouchers');
     final party = isVoucher
       ? field(item['description'],
-          field(item['book_number'], 'Journal voucher'))
+          field(item['book_number'],
+            widget.endpoint.contains('type=payment') ? 'Payment voucher'
+              : widget.endpoint.contains('type=receiving') ? 'Receipt voucher'
+              : 'Journal voucher'))
       : field(objectOf(item['supplier'])['name'],
           field(objectOf(item['customer'])['name'],
             field(item['supplier_name'],
@@ -301,7 +304,12 @@ class _TransactionDirectoryState extends State<TransactionDirectory> {
           decoration: BoxDecoration(
             color: statusColor.withValues(alpha: .12),
             borderRadius: BorderRadius.circular(11)),
-          child: Icon(isVoucher ? Icons.menu_book_outlined
+          child: Icon(isVoucher
+              ? widget.endpoint.contains('type=payment')
+                ? Icons.outbox_rounded
+                : widget.endpoint.contains('type=receiving')
+                  ? Icons.move_to_inbox_rounded
+                  : Icons.menu_book_outlined
             : isReturn ? Icons.assignment_return_rounded
             : Icons.receipt_long_rounded, size: 23, color: statusColor)),
         const SizedBox(width: 9),
@@ -374,7 +382,10 @@ class _TransactionDirectoryState extends State<TransactionDirectory> {
         }, icon: const Icon(Icons.add_rounded),
         label: Text(isReturns ? 'Add Return'
           : widget.endpoint == '/api/sales' ? 'New Invoice'
-          : widget.endpoint.startsWith('/api/vouchers') ? 'Add Journal'
+          : widget.endpoint.startsWith('/api/vouchers')
+            ? widget.endpoint.contains('type=payment') ? 'Add Payment'
+              : widget.endpoint.contains('type=receiving') ? 'Add Receipt'
+              : 'Add Journal'
           : widget.referenceStyle ? 'Add Purchase' : 'New'))
         : null,
       body: RefreshIndicator(onRefresh: load,
