@@ -91,8 +91,8 @@ class _MoneyActionScreenState extends State<MoneyActionScreen> {
         });
       }
     } catch (_) {
-      if (mounted) setState(() =>
-        error = 'Unable to load secure pending financial request.');
+      if (mounted) { setState(() =>
+        error = 'Unable to load secure pending financial request.'); }
     } finally {
       if (mounted) setState(() => loading = false);
     }
@@ -113,8 +113,8 @@ class _MoneyActionScreenState extends State<MoneyActionScreen> {
       return;
     }
     setState(() {
-      if (expense) expenseAccount = account;
-      else paymentAccount = account;
+      if (expense) { expenseAccount = account; }
+      else { paymentAccount = account; }
     });
   }
 
@@ -190,8 +190,8 @@ class _MoneyActionScreenState extends State<MoneyActionScreen> {
       } catch (_) {
         activePending = null;
         key = null;
-        if (mounted) setState(() =>
-          error = 'Cannot securely save the request. No money was sent.');
+        if (mounted) { setState(() =>
+          error = 'Cannot securely save the request. No money was sent.'); }
         return;
       }
     }
@@ -233,12 +233,12 @@ class _MoneyActionScreenState extends State<MoneyActionScreen> {
         activePending = null;
         key = null;
       }
-      if (mounted) setState(() => error = unconfirmed
+      if (mounted) { setState(() => error = unconfirmed
         ? 'Financial request still unconfirmed. Retry the same saved request.'
-        : ex.message);
+        : ex.message); }
     } catch (_) {
-      if (mounted) setState(() => error =
-        'Financial request unconfirmed. Retry only the saved request.');
+      if (mounted) { setState(() => error =
+        'Financial request unconfirmed. Retry only the saved request.'); }
     } finally {
       if (mounted) setState(() => busy = false);
     }
@@ -468,9 +468,9 @@ class _MoneyActionScreenState extends State<MoneyActionScreen> {
                   child: Text(item.toUpperCase())),
               ],
               onChanged: (v) {
-                if (v != null) setState(() {
+                if (v != null) { setState(() {
                   method = v; paymentAccount = null;
-                });
+                }); }
               },
             ),
           if (widget.kind == MoneyActionKind.salePayment &&
