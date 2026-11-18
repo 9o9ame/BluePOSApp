@@ -55,7 +55,12 @@ _Source: numbered 92-image reference ZIP and live Android screenshots supplied b
 | 48 | Create Payment | Compact horizontal UI redesign committed, Android QA pending | Real Cash/Bank Account header, posted/draft voucher number/date/book/description, authentic chart-of-accounts amount lines, shared footer; no unsupported invoice summary, supplier field or payment mode |
 | 49 | Receipts | Real `type=receiving` voucher list; Android QA pending | `GET /api/vouchers?type=receiving` using authorized actual voucher fields and Add Receipt |
 | 50 | Create Receipt | Compact horizontal UI redesign committed, Android QA pending | Shared inline receiving voucher entry with genuine cash/bank header, date/book/description, account amount lines and server Draft/Post; no fake invoice/customer fields |
-| 51–92 | Future references | Not implemented in this batch | Next screens 51–55. Verify visual reference and web APIs before modifying |
+| 51 | Delivery Challans | **Preview-only**; real endpoint absent | Reference header, search shell, honest empty records, Add Challan preview route. No invented list data or server status |
+| 52 | Create Delivery Challan | **Preview-only**; Save/Dispatch disabled | Shared compact horizontal panel with labeled unavailable server contract. Do not submit mockup-only customer, driver, vehicle or item fields |
+| 53 | Delivery Challan Detail | **Preview-only**; Print/Share disabled | Reference detail shell; no server resource or actual lines can be shown. Explicitly indicates missing API |
+| 54 | Opening Stock | Real API-backed reference directory, device QA pending | `GET /api/inventory/opening-balances`; flattened actual warehouse/product lines, quantity, cost and server total_cost. Search real returned records, refresh, authorized Add Stock |
+| 55 | Add Opening Stock | Real two-stage draft/line/post screen, device QA pending | Existing `POST /api/inventory/opening-balances` requires warehouse ULID/date/notes; once draft is confirmed, existing product/qty 6dp/unit cost 4dp lines and posted immutability flow, real server totals. No fake batch/lot/expiry |
+| 56–92 | Remaining references | Not begun | Next batch 56–60, inspect exact images and backend contract before implementation |
 
 ## Current fixes from user feedback
 
@@ -206,6 +211,20 @@ Visual images guide **appearance only**, not server field availability.
 - `lib/screens/transaction_widgets.dart` voucher list cards use backend-independent voucher identity tones (Journal indigo, Payment red, Receiving green), with the actual voucher date under the real narration/description. Status badges still reflect only server status.
 - `test/mobile_reference_46_50_test.dart` includes a header opt-in regression check alongside the responsive grouped-panel test.
 - **The user has not yet provided updated Android output after these commits.** Prior rough screenshots are evidence of the old design; they do not verify this new code. Any visual acceptance claim is pending.
+
+## Latest delivery — Screens 51–55 (2026-11-18)
+
+**User-provided validation:** previous `test/mobile_reference_46_50_test.dart` passed **6 tests** on Windows. `flutter analyze` returned **17 info-only curly-braces warnings** in `money_actions.dart` and `vouchers.dart`, not compile errors. Those reported statements were bracketed in this pass. **Analyzer has not been rerun** after cleanup; don't claim a clean analyzer until verified on Windows.
+
+**Source inspection:** Read `BATCH_06_51-60/51_Delivery_Challans.png`, `52_Delivery_Challan_Form.png`, `53_Delivery_Challan_Details.png`, `54_Opening_Stock.png` and `55_Opening_Stock_Entry.png` from reference ZIP. Read live `9o9ame/bluepos` `PROJECT_UI_DESIGN_SYSTEM.md`, `backend/routes/api.php`, `backend/app/Http/Controllers/Api/Inventory/OpeningBalanceController.php`, `backend/app/Http/Resources/Inventory/OpeningBalanceResource.php` and `OpeningBalanceLineResource.php`. **No Delivery Challan REST routes/controller in current backend**, so 51–53 cannot truthfully claim functional CRUD, dispatch, print or share. Creating those would require separate backend domain/API/authZ/stock effects and tests.
+
+**Implementation (GitHub branch `feature/daily-entries`):**
+- **51–53**: Added `lib/screens/delivery_challans.dart` with `DeliveryChallanReferenceScreen` previews (directory, entry, details). Uses shared `BpReferenceSubpageAppBar`, `BpReferenceInlinePanel`, `BpReferenceInlineRow`, `BpReferenceWorkflowActions`, decorative wave and type-safe page navigation. No fake customer names, document numbers, lines, draft/dispatch status, totals, API calls or enabled posting/printing. **Preview only**, not counted as functional.
+- **54**: `OpeningStockReferenceDirectory` in `lib/screens/inventory_documents.dart` fetches actual API `/api/inventory/opening-balances`; shows only authorized returned documents and actual product/warehouse/line quantity/cost/server total, supports local search, refresh and opening the real editor by public ULID. Does not recalculate valuation or create stock movements client-side.
+- **55**: `InventoryDocumentEditor.openingReference` gives a reference-style two-stage functional workflow. The server requires warehouse ULID at draft creation before a product line can be saved; after creating draft, existing `lineEditor` accepts real product ULID, quantity NUMERIC(20,6), unit_cost NUMERIC(20,4), notes; Save Header and authorized Post use existing backend. Stock posting remains immutable/server-side. Screenshot-only `Batch/Lot` and `Expiry` not in verified line API and are omitted. No fake total for unsaved stock.
+- **Navigation**: `lib/screens/modules.dart` routes Opening Stock to new real directory, registers separately labeled Delivery Challans preview. No new separate branches, services, backend files, schema or migrations.
+- **Tests**: `test/mobile_reference_51_55_test.dart` verifies opening API path/permissions and non-posting preview controls/navigation, pending Windows execution. Prior `test/mobile_reference_46_50_test.dart` user-reported passed.
+- **Validation outstanding:** Flutter analyze affected Dart files; focused widget tests; on-device 360–390dp screenshot comparison and real authorized tenant/warehouse/stock tests on `bluepos_test` only. Prior screenshots and six passing tests do not prove new batch QA. **Next batch 56–60**.
 
 ## Validation
 
