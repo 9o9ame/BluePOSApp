@@ -433,11 +433,11 @@ class ExpensesScreen extends StatefulWidget {
 
 class _ExpensesScreenState extends State<ExpensesScreen> {
   final search = TextEditingController();
-  bool showFilters = false;
-  String selectedStatus = 'all';
   List<Map<String, dynamic>> rows = const [];
-  bool loading = true;
+  bool loading = true, moreLoading = false;
+  int page = 1, total = 0, serial = 0;
   String? error;
+  DateTimeRange? period;
 
   @override
   void initState() { super.initState(); load(); }
@@ -445,122 +445,215 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
   @override
   void dispose() { search.dispose(); super.dispose(); }
 
-  Future<void> load() async {
-    setState(() { loading = true; error = null; });
-    try {
-      final response = await widget.app.api.get('/api/sales/expenses?per_page=100');
-      if (mounted) setState(() => rows = recordsOf(response));
-    } catch (ex) {
-      if (mounted) setState(() => error = ex.toString());
-    } finally {
-      if (mounted) setState(() => loading = false);
+  Future<void> choosePeriod() async {
+    final today = DateTime.now();
+    final picked = await showDateRangePicker(
+      context: context, firstDate: DateTime(2020),
+      lastDate: today.add(const Duration(days: 2)),
+      initialDateRange: period ?? DateTimeRange(
+        start: today.subtract(const Duration(days: 30)),
+        end: today),
+    );
+    if (picked != null && mounted) {
+      setState(() => period = picked);
+      await load();
     }
+  }
+
+  Future<void> load({bool more = false}) async {
+    if (more && (loading || moreLoading || rows.length >= total)) return;
+    final request = more ? serial : ++serial;
+    setState(() {
+      if (more) { moreLoading = true; }
+      else { loading = true; error = null; }
+    });
+    try {
+      final target = more ? page + 1 : 1;
+      final params = <String, String>{
+        'per_page': '40', 'page': '$target',
+        if (search.text.trim().isNotEmpty) 'q': search.text.trim(),
+        if (period != null) ...{
+          'date_from': isoLocalDate(period!.start),
+          'date_to': isoLocalDate(period!.end),
+        },
+      };
+      final url = Uri(path: '/api/sales/expenses',
+        queryParameters: params).toString();
+      final response = objectOf(await widget.app.api.get(url));
+      if (!mounted || request != serial) return;
+      final incoming = recordsOf(response);
+      setState(() {
+        rows = more ? [...rows, ...incoming] : incoming;
+        page = target;
+        total = int.tryParse(field(objectOf(response['meta'])['total']))
+          ?? rows.length;
+      });
+    } catch (ex) {
+      if (mounted && request == serial) {
+        setState(() => error = ex.toString());
+      }
+    } finally {
+      if (mounted && request == serial) {
+        setState(() { loading = false; moreLoading = false; });
+      }
+    }
+  }
+
+  void showExpense(Map<String, dynamic> row) {
+    final style = BpReferenceStyle.of(context);
+    showModalBottomSheet<void>(context: context,
+      showDragHandle: true, useSafeArea: true,
+      builder: (sheet) => Padding(
+        padding: const EdgeInsets.fromLTRB(15, 5, 15, 22),
+        child: Column(mainAxisSize: MainAxisSize.min, children: [
+          Text('Recorded Expense',
+            style: TextStyle(fontSize: 17,
+              fontWeight: FontWeight.w900, color: style.ink)),
+          BpReferenceDetailLine(label: 'Date',
+            icon: Icons.calendar_month_outlined,
+            value: field(row['expense_date'])),
+          BpReferenceDetailLine(label: 'Expense account',
+            icon: Icons.account_balance_outlined,
+            value: field(objectOf(row['expense_account'])['name'])),
+          BpReferenceDetailLine(label: 'Paid from',
+            icon: Icons.account_balance_wallet_outlined,
+            value: field(objectOf(row['payment_account'])['name'])),
+          BpReferenceDetailLine(label: 'Amount',
+            icon: Icons.payments_outlined,
+            value: money(row['amount'], widget.app.currency)),
+          if (field(row['reference']).isNotEmpty)
+            BpReferenceDetailLine(label: 'Reference',
+              icon: Icons.tag_outlined, value: field(row['reference'])),
+          if (field(row['description']).isNotEmpty)
+            BpReferenceDetailLine(label: 'Description',
+              icon: Icons.notes_outlined, value: field(row['description'])),
+        ]),
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    final palette = Theme.of(context).colorScheme;
-    final query = search.text.trim().toLowerCase();
-    final visible = rows.where((row) {
-      if (selectedStatus != 'all' &&
-          field(row['status']).toLowerCase() != selectedStatus) return false;
-      if (query.isEmpty) return true;
-      return [
-        field(row['document_number']),
-        field(objectOf(row['expense_account'])['name']),
-        field(objectOf(row['payment_account'])['name']),
-        field(row['description']),
-        field(row['expense_date']),
-      ].join(' ').toLowerCase().contains(query);
-    }).toList();
+    final style = BpReferenceStyle.of(context);
     return Scaffold(
-      appBar: AppBar(title: const Text('Expense Vouchers'),
-        actions: [IconButton(onPressed: loading ? null : load,
-          icon: const Icon(Icons.refresh_rounded))]),
+      backgroundColor: style.page,
+      appBar: const BpReferenceSubpageAppBar(title: 'Expense Vouchers'),
       floatingActionButton: widget.app.hasPermission('expenses.create')
         ? FloatingActionButton.extended(
-          key: const ValueKey('expense-create'),
-          onPressed: () async {
-            final saved = await Navigator.push<bool>(context,
-              MaterialPageRoute(builder: (_) =>
-                MoneyActionScreen(app: widget.app, kind: MoneyActionKind.expense)));
-            if (saved == true && mounted) await load();
-          },
-          icon: const Icon(Icons.add_rounded), label: const Text('Add Expense'))
+            key: const ValueKey('expense-create'),
+            backgroundColor: const Color(0xFF08B951),
+            foregroundColor: Colors.white,
+            onPressed: () async {
+              final result = await Navigator.push<bool>(context,
+                MaterialPageRoute(builder: (_) => MoneyActionScreen(
+                  app: widget.app, kind: MoneyActionKind.expense)));
+              if (result == true && mounted) await load();
+            },
+            icon: const Icon(Icons.add_rounded),
+            label: const Text('Add Expense'))
         : null,
-      body: RefreshIndicator(onRefresh: load, child: ListView(
-        key: const ValueKey('expense-vouchers-list'),
-        physics: const AlwaysScrollableScrollPhysics(),
-        padding: const EdgeInsets.all(16), children: [
-          const SectionHeading('Expense Vouchers'),
-          Row(children: [
-            Expanded(child: TextField(
-              controller: search,
-              key: const ValueKey('expense-search'),
-              onChanged: (_) => setState(() {}),
-              decoration: const InputDecoration(
-                prefixIcon: Icon(Icons.search_rounded),
-                hintText: 'Search loaded expenses...'))),
-            const SizedBox(width: 8),
-            IconButton.filledTonal(
-              key: const ValueKey('expense-filter'),
-              tooltip: 'Filter loaded records by status',
-              onPressed: () => setState(() => showFilters = !showFilters),
-              icon: const Icon(Icons.filter_alt_outlined)),
-          ]),
-          if (showFilters) ...[
-            const SizedBox(height: 8),
-            Wrap(spacing: 7, children: [
-              for (final entry in const [
-                ('all', 'All'), ('draft', 'Draft'), ('posted', 'Posted'),
-                ('approved', 'Approved'), ('paid', 'Paid'),
-              ])
-                ChoiceChip(label: Text(entry.$2),
-                  selected: selectedStatus == entry.$1,
-                  onSelected: (_) => setState(
-                    () => selectedStatus = entry.$1)),
-            ]),
-          ],
-          const SizedBox(height: 10),
-          if (!loading && error == null)
-            Text('${visible.length} of ${rows.length} loaded expenses',
-              style: TextStyle(color: palette.onSurfaceVariant,
-                fontSize: 11)),
-          if (loading) pageLoading()
-          else if (error != null) FailureState(message: error!, retry: load)
-          else if (visible.isEmpty) const EmptyState(title: 'No matching expenses')
-          else for (final row in visible) Padding(
-            padding: const EdgeInsets.only(bottom: 8),
-            child: Surface(padding: const EdgeInsets.all(13),
-              child: Row(children: [
-                Container(height: 48, width: 48,
-                  decoration: BoxDecoration(
-                    color: palette.primaryContainer,
-                    borderRadius: BorderRadius.circular(12)),
-                  child: Icon(Icons.receipt_long_outlined,
-                    color: palette.primary)),
-                const SizedBox(width: 12),
-                Expanded(child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start, children: [
-                Text(field(objectOf(row['expense_account'])['name'], 'Expense'),
-                  style: const TextStyle(fontWeight: FontWeight.w900)),
-                Text(field(row['expense_date']),
-                  style: TextStyle(color: palette.onSurfaceVariant, fontSize: 11)),
-                Text(field(row['description'])),
-                Text('Paid from: ${field(
-                  objectOf(row['payment_account'])['name'])}'),
-                ])),
-                const SizedBox(width: 8),
-                Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
-                  if (field(row['status']).isNotEmpty)
-                    Text(field(row['status']), style: TextStyle(
-                      color: palette.primary, fontSize: 11)),
-                  Text(money(row['amount'], widget.app.currency),
-                    style: const TextStyle(fontWeight: FontWeight.w900)),
-                ]),
-              ]))),
-          const SizedBox(height: 80),
-        ])),
+      body: Stack(children: [
+        RefreshIndicator(onRefresh: () => load(),
+          child: ListView(
+            key: const ValueKey('expense-vouchers-list'),
+            physics: const AlwaysScrollableScrollPhysics(),
+            padding: const EdgeInsets.fromLTRB(12, 12, 12, 110),
+            children: [
+              Row(children: [
+                Expanded(child: TextField(
+                  key: const ValueKey('expense-search'),
+                  controller: search,
+                  onSubmitted: (_) => load(),
+                  decoration: style.search(
+                    'Search expense head, reference, description...',
+                    prefixIcon: const Icon(Icons.search_rounded)))),
+                const SizedBox(width: 7),
+                IconButton(
+                  key: const ValueKey('expense-filter'),
+                  tooltip: 'Filter by date (server)',
+                  onPressed: choosePeriod,
+                  icon: const Icon(Icons.date_range_outlined)),
+                IconButton(onPressed: loading ? null : () => load(),
+                  tooltip: 'Search / Refresh',
+                  icon: const Icon(Icons.search_rounded)),
+              ]),
+              if (period != null)
+                TextButton.icon(
+                  onPressed: () {
+                    setState(() => period = null);
+                    load();
+                  },
+                  icon: const Icon(Icons.close_rounded, size: 15),
+                  label: Text('${isoLocalDate(period!.start)} – '
+                    '${isoLocalDate(period!.end)}')),
+              const SizedBox(height: 10),
+              if (loading) pageLoading()
+              else if (error != null)
+                FailureState(message: error!, retry: () => load())
+              else if (rows.isEmpty)
+                const EmptyState(title: 'No recorded expenses',
+                  subtitle: 'No matching expenses returned by BluePOS.')
+              else for (final row in rows)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 7),
+                  child: InkWell(
+                    onTap: () => showExpense(row),
+                    borderRadius: BorderRadius.circular(13),
+                    child: Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: style.card(radius: 13),
+                      child: Row(children: [
+                        Container(width: 41, height: 42,
+                          decoration: BoxDecoration(
+                            color: style.scheme.primary.withValues(alpha: .12),
+                            borderRadius: BorderRadius.circular(10)),
+                          child: Icon(Icons.receipt_long_outlined,
+                            color: style.scheme.primary)),
+                        const SizedBox(width: 8),
+                        Expanded(child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(field(objectOf(row['expense_account'])['name'],
+                              'Expense'),
+                              maxLines: 1, overflow: TextOverflow.ellipsis,
+                              style: TextStyle(fontWeight: FontWeight.w900,
+                                fontSize: 11, color: style.ink)),
+                            if (field(row['reference']).isNotEmpty)
+                              Text(field(row['reference']),
+                                maxLines: 1, overflow: TextOverflow.ellipsis,
+                                style: TextStyle(fontSize: 10,
+                                  color: style.muted)),
+                            Text(field(row['expense_date']),
+                              style: TextStyle(fontSize: 10,
+                                color: style.muted)),
+                          ])),
+                        const SizedBox(width: 6),
+                        Column(crossAxisAlignment: CrossAxisAlignment.end,
+                          children: [
+                            Text('Recorded', style: TextStyle(
+                              color: style.green, fontSize: 10,
+                              fontWeight: FontWeight.w800)),
+                            Text(money(row['amount'], widget.app.currency),
+                              style: TextStyle(fontSize: 11,
+                                fontWeight: FontWeight.w900,
+                                color: style.ink)),
+                          ]),
+                        const Icon(Icons.chevron_right_rounded, size: 18),
+                      ]),
+                    ),
+                  ),
+                ),
+              if (!loading && rows.length < total)
+                OutlinedButton(
+                  onPressed: moreLoading ? null : () => load(more: true),
+                  child: Text(moreLoading
+                    ? 'Loading...' : 'Load more ($total total)')),
+            ],
+          ),
+        ),
+        const Positioned(bottom: 0, left: 0, right: 0,
+          child: IgnorePointer(child: BpReferenceFooterWave())),
+      ]),
     );
   }
 }
