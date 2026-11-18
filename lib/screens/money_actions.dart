@@ -246,75 +246,178 @@ class _MoneyActionScreenState extends State<MoneyActionScreen> {
 
   Widget expenseReference(BuildContext context) {
     final style = BpReferenceStyle.of(context);
+    final inputStyle = InputDecoration(
+      isDense: true,
+      filled: true,
+      fillColor: style.surface,
+      contentPadding: const EdgeInsets.symmetric(
+        horizontal: 9, vertical: 8),
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(9),
+        borderSide: BorderSide(color: style.line)),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(9),
+        borderSide: BorderSide(color: style.line)),
+    );
+    Widget picker(String text, VoidCallback? onTap) => InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(9),
+      child: Container(
+        constraints: const BoxConstraints(minHeight: 31),
+        padding: const EdgeInsets.symmetric(
+          horizontal: 8, vertical: 6),
+        decoration: BoxDecoration(
+          color: style.surface,
+          borderRadius: BorderRadius.circular(9),
+          border: Border.all(color: style.line)),
+        child: Row(children: [
+          Expanded(child: Text(text,
+            maxLines: 1, overflow: TextOverflow.ellipsis,
+            style: TextStyle(fontSize: 10.7,
+              color: text.startsWith('Select')
+                ? style.muted : style.ink))),
+          Icon(Icons.chevron_right_rounded,
+            color: style.muted, size: 16),
+        ]),
+      ),
+    );
+    Widget input(TextEditingController controller, String hint,
+        {int lines = 1, bool numeric = false}) => TextField(
+      controller: controller,
+      maxLines: lines,
+      keyboardType: numeric
+        ? const TextInputType.numberWithOptions(decimal: true)
+        : TextInputType.text,
+      style: TextStyle(fontSize: 11, color: style.ink),
+      decoration: inputStyle.copyWith(
+        hintText: hint,
+        hintStyle: TextStyle(fontSize: 10,
+          color: style.muted)),
+    );
+
     return Scaffold(
       backgroundColor: style.page,
-      appBar: const BpReferenceSubpageAppBar(title: 'Create Expense Voucher'),
+      appBar: const BpReferenceSubpageAppBar(
+        title: 'Create Expense Voucher'),
       bottomNavigationBar: BpReferenceWorkflowActions(
         leftLabel: 'Cancel',
-        rightLabel: unconfirmed ? 'Retry Saved Request' : 'Confirm Expense',
+        rightLabel: unconfirmed ? 'Retry Saved Request'
+          : 'Confirm Expense',
         leftIcon: Icons.close_rounded,
         rightIcon: Icons.check_circle_outline_rounded,
         leftKey: const ValueKey('expense-cancel'),
         rightKey: const ValueKey('expense-post'),
-        onLeft: busy || unconfirmed ? null : () => Navigator.pop(context),
-        onRight: busy || loading || !widget.app.hasPermission('expenses.create')
-          ? null : save,
+        rightColor: style.scheme.primary,
+        onLeft: busy || unconfirmed ? null
+          : () => Navigator.pop(context),
+        onRight: busy || loading ||
+          !widget.app.hasPermission('expenses.create')
+            ? null : save,
       ),
-      body: ListView(
-        key: const ValueKey('expense-reference-entry'),
-        padding: const EdgeInsets.fromLTRB(11, 10, 11, 95),
-        children: [
-          if (loading) pageLoading()
-          else if (unconfirmed)
-            Container(padding: const EdgeInsets.all(12),
-              decoration: style.card(radius: 13),
-              child: const Text('The previous expense request is unconfirmed. '
-                'Only retry the saved payload with its original idempotency key.'))
-          else ...[
-            BpReferenceCompactField(
-              label: 'Date *', icon: Icons.calendar_month_outlined,
-              value: isoLocalDate(expenseDate), onTap: chooseDate),
-            const SizedBox(height: 7),
-            BpReferenceCompactField(
-              label: 'Expense Head / Account *',
-              icon: Icons.account_balance_outlined,
-              hint: 'Select expense account',
-              value: field(expenseAccount?['name']),
-              onTap: () => chooseAccount(expense: true)),
-            const SizedBox(height: 7),
-            BpReferenceCompactField(
-              label: 'Paid From Account *',
-              icon: Icons.account_balance_wallet_outlined,
-              hint: 'Select payment account',
-              value: field(paymentAccount?['name']),
-              onTap: () => chooseAccount(expense: false)),
-            const SizedBox(height: 7),
-            BpReferenceCompactField(
-              label: 'Amount *', icon: Icons.payments_outlined,
-              hint: '0.0000', controller: amount,
-              keyboardType: const TextInputType.numberWithOptions(
-                decimal: true)),
-            const SizedBox(height: 7),
-            BpReferenceCompactField(
-              label: 'Reference (optional)',
-              icon: Icons.tag_outlined,
-              hint: 'Enter reference number', controller: reference),
-            const SizedBox(height: 7),
-            BpReferenceFormField(
-              label: 'Description (optional)', hint: 'Enter description',
-              icon: Icons.notes_outlined,
-              controller: description, maxLength: 500, maxLines: 2),
-            const SizedBox(height: 6),
-            Text('Confirm Expense posts to BluePOS immediately. '
-              'Please verify both accounts and the amount.',
-              style: TextStyle(fontSize: 10, color: style.muted)),
+      body: Stack(children: [
+        const Positioned(top: 0, right: 0,
+          child: BpReferenceTopAccent()),
+        ListView(
+          key: const ValueKey('expense-reference-entry'),
+          padding: const EdgeInsets.fromLTRB(12, 9, 12, 95),
+          children: [
+            if (loading) pageLoading()
+            else if (unconfirmed)
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: style.card(radius: 13),
+                child: const Text(
+                  'Expense request unconfirmed. Retry only the '
+                  'original saved payload and idempotency key.'))
+            else ...[
+              BpReferenceInlinePanel(children: [
+                BpReferenceInlineRow(
+                  label: 'Expense Account',
+                  requiredField: true,
+                  icon: Icons.sell_outlined,
+                  iconColor: const Color(0xFFF59B23),
+                  child: picker(
+                    field(expenseAccount?['name'],
+                      'Select expense account'),
+                    () => chooseAccount(expense: true))),
+                BpReferenceInlineRow(
+                  label: 'Date',
+                  requiredField: true,
+                  icon: Icons.calendar_month_outlined,
+                  iconColor: const Color(0xFFEE9141),
+                  child: picker(isoLocalDate(expenseDate), chooseDate)),
+                BpReferenceInlineRow(
+                  label: 'Paid From Account',
+                  requiredField: true,
+                  icon: Icons.account_balance_wallet_outlined,
+                  iconColor: const Color(0xFF11B657),
+                  child: picker(
+                    field(paymentAccount?['name'],
+                      'Select payment account'),
+                    () => chooseAccount(expense: false))),
+                BpReferenceInlineRow(
+                  label: 'Amount',
+                  requiredField: true,
+                  icon: Icons.payments_outlined,
+                  iconColor: const Color(0xFF078FE6),
+                  child: input(amount, '0.0000', numeric: true)),
+                BpReferenceInlineRow(
+                  label: 'Reference No.',
+                  icon: Icons.tag_outlined,
+                  iconColor: const Color(0xFF9561EA),
+                  child: input(reference, 'Optional reference')),
+                BpReferenceInlineRow(
+                  label: 'Description',
+                  icon: Icons.chat_bubble_outline_rounded,
+                  iconColor: const Color(0xFF0EBC62),
+                  minHeight: 49,
+                  child: input(description, 'Expense details', lines: 2)),
+              ]),
+              const SizedBox(height: 12),
+              ValueListenableBuilder<TextEditingValue>(
+                valueListenable: amount,
+                builder: (context, inputValue, _) {
+                  final preview = inputValue.text.trim();
+                  return Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12, vertical: 13),
+                    decoration: BoxDecoration(
+                      color: style.dark
+                        ? const Color(0xFF1B472F)
+                        : const Color(0xFFDCF9E3),
+                      borderRadius: BorderRadius.circular(13),
+                      border: Border.all(
+                        color: style.green.withValues(alpha: .2))),
+                    child: Row(children: [
+                      Icon(Icons.account_balance_wallet_outlined,
+                        color: style.green),
+                      const SizedBox(width: 9),
+                      Expanded(child: Text('Amount to Post',
+                        style: TextStyle(fontWeight: FontWeight.w900,
+                          color: style.ink, fontSize: 12))),
+                      Text(preview.isEmpty ? '—'
+                        : '${widget.app.currency} $preview',
+                        style: TextStyle(fontWeight: FontWeight.w900,
+                          fontSize: 15, color: style.green)),
+                    ]),
+                  );
+                },
+              ),
+              Padding(
+                padding: const EdgeInsets.only(top: 8),
+                child: Text(
+                  'Confirm Expense posts immediately after server '
+                  'validation. No draft or separate post API exists.',
+                  style: TextStyle(fontSize: 10, color: style.muted))),
+            ],
+            if (error != null)
+              Padding(
+                padding: const EdgeInsets.only(top: 8),
+                child: Text(error!, style: TextStyle(
+                  color: style.scheme.error, fontSize: 11))),
           ],
-          if (error != null) Padding(
-            padding: const EdgeInsets.only(top: 9),
-            child: Text(error!, style: TextStyle(
-              color: style.scheme.error, fontSize: 12))),
-        ],
-      ),
+        ),
+      ]),
     );
   }
 
