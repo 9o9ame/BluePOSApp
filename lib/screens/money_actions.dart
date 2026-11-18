@@ -4,6 +4,7 @@ import '../core/api.dart';
 import '../core/sale_attempt.dart';
 import '../core/session.dart';
 import '../widgets/common.dart';
+import '../widgets/reference_surface.dart';
 import 'transaction_widgets.dart';
 
 /// The backend owns posted balances, bank account rules and money. Every
@@ -243,8 +244,89 @@ class _MoneyActionScreenState extends State<MoneyActionScreen> {
     }
   }
 
+  Widget expenseReference(BuildContext context) {
+    final style = BpReferenceStyle.of(context);
+    return Scaffold(
+      backgroundColor: style.page,
+      appBar: const BpReferenceSubpageAppBar(title: 'Record Expense'),
+      bottomNavigationBar: BpReferenceWorkflowActions(
+        leftLabel: 'Cancel',
+        rightLabel: unconfirmed ? 'Retry Saved Request' : 'Confirm Expense',
+        leftIcon: Icons.close_rounded,
+        rightIcon: Icons.check_circle_outline_rounded,
+        leftKey: const ValueKey('expense-cancel'),
+        rightKey: const ValueKey('expense-post'),
+        onLeft: busy || unconfirmed ? null : () => Navigator.pop(context),
+        onRight: busy || loading || !widget.app.hasPermission('expenses.create')
+          ? null : save,
+      ),
+      body: ListView(
+        key: const ValueKey('expense-reference-entry'),
+        padding: const EdgeInsets.fromLTRB(11, 10, 11, 95),
+        children: [
+          if (loading) pageLoading()
+          else if (unconfirmed)
+            Container(padding: const EdgeInsets.all(12),
+              decoration: style.card(radius: 13),
+              child: const Text('The previous expense request is unconfirmed. '
+                'Only retry the saved payload with its original idempotency key.'))
+          else ...[
+            BpReferenceCompactField(
+              label: 'Date *', icon: Icons.calendar_month_outlined,
+              value: isoLocalDate(expenseDate), onTap: chooseDate),
+            const SizedBox(height: 7),
+            BpReferenceCompactField(
+              label: 'Expense Head / Account *',
+              icon: Icons.account_balance_outlined,
+              hint: 'Select expense account',
+              value: field(expenseAccount?['name']),
+              onTap: () => chooseAccount(expense: true)),
+            const SizedBox(height: 7),
+            BpReferenceCompactField(
+              label: 'Paid From Account *',
+              icon: Icons.account_balance_wallet_outlined,
+              hint: 'Select payment account',
+              value: field(paymentAccount?['name']),
+              onTap: () => chooseAccount(expense: false)),
+            const SizedBox(height: 7),
+            BpReferenceCompactField(
+              label: 'Amount *', icon: Icons.payments_outlined,
+              hint: '0.0000', controller: amount,
+              keyboardType: const TextInputType.numberWithOptions(
+                decimal: true)),
+            const SizedBox(height: 7),
+            BpReferenceCompactField(
+              label: 'Reference (optional)',
+              icon: Icons.tag_outlined,
+              hint: 'Enter reference number', controller: reference),
+            const SizedBox(height: 7),
+            BpReferenceFormField(
+              label: 'Description (optional)', hint: 'Enter description',
+              icon: Icons.notes_outlined,
+              controller: description, maxLength: 500, maxLines: 2),
+            const SizedBox(height: 10),
+            Container(
+              padding: const EdgeInsets.all(11),
+              decoration: style.card(radius: 13),
+              child: Text('This BluePOS API posts the expense immediately '
+                'after confirmation. Draft and separate posting actions '
+                'are not supported. All balances are server-calculated.',
+                style: TextStyle(fontSize: 11, color: style.muted))),
+          ],
+          if (error != null) Padding(
+            padding: const EdgeInsets.only(top: 9),
+            child: Text(error!, style: TextStyle(
+              color: style.scheme.error, fontSize: 12))),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    if (widget.kind == MoneyActionKind.expense) {
+      return expenseReference(context);
+    }
     final palette = Theme.of(context).colorScheme;
     return Scaffold(
       appBar: AppBar(title: Text(widget.kind.title)),
