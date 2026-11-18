@@ -695,6 +695,68 @@ class _ReturnDocumentEditorState extends State<ReturnDocumentEditor> {
             if (lines.isEmpty) const EmptyState(
               title: 'No return lines',
               subtitle: 'Choose a remaining line from the original document.')
+            else if (!isSale && !draft)
+              Container(
+                padding: const EdgeInsets.all(9),
+                decoration: style.card(radius: 13),
+                child: Column(children: [
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 5, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: style.surfaceEnd,
+                      borderRadius: BorderRadius.circular(8)),
+                    child: Row(children: [
+                      Expanded(flex: 5, child: Text('Product',
+                        style: TextStyle(fontSize: 10,
+                          fontWeight: FontWeight.w900, color: style.ink))),
+                      Expanded(flex: 2, child: Text('Qty',
+                        textAlign: TextAlign.end,
+                        style: TextStyle(fontSize: 10,
+                          fontWeight: FontWeight.w900, color: style.ink))),
+                      Expanded(flex: 2, child: Text('Rate',
+                        textAlign: TextAlign.end,
+                        style: TextStyle(fontSize: 10,
+                          fontWeight: FontWeight.w900, color: style.ink))),
+                      Expanded(flex: 3, child: Text('Amount',
+                        textAlign: TextAlign.end,
+                        style: TextStyle(fontSize: 10,
+                          fontWeight: FontWeight.w900, color: style.ink))),
+                    ]),
+                  ),
+                  for (final line in lines) ...[
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 7),
+                      child: Row(children: [
+                        Expanded(flex: 5, child: Text(
+                          field(objectOf(line['product'])['name'],
+                            'Product'),
+                          maxLines: 2, overflow: TextOverflow.ellipsis,
+                          style: TextStyle(fontSize: 10,
+                            color: style.ink,
+                            fontWeight: FontWeight.w800))),
+                        Expanded(flex: 2, child: Text(
+                          bpReferenceDecimalLabel(line['quantity']),
+                          maxLines: 1, textAlign: TextAlign.end,
+                          style: TextStyle(fontSize: 10,
+                            color: style.ink))),
+                        Expanded(flex: 2, child: Text(
+                          bpReferenceDecimalLabel(line['unit_cost']),
+                          maxLines: 1, textAlign: TextAlign.end,
+                          style: TextStyle(fontSize: 10,
+                            color: style.ink))),
+                        Expanded(flex: 3, child: Text(
+                          bpReferenceDecimalLabel(line['line_total']),
+                          maxLines: 1, textAlign: TextAlign.end,
+                          style: TextStyle(fontSize: 10,
+                            fontWeight: FontWeight.w900,
+                            color: style.ink))),
+                      ]),
+                    ),
+                    const Divider(height: 1),
+                  ],
+                ]),
+              )
             else for (final line in lines)
               Padding(
                 padding: const EdgeInsets.only(bottom: 7),
@@ -755,6 +817,16 @@ class _ReturnDocumentEditorState extends State<ReturnDocumentEditor> {
                     label: 'Subtotal',
                     icon: Icons.calculate_outlined,
                     value: money(document?['subtotal'], widget.app.currency)),
+                if (document?['discount_amount'] != null)
+                  BpReferenceDetailLine(
+                    label: 'Discount', icon: Icons.discount_outlined,
+                    value: money(document?['discount_amount'],
+                      widget.app.currency)),
+                if (document?['tax_amount'] != null)
+                  BpReferenceDetailLine(
+                    label: 'Tax', icon: Icons.percent_outlined,
+                    value: money(document?['tax_amount'],
+                      widget.app.currency)),
                 Container(
                   padding: const EdgeInsets.symmetric(
                     horizontal: 9, vertical: 10),
