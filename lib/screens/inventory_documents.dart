@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../core/api.dart';
 import '../core/session.dart';
 import '../widgets/common.dart';
+import '../widgets/reference_surface.dart';
 import 'transaction_widgets.dart';
 
 enum InventoryDocumentKind { opening, stockTake, adjustment }
@@ -63,6 +64,198 @@ class InventoryDocumentDirectory extends StatelessWidget {
           app: app, kind: kind, documentUlid: id))) ?? false;
     },
   );
+}
+
+/// Reference 54: real warehouse-scoped Opening Stock records. The server
+/// supplies document totals/line costs; there is no client-side valuation.
+class OpeningStockReferenceDirectory extends StatefulWidget {
+  const OpeningStockReferenceDirectory({super.key, required this.app});
+  final AppController app;
+
+  @override
+  State<OpeningStockReferenceDirectory> createState() =>
+      _OpeningStockReferenceDirectoryState();
+}
+
+class _OpeningStockReferenceDirectoryState
+    extends State<OpeningStockReferenceDirectory> {
+  final query = TextEditingController();
+  List<Map<String, dynamic>> documents = const [];
+  bool loading = true;
+  String? error;
+
+  @override
+  void initState() { super.initState(); reload(); }
+
+  @override
+  void dispose() { query.dispose(); super.dispose(); }
+
+  Future<void> reload() async {
+    if (mounted) setState(() { loading = true; error = null; });
+    try {
+      final data = await widget.app.api.get(
+        '/api/inventory/opening-balances');
+      if (!mounted) return;
+      setState(() => documents = recordsOf(data));
+    } catch (ex) {
+      if (mounted) setState(() => error = ex.toString());
+    } finally {
+      if (mounted) setState(() => loading = false);
+    }
+  }
+
+  Future<void> openEditor([String? ulid]) async {
+    await Navigator.push<bool>(context,
+      MaterialPageRoute(builder: (_) => InventoryDocumentEditor(
+        app: widget.app, kind: InventoryDocumentKind.opening,
+        documentUlid: ulid)));
+    if (mounted) await reload();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final style = BpReferenceStyle.of(context);
+    final term = query.text.trim().toLowerCase();
+    final filtered = documents.where((d) {
+      final lines = recordsOf(d['lines']);
+      return term.isEmpty ||
+        field(d['document_number']).toLowerCase().contains(term) ||
+        field(objectOf(d['warehouse'])['name'])
+          .toLowerCase().contains(term) ||
+        lines.any((l) => field(objectOf(l['product'])['name'])
+          .toLowerCase().contains(term));
+    }).toList();
+
+    return Scaffold(
+      backgroundColor: style.page,
+      appBar: const BpReferenceSubpageAppBar(
+        title: 'Opening Stock', titleBelowBack: true),
+      floatingActionButton: widget.app.hasPermission(
+          InventoryDocumentKind.opening.createPermission)
+        ? FloatingActionButton.extended(
+            key: const ValueKey('opening-stock-add'),
+            onPressed: () => openEditor(),
+            backgroundColor: const Color(0xFF05B854),
+            foregroundColor: Colors.white,
+            icon: const Icon(Icons.add_rounded),
+            label: const Text('Add Stock'))
+        : null,
+      body: Stack(children: [
+        const Positioned(top: 0, right: 0,
+          child: BpReferenceTopAccent()),
+        RefreshIndicator(
+          onRefresh: reload,
+          child: ListView(
+            key: const ValueKey('opening-stock-reference-list'),
+            physics: const AlwaysScrollableScrollPhysics(),
+            padding: const EdgeInsets.fromLTRB(12, 10, 12, 105),
+            children: [
+              TextField(
+                controller: query,
+                onChanged: (_) => setState(() {}),
+                decoration: style.search(
+                  'Search product, warehouse or document...',
+                  prefixIcon: const Icon(Icons.search_rounded))),
+              const SizedBox(height: 10),
+              if (loading) pageLoading()
+              else if (error != null)
+                FailureState(message: error!, retry: reload)
+              else if (filtered.isEmpty)
+                const EmptyState(
+                  title: 'No opening stock entries',
+                  subtitle: 'No server records match this search.')
+              else for (final document in filtered) ...[
+                for (final line in recordsOf(document['lines']))
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 7),
+                    child: InkWell(
+                      onTap: () {
+                        final id = field(document['ulid']);
+                        if (validPublicUlid(id)) openEditor(id);
+                      },
+                      borderRadius: BorderRadius.circular(14),
+                      child: Container(
+                        padding: const EdgeInsets.all(9),
+                        decoration: style.card(radius: 14),
+                        child: Row(children: [
+                          Container(
+                            width: 51, height: 55,
+                            decoration: BoxDecoration(
+                              color: style.scheme.primary.withValues(
+                                alpha: .12),
+                              borderRadius: BorderRadius.circular(10)),
+                            child: Icon(Icons.inventory_2_outlined,
+                              color: style.scheme.primary, size: 25)),
+                          const SizedBox(width: 9),
+                          Expanded(child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                field(objectOf(line['product'])['name'],
+                                  'Product'),
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(fontSize: 12,
+                                  fontWeight: FontWeight.w900,
+                                  color: style.ink)),
+                              Text(
+                                field(objectOf(document['warehouse'])['name'],
+                                  'Warehouse'),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(fontSize: 10,
+                                  color: style.muted)),
+                              Text(field(document['document_number']),
+                                style: TextStyle(fontSize: 9.5,
+                                  color: style.muted)),
+                              const SizedBox(height: 4),
+                              Wrap(spacing: 10, runSpacing: 4,
+                                children: [
+                                  Text('Qty: ${bpReferenceDecimalLabel(line['quantity'])}',
+                                    style: TextStyle(color: style.green,
+                                      fontWeight: FontWeight.w800,
+                                      fontSize: 10)),
+                                  Text('Cost: ${money(line['unit_cost'], widget.app.currency)}',
+                                    style: TextStyle(color: style.ink,
+                                      fontSize: 10)),
+                                  Text('Value: ${money(line['total_cost'], widget.app.currency)}',
+                                    style: TextStyle(color: style.green,
+                                      fontWeight: FontWeight.w900,
+                                      fontSize: 10)),
+                                ]),
+                            ])),
+                          Icon(Icons.chevron_right_rounded,
+                            size: 19, color: style.muted),
+                        ]),
+                      ),
+                    ),
+                  ),
+                if (recordsOf(document['lines']).isEmpty)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 7),
+                    child: InkWell(
+                      onTap: () {
+                        final id = field(document['ulid']);
+                        if (validPublicUlid(id)) openEditor(id);
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.all(11),
+                        decoration: style.card(radius: 13),
+                        child: Text(
+                          '${field(document['document_number'], 'Draft')}'
+                          ' · ${field(objectOf(document['warehouse'])['name'])}'
+                          ' · ${field(document['status'])}',
+                          style: TextStyle(color: style.ink)))),
+                  ),
+              ],
+            ],
+          ),
+        ),
+        const Positioned(bottom: 0, left: 0, right: 0,
+          child: IgnorePointer(child: BpReferenceFooterWave())),
+      ]),
+    );
+  }
 }
 
 /// All three inventory workflows reuse existing draft/line/post endpoints.
