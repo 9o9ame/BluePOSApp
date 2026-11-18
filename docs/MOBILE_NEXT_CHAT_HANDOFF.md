@@ -103,7 +103,7 @@ GitHub code changes on `feature/daily-entries`:
 - `test/mobile_reference_36_40_test.dart`: source ULID keys/endpoints and compact enabled/disabled action tests; **not run here**.
 - `docs/MOBILE_REFERENCE_PROGRESS.md`: screens 36–40 statuses recorded.
 
-**Important limitations / next actions:** Run Flutter analyzer and focused tests; compare new Android screenshots to approved reference. Verify API authorization and posted purchase print/ledger behaviors on real accounts. No Flutter/Dart SDK in assistant container, so runtime status remains unknown. Check branch `git status` before pull; no force/reset. Next reference batch is **41–45**, not begun. Frozen Sales Invoice creation remains unchanged.
+**Important limitations / next actions:** Run Flutter analyzer and focused tests; compare new Android screenshots to approved reference. Verify API authorization and posted purchase print/ledger behaviors on real accounts. No Flutter/Dart SDK in assistant container, so runtime status remains unknown. Check branch `git status` before pull; no force/reset. Next reference batch is **46–50**; previous 41–45 code is committed, Flutter/Android QA pending. Frozen Sales Invoice creation remains unchanged.
 
 ```powershell
 cd "C:\Projects\BluePOSApp"
@@ -168,6 +168,43 @@ Windows verification after `b3bf748` successfully fast-forwarded the mobile bran
 
 **Validation:** Structural bracket/quote checks across five touched Dart files passed; **Flutter analyzer/tests have not been rerun in the assistant runtime**. The prior Windows run reported 38 diagnostics including compile errors; user must pull latest branch and rerun targeted checks. Their local `analysis_options.yaml` modification and untracked `.idea/`, `.metadata`, `android/`, `bluepos_app.iml`, `widget_test.generated.bak` were deliberately untouched. Never reset or delete them without explicit approval.
 
+## Latest 41–45 implementation / web contract handoff (2026-11-18)
+
+**Reference PNGs:** `BATCH_05_41-50/41_Purchase_Return_Entry.png`,
+`42_Purchase_Return_Details.png`, `43_Expense_Vouchers.png`,
+`44_Expense_Voucher_Entry.png`, `45_Journal_Vouchers.png`.
+
+**Web source inspection on `9o9ame/bluepos` main:** `PROJECT_UI_DESIGN_SYSTEM.md`, `backend/routes/api.php`,
+`backend/app/Http/Controllers/Api/Purchases/PurchaseReturnController.php`,
+`backend/app/Http/Controllers/Api/Sales/ExpenseController.php`,
+`backend/app/Http/Controllers/Api/Accounting/VoucherController.php`,
+`backend/app/Http/Requests/Sales/StoreExpenseRequest.php` and
+`backend/app/Http/Resources/{Sales/ExpenseResource,Purchases/PurchaseReturnResource,Purchases/PurchaseReturnLineResource}.php`.
+
+**Code in `9o9ame/BluePOSApp` `feature/daily-entries`:**
+
+- `lib/screens/returns.dart`: 41/42 purchase returns retain real source invoice selection, actual server remaining return quantities, create/update/draft/line/post authorization. Added real nullable `supplier_reference` to create/update and reload. Posted purchase returns now have read-only server item table, real discount/tax/grand total, actual posting status, and PDF Print. Drafts remain editable; posted movement logic not modified. Do not invent `Adjustment Type` just because mockup shows it.
+- `lib/screens/money_actions.dart`: 43 expense directory loads actual `GET /api/sales/expenses` with pagination, server `q` and `date_from/date_to`; cards/read-only sheet display actual expense account, payment account, amount, reference and date. Do not show fake status/document numbers: `ExpenseResource` has none.
+- Same file screen 44 Record Expense uses shared compact fields for actual contract: date, expense account ULID, payment account ULID, positive amount max 4dp, optional reference and description. **Important:** `POST /api/sales/expenses` immediately records/posts, with existing persisted `MoneyActionAttemptStore` idempotency. No draft or separate Post endpoint; Cancel/Confirm Expense footer is intentional and server-aligned.
+- `lib/screens/vouchers.dart`: 45 journal-only `JournalVoucherDirectoryScreen` uses `/api/vouchers?type=journal` and existing actual draft/post VoucherEditor. New `initialKind` and `lockInitialKind` restrict this journal-only entry to journal type. Back navigation refreshes server results. All-vouchers directory continues to work.
+- `lib/screens/transaction_widgets.dart`: journal list now shows actual book number or description, not fictitious customer/supplier. Add Journal label.
+- `lib/screens/modules.dart`: RBAC-gated Journal Vouchers action exposed under Daily Entries.
+- `test/mobile_reference_41_45_test.dart`: unit/widget smoke tests for real route mapping, 4dp money constraints, journal kind lock baseline and shared compact controls; **not executed**.
+- `docs/MOBILE_REFERENCE_PROGRESS.md` updated.
+
+**Boundaries:** No web/API/backend, DB migrations, posted accounting or stock mutation changed. **No Android pixel-perfect signoff, Flutter analyzer/tests, or live tenant/branch/RBAC posting test has been run.** Keep working on `feature/daily-entries`. Do not force Git, reset local user files or switch branches. Next batch is references **46–50** after focused validation.
+
+Focused validation on user's Windows:
+
+```powershell
+cd "C:\Projects\BluePOSApp"
+git status --short
+git pull --ff-only origin feature/daily-entries
+flutter analyze lib/screens/returns.dart lib/screens/money_actions.dart lib/screens/vouchers.dart lib/screens/transaction_widgets.dart lib/screens/modules.dart lib/widgets/reference_surface.dart
+flutter test test/mobile_reference_41_45_test.dart test/mobile_reference_33_40_web_contract_test.dart
+flutter run
+```
+
 ## What is still pending / honesty boundary
 
 - **Run on user's Windows Flutter installation**: analyze 3 affected Dart files and run focused tests. Our execution environment did not have Flutter/Dart binaries. Distinguish static source inspection from actual test execution.
@@ -183,7 +220,7 @@ Windows verification after `b3bf748` successfully fast-forwarded the mobile bran
 
 1. Run latest focused Flutter checks and fix any analyzer/runtime errors. Re-read latest repo file before editing: other commits might land.
 2. Obtain screenshot comparison for 15–25, resolve only remaining visual mismatch without changing real data.
-3. Next batch is references **41–45**. Inspect existing screens, API contracts, frozen design requirements and permissions before editing.
+3. Next batch is references **46–50**. Inspect existing screens, API contracts, frozen design requirements and permissions before editing.
 4. After each batch update both `docs/MOBILE_REFERENCE_PROGRESS.md` and this handoff, report exact commit SHA, tests, pending items.
 
 ## Pull / verify commands
