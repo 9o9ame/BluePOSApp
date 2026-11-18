@@ -45,7 +45,12 @@ _Source: numbered 92-image reference ZIP and live Android screenshots supplied b
 | 38 | Sales Returns | Real server directory, device QA pending | Status filter only draft/posted per SaleReturnStatus enum, real customer/source/date/amount, no fictional Refunded status |
 | 39 | Create Sales Return | API-verified compact UI, device QA pending | Read-only server return number, party derived from selected invoice, compact source/date/optional reason/notes, server-returnable items preview, persisted idempotency and real draft/line/post flow |
 | 40 | Purchase Returns | Real server directory, device QA pending | Actual data only; draft/posted server filter and source/party display; genuine purchase return draft/line/post flow retained; empty view when backend has no records |
-| 41–92 | Remaining references | Not claimed complete by this document | Next batch 41–45; inspect reference PNGs and live API before implementation |
+| 41 | Create Purchase Return | Functional existing draft/line/post, UI enhanced; Android QA pending | Original posted purchase required by this mobile path; real supplier/warehouse/date, Supplier Reference (supported), reason/notes, returnable quantities from server; no invented adjustment type or stock total |
+| 42 | Purchase Return Detail | Real server detail and PDF, Android QA pending | Posted records read-only, actual returned-line Product/Qty/Rate/Amount table, server discount/tax/total, posted indicator and Print PDF; draft remains editable/postable by permission |
+| 43 | Expense Vouchers | Reference-style paginated server list, Android QA pending | True `/api/sales/expenses` server q/date filters, real accounts/date/reference/amount and read-only detail sheet; no unsupported expense status/number |
+| 44 | Record Expense | Reference-style functional direct-post form, Android QA pending | Verified `expense_date`, `expense_account_ulid`, `payment_account_ulid`, amount NUMERIC(20,4), reference, description; existing idempotency & confirm/retry preserved; API posts immediately, no fake Save Draft |
+| 45 | Journal Vouchers | Real journal-only server directory, Android QA pending | `/api/vouchers?type=journal`, draft/posted, server amounts/narration, authorized Add Journal, lock journal editor kind, refresh after exit; existing server draft/post flows reused |
+| 46–92 | Later references | Not started by this batch | Next batch 46–50. Verify exact references and live backend before modifications |
 
 ## Current fixes from user feedback
 
@@ -140,6 +145,24 @@ Windows verification after `b3bf748` successfully fast-forwarded the mobile bran
 
 **Validation:** Structural bracket/quote checks across five touched Dart files passed; **Flutter analyzer/tests have not been rerun in the assistant runtime**. The prior Windows run reported 38 diagnostics including compile errors; user must pull latest branch and rerun targeted checks. Their local `analysis_options.yaml` modification and untracked `.idea/`, `.metadata`, `android/`, `bluepos_app.iml`, `widget_test.generated.bak` were deliberately untouched. Never reset or delete them without explicit approval.
 
+## Latest reference batch — Screens 41–45 (2026-11-18)
+
+Sources compared: `BATCH_05_41-50/41_Purchase_Return_Entry.png` through
+`45_Journal_Vouchers.png`; live `9o9ame/bluepos` `main`
+`PROJECT_UI_DESIGN_SYSTEM.md`,
+`backend/routes/api.php`,
+`backend/app/Http/Controllers/Api/{Purchases/PurchaseReturnController,Sales/ExpenseController,Accounting/VoucherController}.php`,
+`backend/app/Http/Requests/Sales/StoreExpenseRequest.php`,
+`backend/app/Http/Resources/{Sales/ExpenseResource,Purchases/PurchaseReturnResource,Purchases/PurchaseReturnLineResource}.php`.
+Visual images guide **appearance only**, not server field availability.
+
+- **41–42 Purchase Return:** `lib/screens/returns.dart` still reuses real authorized purchase return source/draft/line/edit/post domain methods. Added supported `supplier_reference` to create/update and reload; read-only posted detail now has the actual server-sourced item table and `discount_amount`, `tax_amount`, `grand_total`. Posted Return Print exports a PDF exclusively from authorized server data. Never amend a posted return through a draft form. Purchase Return general mode exists on the web but was **not added** to this source-linked mobile flow.
+- **43 Expense Vouchers:** `lib/screens/money_actions.dart` shows compact reference cards, paged `GET /api/sales/expenses`, server-side search `q`, date range `date_from/date_to` and read-only server detail sheet. **ExpenseResource has NO `status` or `document_number`**; the UI does not invent Draft/Paid/Approved states or voucher IDs. `Recorded` is an action description, not a fake resource field.
+- **44 Record Expense:** same file uses shared `BpReferenceCompactField` and `BpReferenceWorkflowActions` with actual `StoreExpenseRequest` values: date, expense account ULID, payment account ULID, amount (positive decimal max 4), reference, description. Existing `MoneyActionAttemptStore`, persisted idempotency key and confirm-before-post flow preserved. **The expense create API posts directly and does not have draft or separate post endpoints**, so UI offers Cancel / Confirm Expense rather than fake Save Draft / Post Expense.
+- **45 Journal Vouchers:** `lib/screens/vouchers.dart` adds a dedicated `JournalVoucherDirectoryScreen` with `/api/vouchers?type=journal`; `VoucherEditor(initialKind: journal, lockInitialKind: true)` retains server draft/lines/post and prevents selecting a payment/receiving type from Journal-only route. `lib/screens/transaction_widgets.dart` uses actual `description`/`book_number` instead of fake customer/supplier names; journal create CTA says Add Journal. `lib/screens/modules.dart` exposes new permission-gated Journal Vouchers action in Daily Entries.
+- Shared `BpReference*` appearance, selected theme and compact sizing reused. No web, database, schema, accounting valuation or posting-domain changes.
+- Added `test/mobile_reference_41_45_test.dart` with route/schema and compact-widget smoke assertions; **not executed**. Flutter/Dart SDK unavailable in this environment, and Android visual approval remains pending. Tests involving actual posting/concurrency must run against **`bluepos_test`**, never development DB.
+
 ## Validation
 
 - Repository files edited on `feature/daily-entries`; no main merge.
@@ -154,8 +177,8 @@ cd "C:\Projects\BluePOSApp"
 git status --short
 git branch --show-current
 git pull --ff-only origin feature/daily-entries
-flutter analyze lib/widgets/reference_surface.dart lib/screens/purchase_invoices.dart lib/screens/returns.dart lib/screens/transaction_widgets.dart
-flutter test test/reference_11_15_smoke_test.dart test/catalog_reference_16_20_test.dart test/mobile_reference_21_25_test.dart test/mobile_reference_26_30_test.dart
+flutter analyze lib/screens/returns.dart lib/screens/money_actions.dart lib/screens/vouchers.dart lib/screens/transaction_widgets.dart lib/screens/modules.dart lib/widgets/reference_surface.dart
+flutter test test/mobile_reference_41_45_test.dart test/mobile_reference_33_40_web_contract_test.dart
 flutter run
 ```
 
