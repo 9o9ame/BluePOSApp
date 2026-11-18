@@ -374,6 +374,7 @@ class _TransactionDirectoryState extends State<TransactionDirectory> {
         }, icon: const Icon(Icons.add_rounded),
         label: Text(isReturns ? 'Add Return'
           : widget.endpoint == '/api/sales' ? 'New Invoice'
+          : widget.endpoint.startsWith('/api/vouchers') ? 'Add Journal'
           : widget.referenceStyle ? 'Add Purchase' : 'New'))
         : null,
       body: RefreshIndicator(onRefresh: load,
