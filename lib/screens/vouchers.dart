@@ -489,10 +489,65 @@ class _VoucherEditorState extends State<VoucherEditor> {
   Widget referenceEditor(BuildContext context) {
     final style = BpReferenceStyle.of(context);
     final editable = !saving && !pendingAttempt &&
-        (!created || draft && canEdit);
-    final isJournal = kind == VoucherKind.journal;
-    final title = isJournal ? 'Create Journal Voucher'
-      : kind == VoucherKind.payment ? 'Create Payment' : 'Create Receipt';
+      (!created || (draft && canEdit));
+    final journal = kind == VoucherKind.journal;
+    final payment = kind == VoucherKind.payment;
+    final title = journal ? 'Create Journal Voucher'
+      : payment ? 'Create Payment' : 'Create Receipt';
+    final tone = journal ? const Color(0xFF7850D8)
+      : payment ? const Color(0xFFE55D65)
+      : const Color(0xFF08B65B);
+    final smallInput = InputDecoration(
+      isDense: true, filled: true,
+      fillColor: style.surface,
+      contentPadding: const EdgeInsets.symmetric(
+        horizontal: 9, vertical: 8),
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(9),
+        borderSide: BorderSide(color: style.line)),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(9),
+        borderSide: BorderSide(color: style.line)),
+    );
+    Widget readValue(String value, {VoidCallback? onTap,
+        String placeholder = 'Select'}) {
+      return InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(9),
+        child: Container(
+          constraints: const BoxConstraints(minHeight: 30),
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
+          decoration: BoxDecoration(
+            color: style.surface,
+            borderRadius: BorderRadius.circular(9),
+            border: Border.all(color: style.line)),
+          child: Row(children: [
+            Expanded(child: Text(
+              value.isEmpty ? placeholder : value,
+              maxLines: 1, overflow: TextOverflow.ellipsis,
+              style: TextStyle(fontSize: 10.8,
+                color: value.isEmpty ? style.muted : style.ink,
+                fontWeight: value.isEmpty
+                  ? FontWeight.normal : FontWeight.w700))),
+            if (onTap != null)
+              Icon(Icons.chevron_right_rounded, size: 16,
+                color: style.muted),
+          ]),
+        ),
+      );
+    }
+    Widget input(TextEditingController controller, String hint,
+        {int lines = 1}) {
+      return TextField(
+        controller: controller,
+        readOnly: !editable,
+        maxLines: lines,
+        style: TextStyle(fontSize: 11, color: style.ink),
+        decoration: smallInput.copyWith(hintText: hint,
+          hintStyle: TextStyle(color: style.muted, fontSize: 10)),
+      );
+    }
+
     return Scaffold(
       backgroundColor: style.page,
       appBar: BpReferenceSubpageAppBar(
@@ -503,9 +558,9 @@ class _VoucherEditorState extends State<VoucherEditor> {
             rightKey: const ValueKey('voucher-post'),
             leftLabel: pendingAttempt ? 'Retry Saved Draft'
               : created ? 'Save Draft' : 'Create Draft',
-            rightLabel: isJournal ? 'Post Journal'
-              : kind == VoucherKind.payment ? 'Post Payment' : 'Post Receipt',
-            rightColor: const Color(0xFF006DF6),
+            rightLabel: journal ? 'Post Journal'
+              : payment ? 'Post Payment' : 'Post Receipt',
+            rightColor: style.scheme.primary,
             onLeft: !saving && canEdit && (!created || draft)
               ? save : null,
             onRight: created && draft && canPost && !saving
@@ -516,146 +571,214 @@ class _VoucherEditorState extends State<VoucherEditor> {
           child: BpReferenceTopAccent()),
         ListView(
           key: const ValueKey('reference-voucher-editor'),
-          padding: const EdgeInsets.fromLTRB(11, 10, 11, 94),
+          padding: const EdgeInsets.fromLTRB(12, 9, 12, 90),
           children: [
             if (loading) pageLoading()
             else ...[
-              Row(children: [
-                Expanded(child: BpReferenceCompactField(
-                  label: 'Voucher No. (server)',
+              BpReferenceInlinePanel(children: [
+                BpReferenceInlineRow(
+                  label: 'Voucher No.',
                   icon: Icons.description_outlined,
-                  value: field(voucher?['voucher_number']),
-                  hint: 'Assigned on draft')),
-                const SizedBox(width: 7),
-                Expanded(child: BpReferenceCompactField(
-                  label: 'Date *', icon: Icons.calendar_month_outlined,
-                  value: isoLocalDate(entryDate),
-                  onTap: editable ? chooseDate : null)),
+                  iconColor: tone,
+                  child: readValue(
+                    field(voucher?['voucher_number']),
+                    placeholder: 'Assigned by server')),
+                BpReferenceInlineRow(
+                  label: 'Date', requiredField: true,
+                  icon: Icons.calendar_month_outlined,
+                  iconColor: const Color(0xFFF09528),
+                  child: readValue(isoLocalDate(entryDate),
+                    onTap: editable ? chooseDate : null)),
+                BpReferenceInlineRow(
+                  label: journal ? 'Narration' : 'Description',
+                  icon: Icons.chat_bubble_outline_rounded,
+                  iconColor: const Color(0xFF0BBF71),
+                  minHeight: 47,
+                  child: input(description, 'Enter narration',
+                    lines: 2)),
+                BpReferenceInlineRow(
+                  label: 'Book Number',
+                  icon: Icons.tag_outlined,
+                  iconColor: const Color(0xFF9655E6),
+                  child: input(book, 'Optional reference')),
+                if (kind.hasHeader)
+                  BpReferenceInlineRow(
+                    label: 'Cash / Bank Account',
+                    requiredField: true,
+                    icon: Icons.account_balance_wallet_outlined,
+                    iconColor: const Color(0xFF0DB65B),
+                    child: readValue(
+                      field(headerAccount?['name']),
+                      placeholder: 'Choose cash or bank',
+                      onTap: editable ? chooseHeader : null)),
               ]),
-              const SizedBox(height: 7),
-              BpReferenceFormField(
-                label: isJournal ? 'Narration / Description'
-                  : 'Description (optional)',
-                hint: 'Enter narration',
-                icon: Icons.notes_outlined,
-                controller: description, maxLength: 500,
-                maxLines: 2, readOnly: !editable),
-              BpReferenceFormField(
-                label: 'Book Number (optional)',
-                hint: 'Enter book reference',
-                icon: Icons.tag_outlined,
-                controller: book, maxLength: 50,
-                readOnly: !editable),
-              if (kind.hasHeader)
-                BpReferenceFormField(
-                  label: 'Cash / Bank Account *',
-                  hint: 'Select account',
-                  icon: Icons.account_balance_wallet_outlined,
-                  child: InkWell(
-                    onTap: editable ? chooseHeader : null,
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 8),
-                      child: Row(children: [
-                        Expanded(child: Text(
-                          field(headerAccount?['name'],
-                            'Choose cash or bank account'),
-                          maxLines: 1, overflow: TextOverflow.ellipsis)),
-                        const Icon(Icons.chevron_right_rounded),
-                      ]),
-                    ))),
-              Row(children: [
-                Expanded(child: Text(isJournal
-                  ? 'Journal Lines (Double Entry)' : 'Account Lines',
-                  style: TextStyle(color: style.ink,
-                    fontWeight: FontWeight.w900, fontSize: 12))),
-                if (editable && canEdit)
-                  OutlinedButton.icon(
-                    onPressed: () => addLine(),
-                    icon: const Icon(Icons.add, size: 16),
-                    label: const Text('Add Line')),
-              ]),
-              if (rows.isEmpty)
-                Container(
-                  decoration: style.card(radius: 13),
-                  padding: const EdgeInsets.all(12),
-                  child: Text('Select real chart-of-account lines. '
-                    'The server validates debit/credit totals before posting.',
-                    style: TextStyle(color: style.muted, fontSize: 11)))
-              else for (final row in rows)
+              const SizedBox(height: 9),
+              BpReferenceInlinePanel(children: [
                 Padding(
-                  padding: const EdgeInsets.only(bottom: 6),
-                  child: Container(
-                    decoration: style.card(radius: 13),
-                    padding: const EdgeInsets.all(9),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 9, vertical: 7),
+                  child: Row(children: [
+                    Container(
+                      width: 28, height: 29,
+                      decoration: BoxDecoration(
+                        color: tone.withValues(alpha: .12),
+                        borderRadius: BorderRadius.circular(8)),
+                      child: Icon(journal
+                        ? Icons.balance_rounded
+                        : Icons.account_tree_outlined,
+                        size: 17, color: tone)),
+                    const SizedBox(width: 7),
+                    Expanded(child: Text(
+                      journal ? 'Journal Lines (Double Entry)'
+                        : 'Account Lines',
+                      style: TextStyle(fontSize: 11.7,
+                        fontWeight: FontWeight.w900,
+                        color: style.ink))),
+                    if (editable && canEdit)
+                      OutlinedButton.icon(
+                        key: const ValueKey('voucher-add-line'),
+                        style: OutlinedButton.styleFrom(
+                          visualDensity: VisualDensity.compact,
+                          minimumSize: const Size(0, 30),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 7, vertical: 0)),
+                        onPressed: () => addLine(),
+                        icon: const Icon(Icons.add, size: 16),
+                        label: const Text('Add Line',
+                          style: TextStyle(fontSize: 10))),
+                  ]),
+                ),
+                if (rows.isEmpty)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12, vertical: 11),
                     child: Row(children: [
-                      Icon(Icons.account_balance_outlined,
-                        color: style.scheme.primary),
+                      Icon(Icons.info_outline_rounded, size: 17,
+                        color: style.muted),
                       const SizedBox(width: 8),
+                      Expanded(child: Text(
+                        'No account lines added. Choose Add Line to '
+                        'select an authorized account and amount.',
+                        style: TextStyle(fontSize: 10.5,
+                          color: style.muted))),
+                    ]),
+                  )
+                else for (final row in rows)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 9, vertical: 5),
+                    child: Row(children: [
+                      Container(width: 30, height: 33,
+                        decoration: BoxDecoration(
+                          color: tone.withValues(alpha: .1),
+                          borderRadius: BorderRadius.circular(8)),
+                        child: Icon(Icons.account_balance_outlined,
+                          color: tone, size: 17)),
+                      const SizedBox(width: 7),
                       Expanded(child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(field(row.account['name']),
-                            maxLines: 2, overflow: TextOverflow.ellipsis,
+                          Text(field(row.account['name'], 'Account'),
+                            maxLines: 1, overflow: TextOverflow.ellipsis,
                             style: TextStyle(color: style.ink,
-                              fontWeight: FontWeight.w800, fontSize: 11)),
+                              fontWeight: FontWeight.w800,
+                              fontSize: 10.8)),
                           Text(field(row.account['code']),
-                            style: TextStyle(color: style.muted, fontSize: 10)),
+                            style: TextStyle(fontSize: 9.5,
+                              color: style.muted)),
                           if (row.narration.isNotEmpty)
-                            Text(row.narration, maxLines: 1,
-                              style: TextStyle(color: style.muted,
-                                fontSize: 10)),
+                            Text(row.narration,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(fontSize: 9,
+                                color: style.muted)),
                         ])),
-                      Column(crossAxisAlignment: CrossAxisAlignment.end,
-                        children: [
-                          Text(kind.hasHeader
+                      const SizedBox(width: 5),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 7, vertical: 5),
+                        decoration: BoxDecoration(
+                          color: style.surfaceEnd,
+                          borderRadius: BorderRadius.circular(8)),
+                        child: Text(
+                          kind.hasHeader
                             ? money(row.amount, widget.app.currency)
                             : validPositiveDecimal(row.debit, 4)
                               ? 'Dr ${money(row.debit, widget.app.currency)}'
                               : 'Cr ${money(row.credit, widget.app.currency)}',
-                            style: TextStyle(color: style.ink,
-                              fontWeight: FontWeight.w900, fontSize: 10)),
-                          if (editable) Row(
-                            mainAxisSize: MainAxisSize.min, children: [
-                              IconButton(
-                                onPressed: () => addLine(row),
-                                visualDensity: VisualDensity.compact,
-                                constraints: const BoxConstraints(
-                                  minWidth: 30, minHeight: 30),
-                                icon: const Icon(Icons.edit_outlined,
-                                  size: 17)),
-                              IconButton(
-                                onPressed: () => setState(
-                                  () => rows.remove(row)),
-                                visualDensity: VisualDensity.compact,
-                                constraints: const BoxConstraints(
-                                  minWidth: 30, minHeight: 30),
-                                icon: Icon(Icons.remove_circle_outline,
-                                  size: 17, color: style.scheme.error)),
-                            ]),
-                        ]),
+                          style: TextStyle(fontSize: 10,
+                            fontWeight: FontWeight.w900,
+                            color: style.ink))),
+                      if (editable) ...[
+                        IconButton(
+                          onPressed: () => addLine(row),
+                          visualDensity: VisualDensity.compact,
+                          constraints: const BoxConstraints(
+                            minWidth: 28, minHeight: 30),
+                          icon: Icon(Icons.edit_outlined,
+                            size: 17, color: tone)),
+                        IconButton(
+                          onPressed: () => setState(
+                            () => rows.remove(row)),
+                          visualDensity: VisualDensity.compact,
+                          constraints: const BoxConstraints(
+                            minWidth: 28, minHeight: 30),
+                          icon: Icon(Icons.remove_circle_outline,
+                            size: 17, color: style.scheme.error)),
+                      ],
                     ]),
                   ),
-                ),
-              if (created)
+              ]),
+              if (created) ...[
+                const SizedBox(height: 9),
                 Container(
-                  padding: const EdgeInsets.all(10),
-                  decoration: style.card(radius: 13),
-                  child: Column(children: [
-                    BpReferenceDetailLine(
-                      label: 'Server Debit',
-                      icon: Icons.south_west_rounded,
-                      value: money(voucher?['total_debit'],
-                        widget.app.currency)),
-                    BpReferenceDetailLine(
-                      label: 'Server Credit',
-                      icon: Icons.north_east_rounded,
-                      value: money(voucher?['total_credit'],
-                        widget.app.currency)),
-                    Text('Status: ${field(voucher?['status'])}',
-                      style: TextStyle(color: style.muted,
-                        fontSize: 11)),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12, vertical: 10),
+                  decoration: BoxDecoration(
+                    color: style.dark
+                      ? const Color(0xFF1C452C)
+                      : const Color(0xFFE0F9E3),
+                    borderRadius: BorderRadius.circular(13),
+                    border: Border.all(
+                      color: style.green.withValues(alpha: .2))),
+                  child: Row(children: [
+                    Expanded(child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('Total Debit',
+                          style: TextStyle(color: style.ink,
+                            fontSize: 10,
+                            fontWeight: FontWeight.w800)),
+                        Text(money(voucher?['total_debit'],
+                          widget.app.currency),
+                          style: TextStyle(color: style.green,
+                            fontSize: 13,
+                            fontWeight: FontWeight.w900)),
+                      ])),
+                    Container(width: 1, height: 32,
+                      color: style.line),
+                    const SizedBox(width: 10),
+                    Expanded(child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('Total Credit',
+                          style: TextStyle(color: style.ink,
+                            fontSize: 10,
+                            fontWeight: FontWeight.w800)),
+                        Text(money(voucher?['total_credit'],
+                          widget.app.currency),
+                          style: TextStyle(color: style.green,
+                            fontSize: 13,
+                            fontWeight: FontWeight.w900)),
+                      ])),
                   ]),
                 ),
+                Padding(
+                  padding: const EdgeInsets.only(top: 5),
+                  child: Text('Status: ${field(voucher?['status'])}',
+                    style: TextStyle(color: style.muted,
+                      fontSize: 10))),
+              ],
               if (created && draft && canEdit)
                 TextButton.icon(
                   onPressed: saving ? null : deleteDraft,
@@ -663,9 +786,16 @@ class _VoucherEditorState extends State<VoucherEditor> {
                     color: style.scheme.error),
                   label: const Text('Delete Draft')),
               if (pendingAttempt)
-                const Text('Unconfirmed voucher. Retry original request only.'),
+                Padding(
+                  padding: const EdgeInsets.only(top: 8),
+                  child: Text('Unconfirmed voucher: only the saved '
+                    'request and idempotency key may be retried.',
+                    style: TextStyle(color: style.muted, fontSize: 10))),
               if (error != null)
-                Text(error!, style: TextStyle(color: style.scheme.error)),
+                Padding(
+                  padding: const EdgeInsets.only(top: 8),
+                  child: Text(error!, style: TextStyle(
+                    color: style.scheme.error, fontSize: 11))),
             ],
           ],
         ),
