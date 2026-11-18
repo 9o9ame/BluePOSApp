@@ -48,13 +48,13 @@ _Source: numbered 92-image reference ZIP and live Android screenshots supplied b
 | 41 | Create Purchase Return | Functional existing draft/line/post, UI enhanced; Android QA pending | Original posted purchase required by this mobile path; real supplier/warehouse/date, Supplier Reference (supported), reason/notes, returnable quantities from server; no invented adjustment type or stock total |
 | 42 | Purchase Return Detail | Real server detail and PDF, Android QA pending | Posted records read-only, actual returned-line Product/Qty/Rate/Amount table, server discount/tax/total, posted indicator and Print PDF; draft remains editable/postable by permission |
 | 43 | Expense Vouchers | Reference-style paginated server list, Android QA pending | True `/api/sales/expenses` server q/date filters, real accounts/date/reference/amount and read-only detail sheet; no unsupported expense status/number |
-| 44 | Record Expense | Reference-style functional direct-post form, Android QA pending | Verified `expense_date`, `expense_account_ulid`, `payment_account_ulid`, amount NUMERIC(20,4), reference, description; existing idempotency & confirm/retry preserved; API posts immediately, no fake Save Draft |
+| 44 | Record Expense | Compact horizontal UI redesign committed, Android QA pending | Shared inline row panel with true expense account, date, paid-from account, amount, reference, description; entered-amount-only preview; existing idempotency and immediate server posting retained. No screenshot-only payee/tax/draft |
 | 45 | Journal Vouchers | Real journal-only server directory, Android QA pending | `/api/vouchers?type=journal`, draft/posted, server amounts/narration, authorized Add Journal, lock journal editor kind, refresh after exit; existing server draft/post flows reused |
-| 46 | Create Journal Voucher | Reference editor on real voucher draft/post flow; Android QA pending | Actual `type=journal`, entry_date, server voucher_number, description/narration, book_number, debit/credit account lines, server totals. No invented journal balance calculation |
+| 46 | Create Journal Voucher | Compact horizontal UI redesign committed, Android QA pending | One grouped horizontal panel, real server voucher number/date/narration/book number, functional account-line editor and server total panel only after draft exists; no demo rows/balance badge |
 | 47 | Payments | Real `type=payment` voucher list; Android QA pending | `GET /api/vouchers?type=payment`, server-side q/status/page, authentic draft/posted status, real voucher amount/date/narration; Add Payment route |
-| 48 | Create Payment | Real Payment Voucher editor; Android QA pending | Cash/bank header account, actual account lines and amount, date/book_number/description, safe draft/post and duplicate prevention from existing voucher service. No fictitious standalone payment document API |
+| 48 | Create Payment | Compact horizontal UI redesign committed, Android QA pending | Real Cash/Bank Account header, posted/draft voucher number/date/book/description, authentic chart-of-accounts amount lines, shared footer; no unsupported invoice summary, supplier field or payment mode |
 | 49 | Receipts | Real `type=receiving` voucher list; Android QA pending | `GET /api/vouchers?type=receiving` using authorized actual voucher fields and Add Receipt |
-| 50 | Create Receipt | Real Receiving Voucher editor; Android QA pending | Cash/bank header, account lines/amount and real draft/post; no invented invoice settlement/payment mode fields |
+| 50 | Create Receipt | Compact horizontal UI redesign committed, Android QA pending | Shared inline receiving voucher entry with genuine cash/bank header, date/book/description, account amount lines and server Draft/Post; no fake invoice/customer fields |
 | 51–92 | Future references | Not implemented in this batch | Next screens 51–55. Verify visual reference and web APIs before modifying |
 
 ## Current fixes from user feedback
@@ -184,6 +184,20 @@ Visual images guide **appearance only**, not server field availability.
 - `docs/MOBILE_NEXT_CHAT_HANDOFF.md`: updated current-first summary.
 
 **Validation status:** GitHub file commits and static delimiter checks only; Flutter/Dart SDK absent in this execution environment. **Not yet confirmed:** `flutter analyze`, widget tests, on-device 360px layout, real tenant permissions, actual voucher post/retry and cross-tenant tests. Never run posting tests against persistent development DB; use `bluepos_test`. No backend changes or migrations. Frozen Sales Invoice layout untouched. Next batch **51–55** after checks.
+
+## Android screenshot rejection and corrective UI pass — 2026-11-18
+
+**User supplied side-by-side screenshots for 44 / 46 / 48 / 50 and explicitly rejected the old visual quality.** Previous mobile implementation showed separate tall stacked cards; reference uses compact single-card horizontal rows, colored icon chips, right-aligned controls, dense voucher-account lines and focused total panels. That mismatch was real and is not considered approved.
+
+**Committed targeted changes:**
+- `lib/widgets/reference_surface.dart`: new reusable `BpReferenceInlineRow` and `BpReferenceInlinePanel` with shared height, icon treatment, labels, inset control slot and row separators; theme-aware surfaces. Changes are additive, not global replacements.
+- `lib/screens/vouchers.dart`: replaces prior bloated `referenceEditor` for 46/48/50 with grouped compact icon/label/control rows, optional Cash/Bank selector for Payment/Receiving, dense account lines with real account/code and line amounts, plus server-debit/credit totals only when a real document exists. Keeps `chooseDate`, `chooseHeader`, `addLine`, `save`, `post`, `refresh`, draft deletion, RBAC and persisted idempotent attempts intact. Voucher number is read-only and server-generated.
+- `lib/screens/money_actions.dart`: 44 Expense entry now uses the same shared inline panel, functional existing account/date selectors, editable amount/reference/description and a clearly **input-only** amount preview (not tax arithmetic or an invented computed total). Direct server-post confirmation unchanged.
+- `test/mobile_reference_46_50_test.dart`: added a narrow 360px layout/picker interaction smoke test for shared inline panels. The existing voucher-kind/decimal/footer tests remain.
+- **No backend, schema, migration, account-balance computation or posted-record updates.** Reference image sample vouchers, accounts, invoices and amounts were not inserted.
+- **Pending:** Flutter `analyze`, focused widget tests, a fresh Android build/screenshot and side-by-side visual acceptance at 360–390dp. This pass is a real committed code change, **not** proof of pixel-perfect match. Next priority is to fix any new analyzer error before screens 51–55.
+
+**Design/API boundary:** The provided 48/50 mockups depict invoice-specific settlement (payee, purchase/sales invoice, balance, payment mode) but the implemented menu actions are generic manual `/api/vouchers` Payment/Receiving types, which **do not have those request fields**. Keep them absent until a dedicated invoice-payment flow is explicitly scoped and verified. The web `PROJECT_UI_DESIGN_SYSTEM.md` confirms voucher colors and the single shared-component principle; the mobile repository has separate Flutter widgets.
 
 ## Validation
 
