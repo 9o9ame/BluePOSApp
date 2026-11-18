@@ -649,20 +649,39 @@ class _VoucherEditorState extends State<VoucherEditor> {
                   ]),
                 ),
                 if (rows.isEmpty)
-                  Padding(
+                InkWell(
+                  key: const ValueKey('voucher-empty-account-line'),
+                  onTap: editable && canEdit ? () => addLine() : null,
+                  child: Padding(
                     padding: const EdgeInsets.symmetric(
-                      horizontal: 12, vertical: 11),
+                      horizontal: 10, vertical: 9),
                     child: Row(children: [
-                      Icon(Icons.info_outline_rounded, size: 17,
-                        color: style.muted),
+                      Container(
+                        width: 31, height: 34,
+                        decoration: BoxDecoration(
+                          color: tone.withValues(alpha: .10),
+                          borderRadius: BorderRadius.circular(8)),
+                        child: Icon(Icons.account_balance_outlined,
+                          color: tone, size: 18)),
                       const SizedBox(width: 8),
-                      Expanded(child: Text(
-                        'No account lines added. Choose Add Line to '
-                        'select an authorized account and amount.',
-                        style: TextStyle(fontSize: 10.5,
-                          color: style.muted))),
+                      Expanded(child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text('Select account',
+                            style: TextStyle(color: style.ink,
+                              fontSize: 11,
+                              fontWeight: FontWeight.w800)),
+                          Text(journal ? 'Set debit or credit amount'
+                            : 'Enter payment / receipt amount',
+                            style: TextStyle(color: style.muted,
+                              fontSize: 10)),
+                        ])),
+                      if (editable && canEdit)
+                        Icon(Icons.add_circle_outline_rounded,
+                          color: tone, size: 21),
                     ]),
-                  )
+                  ),
+                )
                 else for (final row in rows)
                   Padding(
                     padding: const EdgeInsets.symmetric(
