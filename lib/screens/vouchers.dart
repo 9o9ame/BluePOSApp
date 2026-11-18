@@ -101,6 +101,43 @@ class JournalVoucherDirectoryScreen extends StatelessWidget {
   );
 }
 
+/// Payments and Receipts in the reference are the existing manual
+/// Payment/Receiving Voucher types, not invented invoice payment endpoints.
+class CashVoucherDirectoryScreen extends StatelessWidget {
+  const CashVoucherDirectoryScreen({
+    super.key, required this.app, required this.kind,
+  }) : assert(kind == VoucherKind.payment || kind == VoucherKind.receiving);
+  final AppController app;
+  final VoucherKind kind;
+
+  @override
+  Widget build(BuildContext context) => TransactionDirectory(
+    app: app,
+    title: kind == VoucherKind.payment ? 'Payments' : 'Receipts',
+    endpoint: '/api/vouchers?type=${kind.apiName}',
+    numberKey: 'voucher_number',
+    dateKey: 'entry_date',
+    amountKey: 'total_debit',
+    referenceStyle: true,
+    createPermission: 'vouchers.create',
+    onCreate: (ctx) async {
+      await Navigator.push<void>(ctx,
+        MaterialPageRoute(builder: (_) => VoucherEditor(
+          app: app, initialKind: kind, lockInitialKind: true)));
+      return true;
+    },
+    onOpen: (ctx, row) async {
+      final ulid = field(row['ulid']);
+      if (!validPublicUlid(ulid)) return false;
+      await Navigator.push<void>(ctx,
+        MaterialPageRoute(builder: (_) => VoucherEditor(
+          app: app, voucherUlid: ulid,
+          initialKind: kind, lockInitialKind: true)));
+      return true;
+    },
+  );
+}
+
 /// Payment/receiving cash header, general journal and opening entries use the
 /// same authoritative ManageVoucherAction on the existing Laravel backend.
 class VoucherEditor extends StatefulWidget {
